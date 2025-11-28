@@ -81,6 +81,14 @@ export default {
           busy: "rgb(239 68 68)",
           offline: "rgb(156 163 175)",
         },
+        lottery: {
+          ball: {
+            main: "hsl(var(--lottery-ball-main) / <alpha-value>)",
+            bonus: "hsl(var(--lottery-ball-bonus) / <alpha-value>)",
+          },
+          hot: "hsl(var(--lottery-hot) / <alpha-value>)",
+          cold: "hsl(var(--lottery-cold) / <alpha-value>)",
+        },
       },
       fontFamily: {
         sans: ["var(--font-sans)"],
