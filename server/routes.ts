@@ -2,8 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { scrapeLotteryResults } from "./scraper";
-import { 
-  insertLotteryResultSchema, 
+import {
+  insertLotteryResultSchema,
   insertNewsArticleSchema,
   adminLoginSchema,
   insertScraperSettingSchema,
@@ -25,11 +25,11 @@ export async function registerRoutes(
       if (!parsed.success) {
         return res.status(400).json({ error: "Invalid request" });
       }
-      
+
       if (parsed.data.password === ADMIN_PASSWORD) {
         return res.json({ success: true, message: "Login successful" });
       }
-      
+
       return res.status(401).json({ error: "Invalid password" });
     } catch (error) {
       return res.status(500).json({ error: "Internal server error" });
@@ -51,6 +51,7 @@ export async function registerRoutes(
       if (!game) {
         return res.status(404).json({ error: "Game not found" });
       }
+      console.log(`[DEBUG] Game data for ${req.params.slug}:`, JSON.stringify(game, null, 2));
       res.json(game);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch game" });
@@ -78,6 +79,7 @@ export async function registerRoutes(
   app.get("/api/results/game/:slug", async (req, res) => {
     try {
       const results = await storage.getResultsByGameSlug(req.params.slug);
+      console.log(`[DEBUG] Results for ${req.params.slug}:`, JSON.stringify(results, null, 2));
       res.json(results);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch game results" });
@@ -88,14 +90,14 @@ export async function registerRoutes(
     try {
       const groupSlug = req.params.groupSlug;
       const group = LOTTERY_GROUPS[groupSlug];
-      
+
       if (!group) {
         return res.status(404).json({ error: "Game group not found" });
       }
-      
+
       const groupedResults: Record<string, any[]> = {};
       const latestResults: Record<string, any> = {};
-      
+
       for (const slug of group.slugs) {
         const results = await storage.getResultsByGameSlug(slug);
         groupedResults[slug] = results;
@@ -103,7 +105,7 @@ export async function registerRoutes(
           latestResults[slug] = results[0];
         }
       }
-      
+
       res.json({
         group: {
           slug: groupSlug,
@@ -127,7 +129,7 @@ export async function registerRoutes(
       const sastTime = new Date(now.getTime() + (sastOffset + localOffset) * 60000);
       sastTime.setDate(sastTime.getDate() - 1);
       const yesterdayDate = sastTime.toISOString().split("T")[0];
-      
+
       const allResults = await storage.getResults();
       const yesterdayResults = allResults.filter(r => r.drawDate === yesterdayDate);
       res.json(yesterdayResults);
@@ -143,16 +145,16 @@ export async function registerRoutes(
       const localOffset = now.getTimezoneOffset();
       const sastTime = new Date(now.getTime() + (sastOffset + localOffset) * 60000);
       const todayDate = sastTime.toISOString().split("T")[0];
-      
+
       const games = await storage.getGames();
       const allResults = await storage.getResults();
       const todayResults = allResults.filter(r => r.drawDate === todayDate);
-      
+
       const gamesWithResults = games.map(game => {
         const result = todayResults.find(r => r.gameSlug === game.slug) || null;
         return { game, result };
       });
-      
+
       res.json({
         date: todayDate,
         games: gamesWithResults
@@ -180,19 +182,19 @@ export async function registerRoutes(
       if (!parsed.success) {
         return res.status(400).json({ error: "Invalid result data", details: parsed.error });
       }
-      
+
       const existingResults = await storage.getResultsByGameSlug(parsed.data.gameSlug);
       const duplicate = existingResults.find(
         r => r.drawDate === parsed.data.drawDate && r.gameSlug === parsed.data.gameSlug
       );
-      
+
       if (duplicate) {
-        return res.status(409).json({ 
-          error: "Duplicate result", 
-          message: `A result for ${parsed.data.gameName} on ${parsed.data.drawDate} already exists.` 
+        return res.status(409).json({
+          error: "Duplicate result",
+          message: `A result for ${parsed.data.gameName} on ${parsed.data.drawDate} already exists.`
         });
       }
-      
+
       const result = await storage.createResult(parsed.data);
       res.status(201).json(result);
     } catch (error) {
@@ -252,7 +254,7 @@ export async function registerRoutes(
       if (!parsed.success) {
         return res.status(400).json({ error: "Invalid article data", details: parsed.error });
       }
-      
+
       const article = await storage.createNews(parsed.data);
       res.status(201).json(article);
     } catch (error) {
@@ -265,11 +267,11 @@ export async function registerRoutes(
       const existingById = await storage.getNewsById(req.params.id);
       const existingBySlug = await storage.getNewsBySlug(req.params.id);
       const existing = existingById || existingBySlug;
-      
+
       if (!existing) {
         return res.status(404).json({ error: "Article not found" });
       }
-      
+
       const article = await storage.updateNews(existing.id, req.body);
       res.json(article);
     } catch (error) {
@@ -292,29 +294,29 @@ export async function registerRoutes(
   app.post("/api/scrape", async (req, res) => {
     try {
       const scrapedResults = await scrapeLotteryResults();
-      
+
       let addedCount = 0;
       for (const result of scrapedResults) {
         const existingResults = await storage.getResultsByGameSlug(result.gameSlug);
         const exists = existingResults.some(
           r => r.drawDate === result.drawDate && r.gameSlug === result.gameSlug
         );
-        
+
         if (!exists) {
           await storage.createResult(result);
           addedCount++;
         }
       }
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         message: `Scraped ${scrapedResults.length} results, added ${addedCount} new results`,
         scraped: scrapedResults.length,
         added: addedCount
       });
     } catch (error) {
       console.error("Scraping error:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: "Failed to scrape results",
         message: error instanceof Error ? error.message : "Unknown error"
       });
@@ -325,14 +327,14 @@ export async function registerRoutes(
     try {
       const { groupSlug, date } = req.params;
       const group = LOTTERY_GROUPS[groupSlug];
-      
+
       if (!group) {
         return res.status(404).json({ error: "Game group not found" });
       }
-      
+
       const results: Record<string, any> = {};
       const allDates: string[] = [];
-      
+
       for (const slug of group.slugs) {
         const gameResults = await storage.getResultsByGameSlug(slug);
         gameResults.forEach(r => {
@@ -345,12 +347,12 @@ export async function registerRoutes(
           results[slug] = dateResult;
         }
       }
-      
+
       allDates.sort((a, b) => a.localeCompare(b));
       const dateIndex = allDates.indexOf(date);
       const previousDate = dateIndex > 0 ? allDates[dateIndex - 1] : null;
       const nextDate = dateIndex < allDates.length - 1 ? allDates[dateIndex + 1] : null;
-      
+
       res.json({
         date,
         groupSlug,
@@ -369,11 +371,11 @@ export async function registerRoutes(
     try {
       const allResults = await storage.getResultsByGameSlug(req.params.gameSlug);
       const drawCount = parseInt(req.query.draws as string) || 15;
-      
+
       if (allResults.length === 0) {
-        return res.json({ 
-          hotNumbers: [], 
-          coldNumbers: [], 
+        return res.json({
+          hotNumbers: [],
+          coldNumbers: [],
           frequencyMap: {},
           dateRange: { from: null, to: null },
           totalDraws: 0
@@ -387,7 +389,7 @@ export async function registerRoutes(
       };
 
       const frequencyMap: Record<number, number> = {};
-      
+
       results.forEach(result => {
         result.winningNumbers.forEach(num => {
           frequencyMap[num] = (frequencyMap[num] || 0) + 1;
@@ -399,7 +401,7 @@ export async function registerRoutes(
         .sort((a, b) => b.count - a.count);
 
       const hotNumbers = sortedNumbers.slice(0, 5);
-      
+
       const coldNumbers = sortedNumbers
         .sort((a, b) => a.count - b.count)
         .slice(0, 5);
@@ -429,11 +431,11 @@ export async function registerRoutes(
   app.post("/api/scraper-settings", async (req, res) => {
     try {
       const { gameSlug, isEnabled, scheduleTime } = req.body;
-      
+
       if (!gameSlug || typeof gameSlug !== 'string') {
         return res.status(400).json({ error: "gameSlug is required" });
       }
-      
+
       const setting = await storage.upsertScraperSetting({
         gameSlug,
         isEnabled: isEnabled ?? true,
@@ -494,7 +496,7 @@ export async function registerRoutes(
       for (const [groupSlug, group] of Object.entries(LOTTERY_GROUPS)) {
         datesByGroup[groupSlug] = new Set();
       }
-      
+
       allResults.forEach(result => {
         const groupInfo = getGroupForSlug(result.gameSlug);
         if (groupInfo) {
