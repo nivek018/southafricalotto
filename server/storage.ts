@@ -1,9 +1,9 @@
-import { 
-  type User, 
-  type InsertUser, 
-  type LotteryGame, 
+import {
+  type User,
+  type InsertUser,
+  type LotteryGame,
   type InsertLotteryGame,
-  type LotteryResult, 
+  type LotteryResult,
   type InsertLotteryResult,
   type NewsArticle,
   type InsertNewsArticle,
@@ -17,16 +17,17 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
+import { randomUUID } from "crypto";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  
+
   getGames(): Promise<LotteryGame[]>;
   getGameBySlug(slug: string): Promise<LotteryGame | undefined>;
   createGame(game: InsertLotteryGame): Promise<LotteryGame>;
-  
+
   getResults(): Promise<LotteryResult[]>;
   getLatestResults(): Promise<LotteryResult[]>;
   getResultsByGameSlug(gameSlug: string): Promise<LotteryResult[]>;
@@ -34,7 +35,7 @@ export interface IStorage {
   createResult(result: InsertLotteryResult): Promise<LotteryResult>;
   updateResult(id: string, result: Partial<InsertLotteryResult>): Promise<LotteryResult | undefined>;
   deleteResult(id: string): Promise<boolean>;
-  
+
   getNews(): Promise<NewsArticle[]>;
   getPublishedNews(): Promise<NewsArticle[]>;
   getNewsBySlug(slug: string): Promise<NewsArticle | undefined>;
@@ -42,11 +43,11 @@ export interface IStorage {
   createNews(article: InsertNewsArticle): Promise<NewsArticle>;
   updateNews(id: string, article: Partial<InsertNewsArticle>): Promise<NewsArticle | undefined>;
   deleteNews(id: string): Promise<boolean>;
-  
+
   getScraperSettings(): Promise<ScraperSetting[]>;
   getScraperSettingByGameSlug(gameSlug: string): Promise<ScraperSetting | undefined>;
   upsertScraperSetting(setting: InsertScraperSetting): Promise<ScraperSetting>;
-  
+
   initializeDefaultData(): Promise<void>;
 }
 
@@ -62,7 +63,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(insertUser).returning();
+    const id = randomUUID();
+    await db.insert(users).values({ ...insertUser, id });
+    const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
   }
 
@@ -76,7 +79,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createGame(insertGame: InsertLotteryGame): Promise<LotteryGame> {
-    const [game] = await db.insert(lotteryGames).values(insertGame).returning();
+    const id = randomUUID();
+    await db.insert(lotteryGames).values({ ...insertGame, id });
+    const [game] = await db.select().from(lotteryGames).where(eq(lotteryGames.id, id));
     return game;
   }
 
@@ -87,13 +92,13 @@ export class DatabaseStorage implements IStorage {
   async getLatestResults(): Promise<LotteryResult[]> {
     const allResults = await db.select().from(lotteryResults).orderBy(desc(lotteryResults.drawDate));
     const latestByGame = new Map<string, LotteryResult>();
-    
+
     allResults.forEach(result => {
       if (!latestByGame.has(result.gameSlug)) {
         latestByGame.set(result.gameSlug, result);
       }
     });
-    
+
     return Array.from(latestByGame.values());
   }
 
@@ -110,15 +115,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createResult(insertResult: InsertLotteryResult): Promise<LotteryResult> {
-    const [result] = await db.insert(lotteryResults).values(insertResult).returning();
+    const id = randomUUID();
+    await db.insert(lotteryResults).values({ ...insertResult, id });
+    const [result] = await db.select().from(lotteryResults).where(eq(lotteryResults.id, id));
     return result;
   }
 
   async updateResult(id: string, updateData: Partial<InsertLotteryResult>): Promise<LotteryResult | undefined> {
-    const [result] = await db.update(lotteryResults)
+    await db.update(lotteryResults)
       .set(updateData)
-      .where(eq(lotteryResults.id, id))
-      .returning();
+      .where(eq(lotteryResults.id, id));
+    const [result] = await db.select().from(lotteryResults).where(eq(lotteryResults.id, id));
     return result;
   }
 
@@ -149,15 +156,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createNews(insertArticle: InsertNewsArticle): Promise<NewsArticle> {
-    const [article] = await db.insert(newsArticles).values(insertArticle).returning();
+    const id = randomUUID();
+    await db.insert(newsArticles).values({ ...insertArticle, id });
+    const [article] = await db.select().from(newsArticles).where(eq(newsArticles.id, id));
     return article;
   }
 
   async updateNews(id: string, updateData: Partial<InsertNewsArticle>): Promise<NewsArticle | undefined> {
-    const [article] = await db.update(newsArticles)
+    await db.update(newsArticles)
       .set(updateData)
-      .where(eq(newsArticles.id, id))
-      .returning();
+      .where(eq(newsArticles.id, id));
+    const [article] = await db.select().from(newsArticles).where(eq(newsArticles.id, id));
     return article;
   }
 
@@ -178,13 +187,15 @@ export class DatabaseStorage implements IStorage {
   async upsertScraperSetting(setting: InsertScraperSetting): Promise<ScraperSetting> {
     const existing = await this.getScraperSettingByGameSlug(setting.gameSlug);
     if (existing) {
-      const [updated] = await db.update(scraperSettings)
+      await db.update(scraperSettings)
         .set(setting)
-        .where(eq(scraperSettings.gameSlug, setting.gameSlug))
-        .returning();
+        .where(eq(scraperSettings.gameSlug, setting.gameSlug));
+      const [updated] = await db.select().from(scraperSettings).where(eq(scraperSettings.gameSlug, setting.gameSlug));
       return updated;
     }
-    const [created] = await db.insert(scraperSettings).values(setting).returning();
+    const id = randomUUID();
+    await db.insert(scraperSettings).values({ ...setting, id });
+    const [created] = await db.select().from(scraperSettings).where(eq(scraperSettings.id, id));
     return created;
   }
 
@@ -194,87 +205,87 @@ export class DatabaseStorage implements IStorage {
       console.log("Database already has data, skipping initialization");
       return;
     }
-    
+
     console.log("Initializing default data...");
 
     const defaultGames: InsertLotteryGame[] = [
-      { 
-        name: "Powerball", 
-        slug: "powerball", 
+      {
+        name: "Powerball",
+        slug: "powerball",
         description: "South Africa's biggest lottery game with massive jackpots",
-        numberCount: 5, 
-        maxNumber: 50, 
-        hasBonusBall: true, 
+        numberCount: 5,
+        maxNumber: 50,
+        hasBonusBall: true,
         bonusMaxNumber: 20,
         drawDays: ["Tuesday", "Friday"],
         drawTime: "21:00",
         isActive: true
       },
-      { 
-        name: "Powerball Plus", 
-        slug: "powerball-plus", 
+      {
+        name: "Powerball Plus",
+        slug: "powerball-plus",
         description: "Add-on game for Powerball players",
-        numberCount: 5, 
-        maxNumber: 50, 
-        hasBonusBall: true, 
+        numberCount: 5,
+        maxNumber: 50,
+        hasBonusBall: true,
         bonusMaxNumber: 20,
         drawDays: ["Tuesday", "Friday"],
         drawTime: "21:00",
         isActive: true
       },
-      { 
-        name: "Lotto", 
-        slug: "lotto", 
+      {
+        name: "Lotto",
+        slug: "lotto",
         description: "Classic 6-ball lottery game",
-        numberCount: 6, 
-        maxNumber: 52, 
-        hasBonusBall: true, 
+        numberCount: 6,
+        maxNumber: 52,
+        hasBonusBall: true,
         bonusMaxNumber: 52,
         drawDays: ["Wednesday", "Saturday"],
         drawTime: "21:00",
         isActive: true
       },
-      { 
-        name: "Lotto Plus 1", 
-        slug: "lotto-plus-1", 
+      {
+        name: "Lotto Plus 1",
+        slug: "lotto-plus-1",
         description: "First add-on game for Lotto",
-        numberCount: 6, 
-        maxNumber: 52, 
-        hasBonusBall: true, 
+        numberCount: 6,
+        maxNumber: 52,
+        hasBonusBall: true,
         bonusMaxNumber: 52,
         drawDays: ["Wednesday", "Saturday"],
         drawTime: "21:00",
         isActive: true
       },
-      { 
-        name: "Lotto Plus 2", 
-        slug: "lotto-plus-2", 
+      {
+        name: "Lotto Plus 2",
+        slug: "lotto-plus-2",
         description: "Second add-on game for Lotto",
-        numberCount: 6, 
-        maxNumber: 52, 
-        hasBonusBall: true, 
+        numberCount: 6,
+        maxNumber: 52,
+        hasBonusBall: true,
         bonusMaxNumber: 52,
         drawDays: ["Wednesday", "Saturday"],
         drawTime: "21:00",
         isActive: true
       },
-      { 
-        name: "Daily Lotto", 
-        slug: "daily-lotto", 
+      {
+        name: "Daily Lotto",
+        slug: "daily-lotto",
         description: "Daily draw with 5 numbers",
-        numberCount: 5, 
-        maxNumber: 36, 
+        numberCount: 5,
+        maxNumber: 36,
         hasBonusBall: false,
         drawDays: ["Daily"],
         drawTime: "21:00",
         isActive: true
       },
-      { 
-        name: "Daily Lotto Plus", 
-        slug: "daily-lotto-plus", 
+      {
+        name: "Daily Lotto Plus",
+        slug: "daily-lotto-plus",
         description: "Add-on for Daily Lotto",
-        numberCount: 5, 
-        maxNumber: 36, 
+        numberCount: 5,
+        maxNumber: 36,
         hasBonusBall: false,
         drawDays: ["Daily"],
         drawTime: "21:00",
