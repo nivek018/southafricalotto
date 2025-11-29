@@ -6,7 +6,9 @@ import {
   insertLotteryResultSchema, 
   insertNewsArticleSchema,
   adminLoginSchema,
-  insertScraperSettingSchema
+  insertScraperSettingSchema,
+  LOTTERY_GROUPS,
+  getGroupForSlug
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -79,6 +81,41 @@ export async function registerRoutes(
       res.json(results);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch game results" });
+    }
+  });
+
+  app.get("/api/results/group/:groupSlug", async (req, res) => {
+    try {
+      const groupSlug = req.params.groupSlug;
+      const group = LOTTERY_GROUPS[groupSlug];
+      
+      if (!group) {
+        return res.status(404).json({ error: "Game group not found" });
+      }
+      
+      const groupedResults: Record<string, any[]> = {};
+      const latestResults: Record<string, any> = {};
+      
+      for (const slug of group.slugs) {
+        const results = await storage.getResultsByGameSlug(slug);
+        groupedResults[slug] = results;
+        if (results.length > 0) {
+          latestResults[slug] = results[0];
+        }
+      }
+      
+      res.json({
+        group: {
+          slug: groupSlug,
+          name: group.name,
+          description: group.description,
+          variants: group.slugs
+        },
+        latestResults,
+        allResults: groupedResults
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch grouped results" });
     }
   });
 

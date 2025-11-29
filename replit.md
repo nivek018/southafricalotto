@@ -50,7 +50,11 @@ A lottery results news website for Africa, similar to africanlottery.net. Featur
 ## Features
 1. **Public Pages**:
    - Homepage with latest lottery results
-   - Individual game pages with result history and "View Complete Draw History" button
+   - Grouped game pages showing all variants together:
+     - /game/powerball shows Powerball + Powerball Plus
+     - /game/lotto shows Lotto + Lotto Plus 1 + Lotto Plus 2
+     - /game/daily-lotto shows Daily Lotto + Daily Lotto Plus
+   - Individual game pages with "View Complete Draw History" button
    - SEO-optimized Yesterday pages with cross-navigation links:
      - /lotto-result/yesterday (all games)
      - /powerball-result/yesterday (Powerball & Powerball Plus)
@@ -95,6 +99,7 @@ A lottery results news website for Africa, similar to africanlottery.net. Featur
 - `GET /api/results` - List all results
 - `GET /api/results/latest` - Get latest results per game
 - `GET /api/results/game/:slug` - Get results by game
+- `GET /api/results/group/:groupSlug` - Get grouped results for lottery families (powerball, lotto, daily-lotto)
 - `GET /api/results/yesterday` - Get yesterday's results
 - `GET /api/news` - List all news articles
 - `GET /api/news/:slug` - Get article by slug
@@ -156,3 +161,6 @@ The workflow named 'Start application' runs `npm run dev` which starts the Expre
 - Added cross-navigation links between all yesterday result pages
 - Fixed React hooks error in game.tsx by moving useEffect before conditional returns
 - Added "View Complete Draw History" button to individual game pages
+- Added LOTTERY_GROUPS constant in shared/schema.ts for grouping lottery families
+- Created /api/results/group/:groupSlug endpoint for fetching grouped results
+- Updated game pages to show all variants together (e.g., /game/powerball shows Powerball + Powerball Plus)

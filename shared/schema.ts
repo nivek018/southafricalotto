@@ -134,3 +134,30 @@ export const scraperSettingsFormSchema = z.object({
 });
 
 export type ScraperSettingsForm = z.infer<typeof scraperSettingsFormSchema>;
+
+export const LOTTERY_GROUPS: Record<string, { name: string; slugs: string[]; description: string }> = {
+  "powerball": {
+    name: "Powerball",
+    slugs: ["powerball", "powerball-plus"],
+    description: "South Africa's biggest lottery with massive jackpots. Choose 5 numbers from 1-50 and 1 Powerball from 1-20."
+  },
+  "lotto": {
+    name: "Lotto",
+    slugs: ["lotto", "lotto-plus-1", "lotto-plus-2"],
+    description: "South Africa's original lottery game. Choose 6 numbers from 1-52 for a chance to win the jackpot."
+  },
+  "daily-lotto": {
+    name: "Daily Lotto",
+    slugs: ["daily-lotto", "daily-lotto-plus"],
+    description: "Play daily for a chance to win. Choose 5 numbers from 1-36 with draws every day."
+  }
+};
+
+export function getGroupForSlug(slug: string): { groupSlug: string; group: typeof LOTTERY_GROUPS[string] } | null {
+  for (const [groupSlug, group] of Object.entries(LOTTERY_GROUPS)) {
+    if (group.slugs.includes(slug)) {
+      return { groupSlug, group };
+    }
+  }
+  return null;
+}
