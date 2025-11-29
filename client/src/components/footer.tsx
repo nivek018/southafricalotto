@@ -50,14 +50,19 @@ export function Footer() {
             <h3 className="font-semibold mb-4">Information</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <span className="text-muted-foreground">
-                  Draws: Tue, Wed, Sat at 9:00 PM
-                </span>
+                <Link href="/about" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-footer-about">
+                  About Us
+                </Link>
               </li>
               <li>
-                <span className="text-muted-foreground">
-                  Daily Lotto: Every day 9:00 PM
-                </span>
+                <Link href="/contact" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-footer-contact">
+                  Contact Us
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-footer-privacy">
+                  Privacy Policy
+                </Link>
               </li>
               <li>
                 <Link href="/admin" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-footer-admin">

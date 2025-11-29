@@ -35,7 +35,7 @@ export function LotteryResultCard({ result }: LotteryResultCardProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-wrap items-center gap-2">
-          {result.winningNumbers.map((num, idx) => (
+          {result.winningNumbers?.map((num, idx) => (
             <LotteryBall key={idx} number={num} size="md" />
           ))}
           {result.bonusNumber && (

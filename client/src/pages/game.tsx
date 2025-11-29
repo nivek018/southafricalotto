@@ -105,7 +105,7 @@ export default function GamePage() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="flex flex-wrap justify-center items-center gap-3">
-                    {latestResult.winningNumbers.map((num, idx) => (
+                    {latestResult.winningNumbers?.map((num, idx) => (
                       <LotteryBall key={idx} number={num} size="lg" />
                     ))}
                     {latestResult.bonusNumber && (
@@ -161,7 +161,7 @@ export default function GamePage() {
                               </Badge>
                             </div>
                             <div className="flex flex-wrap items-center gap-2">
-                              {result.winningNumbers.map((num, idx) => (
+                              {result.winningNumbers?.map((num, idx) => (
                                 <LotteryBall key={idx} number={num} size="sm" />
                               ))}
                               {result.bonusNumber && (

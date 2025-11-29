@@ -3,8 +3,10 @@ import { useLocation, Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { 
@@ -12,11 +14,12 @@ import {
   LogOut, 
   Newspaper, 
   RefreshCw, 
-  Plus,
   Database,
-  Download
+  Download,
+  Settings,
+  Clock
 } from "lucide-react";
-import type { LotteryResult, NewsArticle } from "@shared/schema";
+import type { LotteryResult, NewsArticle, LotteryGame, ScraperSetting } from "@shared/schema";
 import AdminResults from "@/pages/admin-results";
 import AdminNews from "@/pages/admin-news";
 
@@ -24,6 +27,7 @@ export default function AdminDashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("results");
+  const [globalScheduleTime, setGlobalScheduleTime] = useState("21:30");
 
   useEffect(() => {
     const isAuth = localStorage.getItem("adminAuth");
@@ -38,6 +42,14 @@ export default function AdminDashboard() {
 
   const { data: news } = useQuery<NewsArticle[]>({
     queryKey: ["/api/news"],
+  });
+
+  const { data: games } = useQuery<LotteryGame[]>({
+    queryKey: ["/api/games"],
+  });
+
+  const { data: scraperSettings } = useQuery<ScraperSetting[]>({
+    queryKey: ["/api/scraper-settings"],
   });
 
   const scrapeMutation = useMutation({
@@ -62,12 +74,70 @@ export default function AdminDashboard() {
     },
   });
 
+  const settingsMutation = useMutation({
+    mutationFn: async (setting: { gameSlug: string; isEnabled: boolean; scheduleTime?: string }) => {
+      const res = await apiRequest("POST", "/api/scraper-settings", setting);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/scraper-settings"] });
+      toast({
+        title: "Settings Saved",
+        description: "Scraper settings have been updated.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Failed to Save",
+        description: "Could not save scraper settings. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleLogout = () => {
     localStorage.removeItem("adminAuth");
     setLocation("/admin");
     toast({
       title: "Logged Out",
       description: "You have been logged out successfully.",
+    });
+  };
+
+  const getSettingForGame = (gameSlug: string): ScraperSetting | undefined => {
+    return scraperSettings?.find(s => s.gameSlug === gameSlug);
+  };
+
+  const handleToggle = (gameSlug: string, currentlyEnabled: boolean) => {
+    const setting = getSettingForGame(gameSlug);
+    settingsMutation.mutate({
+      gameSlug,
+      isEnabled: !currentlyEnabled,
+      scheduleTime: setting?.scheduleTime || globalScheduleTime,
+    });
+  };
+
+  const handleScheduleUpdate = (gameSlug: string, time: string) => {
+    const setting = getSettingForGame(gameSlug);
+    settingsMutation.mutate({
+      gameSlug,
+      isEnabled: setting?.isEnabled ?? true,
+      scheduleTime: time,
+    });
+  };
+
+  const applyGlobalSchedule = () => {
+    games?.forEach((game) => {
+      const setting = getSettingForGame(game.slug);
+      settingsMutation.mutate({
+        gameSlug: game.slug,
+        isEnabled: setting?.isEnabled ?? true,
+        scheduleTime: globalScheduleTime,
+      });
+    });
+    toast({
+      title: "Global Schedule Applied",
+      description: `All games updated to run at ${globalScheduleTime}`,
     });
   };
 
@@ -163,6 +233,7 @@ export default function AdminDashboard() {
               News Articles
             </TabsTrigger>
             <TabsTrigger value="settings" data-testid="tab-settings">
+              <Settings className="h-4 w-4 mr-2" />
               Settings
             </TabsTrigger>
           </TabsList>
@@ -176,17 +247,114 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="settings" className="mt-6">
-            <div className="max-w-2xl">
+            <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Scraper Settings</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="h-5 w-5" />
+                    Global Schedule Time
+                  </CardTitle>
                   <CardDescription>
-                    Configure automated web scraping for lottery results
+                    Set the default time for the scraper to run (draws happen at 21:00)
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <Input
+                      type="time"
+                      value={globalScheduleTime}
+                      onChange={(e) => setGlobalScheduleTime(e.target.value)}
+                      className="w-32"
+                      data-testid="input-global-schedule"
+                    />
+                    <Button 
+                      variant="outline" 
+                      onClick={applyGlobalSchedule}
+                      disabled={settingsMutation.isPending}
+                      data-testid="button-apply-global-schedule"
+                    >
+                      Apply to All Games
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      Recommended: 21:30 (30 minutes after draw)
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Game Scraper Controls</CardTitle>
+                  <CardDescription>
+                    Enable or disable automatic scraping for each lottery game
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {games?.map((game) => {
+                      const setting = getSettingForGame(game.slug);
+                      const isEnabled = setting?.isEnabled ?? true;
+                      const scheduleTime = setting?.scheduleTime || globalScheduleTime;
+                      
+                      return (
+                        <div key={game.slug} className="flex items-center justify-between py-3 border-b last:border-0">
+                          <div className="flex items-center gap-4">
+                            <Switch
+                              id={`scraper-${game.slug}`}
+                              checked={isEnabled}
+                              onCheckedChange={() => handleToggle(game.slug, isEnabled)}
+                              disabled={settingsMutation.isPending}
+                              data-testid={`switch-scraper-${game.slug}`}
+                            />
+                            <div>
+                              <Label htmlFor={`scraper-${game.slug}`} className="font-medium cursor-pointer">
+                                {game.name}
+                              </Label>
+                              <p className="text-xs text-muted-foreground">
+                                Draw days: {game.drawDays?.join(", ") || "N/A"}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="time"
+                              value={scheduleTime}
+                              onChange={(e) => handleScheduleUpdate(game.slug, e.target.value)}
+                              className="w-28 text-sm"
+                              disabled={!isEnabled || settingsMutation.isPending}
+                              data-testid={`input-schedule-${game.slug}`}
+                            />
+                            <span className={`text-xs px-2 py-1 rounded ${isEnabled ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"}`}>
+                              {isEnabled ? "Active" : "Disabled"}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Manual Scraping</CardTitle>
+                  <CardDescription>
+                    Manually trigger the web scraper to fetch the latest results
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  <Button
+                    onClick={() => scrapeMutation.mutate()}
+                    disabled={scrapeMutation.isPending}
+                    className="w-full md:w-auto"
+                    data-testid="button-manual-scrape"
+                  >
+                    <RefreshCw className={`h-4 w-4 mr-2 ${scrapeMutation.isPending ? "animate-spin" : ""}`} />
+                    {scrapeMutation.isPending ? "Scraping..." : "Run Scraper Now"}
+                  </Button>
                   <p className="text-sm text-muted-foreground">
-                    Scraper settings management coming soon. You can manually trigger scraping using the "Fetch Latest Results" button above.
+                    The scraper will fetch the latest results from the National Lottery website.
+                    Results are sorted from lowest to highest (excluding bonus balls).
                   </p>
                 </CardContent>
               </Card>

@@ -5,7 +5,8 @@ import { scrapeLotteryResults } from "./scraper";
 import { 
   insertLotteryResultSchema, 
   insertNewsArticleSchema,
-  adminLoginSchema 
+  adminLoginSchema,
+  insertScraperSettingSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -225,6 +226,126 @@ export async function registerRoutes(
         error: "Failed to scrape results",
         message: error instanceof Error ? error.message : "Unknown error"
       });
+    }
+  });
+
+  app.get("/api/statistics/:gameSlug", async (req, res) => {
+    try {
+      const results = await storage.getResultsByGameSlug(req.params.gameSlug);
+      
+      if (results.length === 0) {
+        return res.json({ hotNumbers: [], coldNumbers: [], frequencyMap: {} });
+      }
+
+      const frequencyMap: Record<number, number> = {};
+      
+      results.forEach(result => {
+        result.winningNumbers.forEach(num => {
+          frequencyMap[num] = (frequencyMap[num] || 0) + 1;
+        });
+      });
+
+      const sortedNumbers = Object.entries(frequencyMap)
+        .map(([num, count]) => ({ number: parseInt(num), count }))
+        .sort((a, b) => b.count - a.count);
+
+      const hotNumbers = sortedNumbers.slice(0, 5).map(n => n.number);
+      const coldNumbers = sortedNumbers.slice(-5).reverse().map(n => n.number);
+
+      res.json({
+        hotNumbers,
+        coldNumbers,
+        frequencyMap,
+        totalDraws: results.length
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to calculate statistics" });
+    }
+  });
+
+  app.get("/api/scraper-settings", async (req, res) => {
+    try {
+      const settings = await storage.getScraperSettings();
+      res.json(settings);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch scraper settings" });
+    }
+  });
+
+  app.post("/api/scraper-settings", async (req, res) => {
+    try {
+      const { gameSlug, isEnabled, scheduleTime } = req.body;
+      
+      if (!gameSlug || typeof gameSlug !== 'string') {
+        return res.status(400).json({ error: "gameSlug is required" });
+      }
+      
+      const setting = await storage.upsertScraperSetting({
+        gameSlug,
+        isEnabled: isEnabled ?? true,
+        scheduleTime: scheduleTime || null,
+        lastScrapedAt: null,
+      });
+      res.json(setting);
+    } catch (error) {
+      console.error("Error saving scraper setting:", error);
+      res.status(500).json({ error: "Failed to save scraper setting" });
+    }
+  });
+
+  app.get("/sitemap.xml", async (req, res) => {
+    try {
+      const games = await storage.getGames();
+      const news = await storage.getPublishedNews();
+      const baseUrl = `https://${req.get('host')}`;
+
+      const staticPages = [
+        { url: "/", priority: "1.0", changefreq: "daily" },
+        { url: "/yesterday-results", priority: "0.9", changefreq: "daily" },
+        { url: "/news", priority: "0.8", changefreq: "daily" },
+        { url: "/about", priority: "0.5", changefreq: "monthly" },
+        { url: "/contact", priority: "0.5", changefreq: "monthly" },
+        { url: "/privacy", priority: "0.3", changefreq: "yearly" },
+      ];
+
+      let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+      xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+
+      staticPages.forEach(page => {
+        xml += `  <url>\n`;
+        xml += `    <loc>${baseUrl}${page.url}</loc>\n`;
+        xml += `    <changefreq>${page.changefreq}</changefreq>\n`;
+        xml += `    <priority>${page.priority}</priority>\n`;
+        xml += `  </url>\n`;
+      });
+
+      games.forEach(game => {
+        xml += `  <url>\n`;
+        xml += `    <loc>${baseUrl}/game/${game.slug}</loc>\n`;
+        xml += `    <changefreq>daily</changefreq>\n`;
+        xml += `    <priority>0.8</priority>\n`;
+        xml += `  </url>\n`;
+        xml += `  <url>\n`;
+        xml += `    <loc>${baseUrl}/history/${game.slug}</loc>\n`;
+        xml += `    <changefreq>daily</changefreq>\n`;
+        xml += `    <priority>0.7</priority>\n`;
+        xml += `  </url>\n`;
+      });
+
+      news.forEach(article => {
+        xml += `  <url>\n`;
+        xml += `    <loc>${baseUrl}/news/${article.slug}</loc>\n`;
+        xml += `    <changefreq>weekly</changefreq>\n`;
+        xml += `    <priority>0.6</priority>\n`;
+        xml += `  </url>\n`;
+      });
+
+      xml += '</urlset>';
+
+      res.set('Content-Type', 'application/xml');
+      res.send(xml);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to generate sitemap" });
     }
   });
 

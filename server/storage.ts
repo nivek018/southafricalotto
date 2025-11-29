@@ -6,9 +6,17 @@ import {
   type LotteryResult, 
   type InsertLotteryResult,
   type NewsArticle,
-  type InsertNewsArticle
+  type InsertNewsArticle,
+  type ScraperSetting,
+  type InsertScraperSetting,
+  users,
+  lotteryGames,
+  lotteryResults,
+  newsArticles,
+  scraperSettings
 } from "@shared/schema";
-import { randomUUID } from "crypto";
+import { db } from "./db";
+import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -34,25 +42,161 @@ export interface IStorage {
   createNews(article: InsertNewsArticle): Promise<NewsArticle>;
   updateNews(id: string, article: Partial<InsertNewsArticle>): Promise<NewsArticle | undefined>;
   deleteNews(id: string): Promise<boolean>;
+  
+  getScraperSettings(): Promise<ScraperSetting[]>;
+  getScraperSettingByGameSlug(gameSlug: string): Promise<ScraperSetting | undefined>;
+  upsertScraperSetting(setting: InsertScraperSetting): Promise<ScraperSetting>;
+  
+  initializeDefaultData(): Promise<void>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-  private games: Map<string, LotteryGame>;
-  private results: Map<string, LotteryResult>;
-  private news: Map<string, NewsArticle>;
-
-  constructor() {
-    this.users = new Map();
-    this.games = new Map();
-    this.results = new Map();
-    this.news = new Map();
-    
-    this.initializeDefaultGames();
-    this.initializeSampleData();
+export class DatabaseStorage implements IStorage {
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
   }
 
-  private initializeDefaultGames() {
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+
+  async getGames(): Promise<LotteryGame[]> {
+    return await db.select().from(lotteryGames);
+  }
+
+  async getGameBySlug(slug: string): Promise<LotteryGame | undefined> {
+    const [game] = await db.select().from(lotteryGames).where(eq(lotteryGames.slug, slug));
+    return game;
+  }
+
+  async createGame(insertGame: InsertLotteryGame): Promise<LotteryGame> {
+    const [game] = await db.insert(lotteryGames).values(insertGame).returning();
+    return game;
+  }
+
+  async getResults(): Promise<LotteryResult[]> {
+    return await db.select().from(lotteryResults).orderBy(desc(lotteryResults.drawDate));
+  }
+
+  async getLatestResults(): Promise<LotteryResult[]> {
+    const allResults = await db.select().from(lotteryResults).orderBy(desc(lotteryResults.drawDate));
+    const latestByGame = new Map<string, LotteryResult>();
+    
+    allResults.forEach(result => {
+      if (!latestByGame.has(result.gameSlug)) {
+        latestByGame.set(result.gameSlug, result);
+      }
+    });
+    
+    return Array.from(latestByGame.values());
+  }
+
+  async getResultsByGameSlug(gameSlug: string): Promise<LotteryResult[]> {
+    return await db.select()
+      .from(lotteryResults)
+      .where(eq(lotteryResults.gameSlug, gameSlug))
+      .orderBy(desc(lotteryResults.drawDate));
+  }
+
+  async getResultById(id: string): Promise<LotteryResult | undefined> {
+    const [result] = await db.select().from(lotteryResults).where(eq(lotteryResults.id, id));
+    return result;
+  }
+
+  async createResult(insertResult: InsertLotteryResult): Promise<LotteryResult> {
+    const [result] = await db.insert(lotteryResults).values(insertResult).returning();
+    return result;
+  }
+
+  async updateResult(id: string, updateData: Partial<InsertLotteryResult>): Promise<LotteryResult | undefined> {
+    const [result] = await db.update(lotteryResults)
+      .set(updateData)
+      .where(eq(lotteryResults.id, id))
+      .returning();
+    return result;
+  }
+
+  async deleteResult(id: string): Promise<boolean> {
+    const result = await db.delete(lotteryResults).where(eq(lotteryResults.id, id));
+    return true;
+  }
+
+  async getNews(): Promise<NewsArticle[]> {
+    return await db.select().from(newsArticles).orderBy(desc(newsArticles.publishDate));
+  }
+
+  async getPublishedNews(): Promise<NewsArticle[]> {
+    return await db.select()
+      .from(newsArticles)
+      .where(eq(newsArticles.isPublished, true))
+      .orderBy(desc(newsArticles.publishDate));
+  }
+
+  async getNewsBySlug(slug: string): Promise<NewsArticle | undefined> {
+    const [article] = await db.select().from(newsArticles).where(eq(newsArticles.slug, slug));
+    return article;
+  }
+
+  async getNewsById(id: string): Promise<NewsArticle | undefined> {
+    const [article] = await db.select().from(newsArticles).where(eq(newsArticles.id, id));
+    return article;
+  }
+
+  async createNews(insertArticle: InsertNewsArticle): Promise<NewsArticle> {
+    const [article] = await db.insert(newsArticles).values(insertArticle).returning();
+    return article;
+  }
+
+  async updateNews(id: string, updateData: Partial<InsertNewsArticle>): Promise<NewsArticle | undefined> {
+    const [article] = await db.update(newsArticles)
+      .set(updateData)
+      .where(eq(newsArticles.id, id))
+      .returning();
+    return article;
+  }
+
+  async deleteNews(id: string): Promise<boolean> {
+    await db.delete(newsArticles).where(eq(newsArticles.id, id));
+    return true;
+  }
+
+  async getScraperSettings(): Promise<ScraperSetting[]> {
+    return await db.select().from(scraperSettings);
+  }
+
+  async getScraperSettingByGameSlug(gameSlug: string): Promise<ScraperSetting | undefined> {
+    const [setting] = await db.select().from(scraperSettings).where(eq(scraperSettings.gameSlug, gameSlug));
+    return setting;
+  }
+
+  async upsertScraperSetting(setting: InsertScraperSetting): Promise<ScraperSetting> {
+    const existing = await this.getScraperSettingByGameSlug(setting.gameSlug);
+    if (existing) {
+      const [updated] = await db.update(scraperSettings)
+        .set(setting)
+        .where(eq(scraperSettings.gameSlug, setting.gameSlug))
+        .returning();
+      return updated;
+    }
+    const [created] = await db.insert(scraperSettings).values(setting).returning();
+    return created;
+  }
+
+  async initializeDefaultData(): Promise<void> {
+    const existingGames = await this.getGames();
+    if (existingGames.length > 0) {
+      console.log("Database already has data, skipping initialization");
+      return;
+    }
+    
+    console.log("Initializing default data...");
+
     const defaultGames: InsertLotteryGame[] = [
       { 
         name: "Powerball", 
@@ -63,6 +207,7 @@ export class MemStorage implements IStorage {
         hasBonusBall: true, 
         bonusMaxNumber: 20,
         drawDays: ["Tuesday", "Friday"],
+        drawTime: "21:00",
         isActive: true
       },
       { 
@@ -74,6 +219,7 @@ export class MemStorage implements IStorage {
         hasBonusBall: true, 
         bonusMaxNumber: 20,
         drawDays: ["Tuesday", "Friday"],
+        drawTime: "21:00",
         isActive: true
       },
       { 
@@ -85,6 +231,7 @@ export class MemStorage implements IStorage {
         hasBonusBall: true, 
         bonusMaxNumber: 52,
         drawDays: ["Wednesday", "Saturday"],
+        drawTime: "21:00",
         isActive: true
       },
       { 
@@ -96,6 +243,7 @@ export class MemStorage implements IStorage {
         hasBonusBall: true, 
         bonusMaxNumber: 52,
         drawDays: ["Wednesday", "Saturday"],
+        drawTime: "21:00",
         isActive: true
       },
       { 
@@ -107,6 +255,7 @@ export class MemStorage implements IStorage {
         hasBonusBall: true, 
         bonusMaxNumber: 52,
         drawDays: ["Wednesday", "Saturday"],
+        drawTime: "21:00",
         isActive: true
       },
       { 
@@ -117,6 +266,7 @@ export class MemStorage implements IStorage {
         maxNumber: 36, 
         hasBonusBall: false,
         drawDays: ["Daily"],
+        drawTime: "21:00",
         isActive: true
       },
       { 
@@ -127,20 +277,21 @@ export class MemStorage implements IStorage {
         maxNumber: 36, 
         hasBonusBall: false,
         drawDays: ["Daily"],
+        drawTime: "21:00",
         isActive: true
       },
     ];
 
-    defaultGames.forEach(game => this.createGame(game));
-  }
+    for (const game of defaultGames) {
+      await this.createGame(game);
+    }
 
-  private initializeSampleData() {
     const sampleResults: InsertLotteryResult[] = [
       {
         gameId: "powerball",
         gameName: "Powerball",
         gameSlug: "powerball",
-        winningNumbers: [29, 28, 33, 34, 17],
+        winningNumbers: [17, 28, 29, 33, 34],
         bonusNumber: 1,
         drawDate: "2025-11-28",
         jackpotAmount: "R50,000,000",
@@ -152,7 +303,7 @@ export class MemStorage implements IStorage {
         gameId: "powerball-plus",
         gameName: "Powerball Plus",
         gameSlug: "powerball-plus",
-        winningNumbers: [19, 40, 29, 14, 35],
+        winningNumbers: [14, 19, 29, 35, 40],
         bonusNumber: 16,
         drawDate: "2025-11-28",
         jackpotAmount: "R10,000,000",
@@ -164,7 +315,7 @@ export class MemStorage implements IStorage {
         gameId: "daily-lotto",
         gameName: "Daily Lotto",
         gameSlug: "daily-lotto",
-        winningNumbers: [19, 24, 36, 1, 32],
+        winningNumbers: [1, 19, 24, 32, 36],
         bonusNumber: null,
         drawDate: "2025-11-28",
         jackpotAmount: "R400,000",
@@ -176,7 +327,7 @@ export class MemStorage implements IStorage {
         gameId: "daily-lotto-plus",
         gameName: "Daily Lotto Plus",
         gameSlug: "daily-lotto-plus",
-        winningNumbers: [11, 36, 28, 35, 9],
+        winningNumbers: [9, 11, 28, 35, 36],
         bonusNumber: null,
         drawDate: "2025-11-28",
         jackpotAmount: "R100,000",
@@ -188,7 +339,7 @@ export class MemStorage implements IStorage {
         gameId: "lotto",
         gameName: "Lotto",
         gameSlug: "lotto",
-        winningNumbers: [4, 8, 36, 33, 25, 32],
+        winningNumbers: [4, 8, 25, 32, 33, 36],
         bonusNumber: 22,
         drawDate: "2025-11-26",
         jackpotAmount: "R35,000,000",
@@ -200,7 +351,7 @@ export class MemStorage implements IStorage {
         gameId: "lotto-plus-1",
         gameName: "Lotto Plus 1",
         gameSlug: "lotto-plus-1",
-        winningNumbers: [32, 12, 1, 38, 35, 39],
+        winningNumbers: [1, 12, 32, 35, 38, 39],
         bonusNumber: 42,
         drawDate: "2025-11-26",
         jackpotAmount: "R2,000,000",
@@ -212,7 +363,7 @@ export class MemStorage implements IStorage {
         gameId: "lotto-plus-2",
         gameName: "Lotto Plus 2",
         gameSlug: "lotto-plus-2",
-        winningNumbers: [32, 25, 57, 40, 23, 14],
+        winningNumbers: [14, 23, 25, 32, 40, 52],
         bonusNumber: 54,
         drawDate: "2025-11-26",
         jackpotAmount: "R1,500,000",
@@ -222,7 +373,9 @@ export class MemStorage implements IStorage {
       }
     ];
 
-    sampleResults.forEach(result => this.createResult(result));
+    for (const result of sampleResults) {
+      await this.createResult(result);
+    }
 
     const sampleNews: InsertNewsArticle[] = [
       {
@@ -257,155 +410,10 @@ export class MemStorage implements IStorage {
       }
     ];
 
-    sampleNews.forEach(article => this.createNews(article));
-  }
-
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
-  }
-
-  async getGames(): Promise<LotteryGame[]> {
-    return Array.from(this.games.values());
-  }
-
-  async getGameBySlug(slug: string): Promise<LotteryGame | undefined> {
-    return Array.from(this.games.values()).find(game => game.slug === slug);
-  }
-
-  async createGame(insertGame: InsertLotteryGame): Promise<LotteryGame> {
-    const id = randomUUID();
-    const game: LotteryGame = { 
-      ...insertGame, 
-      id,
-      description: insertGame.description ?? null,
-      numberCount: insertGame.numberCount ?? 6,
-      maxNumber: insertGame.maxNumber ?? 50,
-      hasBonusBall: insertGame.hasBonusBall ?? false,
-      bonusMaxNumber: insertGame.bonusMaxNumber ?? null,
-      drawDays: insertGame.drawDays ?? null,
-      drawTime: insertGame.drawTime ?? null,
-      isActive: insertGame.isActive ?? true
-    };
-    this.games.set(id, game);
-    return game;
-  }
-
-  async getResults(): Promise<LotteryResult[]> {
-    return Array.from(this.results.values())
-      .sort((a, b) => new Date(b.drawDate).getTime() - new Date(a.drawDate).getTime());
-  }
-
-  async getLatestResults(): Promise<LotteryResult[]> {
-    const allResults = Array.from(this.results.values());
-    const latestByGame = new Map<string, LotteryResult>();
-    
-    allResults.forEach(result => {
-      const existing = latestByGame.get(result.gameSlug);
-      if (!existing || new Date(result.drawDate) > new Date(existing.drawDate)) {
-        latestByGame.set(result.gameSlug, result);
-      }
-    });
-    
-    return Array.from(latestByGame.values())
-      .sort((a, b) => new Date(b.drawDate).getTime() - new Date(a.drawDate).getTime());
-  }
-
-  async getResultsByGameSlug(gameSlug: string): Promise<LotteryResult[]> {
-    return Array.from(this.results.values())
-      .filter(result => result.gameSlug === gameSlug)
-      .sort((a, b) => new Date(b.drawDate).getTime() - new Date(a.drawDate).getTime());
-  }
-
-  async getResultById(id: string): Promise<LotteryResult | undefined> {
-    return this.results.get(id);
-  }
-
-  async createResult(insertResult: InsertLotteryResult): Promise<LotteryResult> {
-    const id = randomUUID();
-    const result: LotteryResult = { 
-      ...insertResult, 
-      id,
-      bonusNumber: insertResult.bonusNumber ?? null,
-      jackpotAmount: insertResult.jackpotAmount ?? null,
-      nextJackpot: insertResult.nextJackpot ?? null,
-      hotNumber: insertResult.hotNumber ?? null,
-      coldNumber: insertResult.coldNumber ?? null
-    };
-    this.results.set(id, result);
-    return result;
-  }
-
-  async updateResult(id: string, updateData: Partial<InsertLotteryResult>): Promise<LotteryResult | undefined> {
-    const existing = this.results.get(id);
-    if (!existing) return undefined;
-    
-    const updated: LotteryResult = { ...existing, ...updateData };
-    this.results.set(id, updated);
-    return updated;
-  }
-
-  async deleteResult(id: string): Promise<boolean> {
-    return this.results.delete(id);
-  }
-
-  async getNews(): Promise<NewsArticle[]> {
-    return Array.from(this.news.values())
-      .sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime());
-  }
-
-  async getPublishedNews(): Promise<NewsArticle[]> {
-    return Array.from(this.news.values())
-      .filter(article => article.isPublished)
-      .sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime());
-  }
-
-  async getNewsBySlug(slug: string): Promise<NewsArticle | undefined> {
-    return Array.from(this.news.values()).find(article => article.slug === slug);
-  }
-
-  async getNewsById(id: string): Promise<NewsArticle | undefined> {
-    return this.news.get(id);
-  }
-
-  async createNews(insertArticle: InsertNewsArticle): Promise<NewsArticle> {
-    const id = randomUUID();
-    const article: NewsArticle = { 
-      ...insertArticle, 
-      id,
-      excerpt: insertArticle.excerpt ?? null,
-      imageUrl: insertArticle.imageUrl ?? null,
-      category: insertArticle.category ?? "general",
-      isPublished: insertArticle.isPublished ?? true
-    };
-    this.news.set(id, article);
-    return article;
-  }
-
-  async updateNews(id: string, updateData: Partial<InsertNewsArticle>): Promise<NewsArticle | undefined> {
-    const existing = this.news.get(id);
-    if (!existing) return undefined;
-    
-    const updated: NewsArticle = { ...existing, ...updateData };
-    this.news.set(id, updated);
-    return updated;
-  }
-
-  async deleteNews(id: string): Promise<boolean> {
-    return this.news.delete(id);
+    for (const article of sampleNews) {
+      await this.createNews(article);
+    }
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
