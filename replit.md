@@ -178,3 +178,6 @@ The workflow named 'Start application' runs `npm run dev` which starts the Expre
 - Enhanced /api/statistics/:gameSlug endpoint to support ?draws=N parameter, returns frequency counts and date range
 - Added game-specific How to Play guides with step-by-step instructions and tips
 - Added game-specific FAQ sections with accordion UI for Powerball, Lotto, and Daily Lotto game families
+- Added Reminders and FAQs sections to /lotto-result/today and /lotto-result/yesterday pages
+- Sorted homepage Latest Results in proper order: Lotto family (Lotto, Lotto Plus 1, Lotto Plus 2), then Powerball family (Powerball, Powerball Plus), then Daily Lotto family (Daily Lotto, Daily Lotto Plus)
+- Set dark theme as the default theme (when no preference is stored)
