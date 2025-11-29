@@ -1,8 +1,16 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Heart, Target, Zap } from "lucide-react";
+import { useEffect } from "react";
 
 export default function AboutPage() {
+  useEffect(() => {
+    document.title = "About Us - African Lottery Results | South African National Lottery";
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.setAttribute("content", "Learn about African Lottery - your trusted source for South African lottery results including Powerball, Lotto, and Daily Lotto. Real-time results and complete draw history.");
+    }
+  }, []);
   return (
     <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-4 lg:px-8 py-8">

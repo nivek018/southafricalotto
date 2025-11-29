@@ -34,7 +34,7 @@ export default function AdminLoginPage() {
         description: "Welcome to the admin panel.",
       });
       localStorage.setItem("adminAuth", "true");
-      setLocation("/admin/dashboard");
+      setLocation("/lotto-admin-x7k9m/dashboard");
     },
     onError: () => {
       toast({

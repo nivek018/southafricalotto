@@ -82,6 +82,23 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/results/yesterday", async (req, res) => {
+    try {
+      const now = new Date();
+      const sastOffset = 2 * 60;
+      const localOffset = now.getTimezoneOffset();
+      const sastTime = new Date(now.getTime() + (sastOffset + localOffset) * 60000);
+      sastTime.setDate(sastTime.getDate() - 1);
+      const yesterdayDate = sastTime.toISOString().split("T")[0];
+      
+      const allResults = await storage.getResults();
+      const yesterdayResults = allResults.filter(r => r.drawDate === yesterdayDate);
+      res.json(yesterdayResults);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch yesterday's results" });
+    }
+  });
+
   app.get("/api/results/:id", async (req, res) => {
     try {
       const result = await storage.getResultById(req.params.id);
@@ -301,7 +318,9 @@ export async function registerRoutes(
 
       const staticPages = [
         { url: "/", priority: "1.0", changefreq: "daily" },
-        { url: "/yesterday-results", priority: "0.9", changefreq: "daily" },
+        { url: "/lotto-result/yesterday", priority: "0.9", changefreq: "daily" },
+        { url: "/powerball-result/yesterday", priority: "0.9", changefreq: "daily" },
+        { url: "/daily-lotto-result/yesterday", priority: "0.9", changefreq: "daily" },
         { url: "/news", priority: "0.8", changefreq: "daily" },
         { url: "/about", priority: "0.5", changefreq: "monthly" },
         { url: "/contact", priority: "0.5", changefreq: "monthly" },
@@ -326,7 +345,7 @@ export async function registerRoutes(
         xml += `    <priority>0.8</priority>\n`;
         xml += `  </url>\n`;
         xml += `  <url>\n`;
-        xml += `    <loc>${baseUrl}/history/${game.slug}</loc>\n`;
+        xml += `    <loc>${baseUrl}/draw-history/${game.slug}</loc>\n`;
         xml += `    <changefreq>daily</changefreq>\n`;
         xml += `    <priority>0.7</priority>\n`;
         xml += `  </url>\n`;

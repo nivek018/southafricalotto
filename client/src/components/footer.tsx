@@ -39,6 +39,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/lotto-result/yesterday" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-footer-yesterday">
+                  Lotto Results Yesterday
+                </Link>
+              </li>
+              <li>
                 <Link href="/news" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-footer-news">
                   Lottery News
                 </Link>
@@ -62,11 +67,6 @@ export function Footer() {
               <li>
                 <Link href="/privacy" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-footer-privacy">
                   Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-footer-admin">
-                  Admin Access
                 </Link>
               </li>
             </ul>

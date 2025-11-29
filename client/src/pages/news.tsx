@@ -3,8 +3,16 @@ import { NewsCard } from "@/components/news-card";
 import { NewsCardSkeleton } from "@/components/loading-skeleton";
 import { Newspaper } from "lucide-react";
 import type { NewsArticle } from "@shared/schema";
+import { useEffect } from "react";
 
 export default function NewsPage() {
+  useEffect(() => {
+    document.title = "South African Lottery News - Jackpot Announcements & Winners | African Lottery";
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.setAttribute("content", "Latest South African lottery news including Powerball jackpot winners, Lotto announcements, and Daily Lotto updates. Stay informed with lottery news and stories.");
+    }
+  }, []);
   const { data: articles, isLoading } = useQuery<NewsArticle[]>({
     queryKey: ["/api/news"],
   });

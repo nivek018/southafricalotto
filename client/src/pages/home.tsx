@@ -6,8 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { ArrowRight, CircleDot, Newspaper } from "lucide-react";
 import type { LotteryResult, NewsArticle } from "@shared/schema";
+import { useEffect } from "react";
 
 export default function HomePage() {
+  useEffect(() => {
+    document.title = "South African Lottery Results - Powerball, Lotto, Daily Lotto | African Lottery";
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.setAttribute("content", "Check the latest South African lottery results for Powerball, Lotto, Lotto Plus, and Daily Lotto. Updated immediately after every draw. View winning numbers, jackpots, and hot/cold numbers.");
+    }
+  }, []);
   const { data: results, isLoading: resultsLoading } = useQuery<LotteryResult[]>({
     queryKey: ["/api/results/latest"],
   });

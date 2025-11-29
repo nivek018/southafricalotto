@@ -3,6 +3,7 @@ import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 import { storage } from "./storage";
+import { initializeLogger, info as logInfo } from "./logger";
 
 const app = express();
 const httpServer = createServer(app);
@@ -61,6 +62,8 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  initializeLogger();
+  logInfo("Server starting up...");
   await storage.initializeDefaultData();
   await registerRoutes(httpServer, app);
 

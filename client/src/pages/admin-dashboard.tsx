@@ -32,7 +32,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     const isAuth = localStorage.getItem("adminAuth");
     if (!isAuth) {
-      setLocation("/admin");
+      setLocation("/lotto-admin-x7k9m");
     }
   }, [setLocation]);
 
@@ -97,7 +97,7 @@ export default function AdminDashboard() {
 
   const handleLogout = () => {
     localStorage.removeItem("adminAuth");
-    setLocation("/admin");
+    setLocation("/lotto-admin-x7k9m");
     toast({
       title: "Logged Out",
       description: "You have been logged out successfully.",

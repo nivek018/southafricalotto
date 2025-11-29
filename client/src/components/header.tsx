@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Menu, X, CircleDot } from "lucide-react";
+import { Menu, CircleDot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useState } from "react";
@@ -7,7 +7,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const navLinks = [
   { href: "/", label: "Home" },
-  { href: "/yesterday-results", label: "Yesterday" },
+  { href: "/lotto-result/yesterday", label: "Yesterday" },
   { href: "/game/powerball", label: "Powerball" },
   { href: "/game/lotto", label: "Lotto" },
   { href: "/game/daily-lotto", label: "Daily Lotto" },
@@ -67,13 +67,6 @@ export function Header() {
                       </Button>
                     </Link>
                   ))}
-                  <div className="border-t pt-4 mt-4">
-                    <Link href="/admin" onClick={() => setOpen(false)}>
-                      <Button variant="outline" className="w-full" data-testid="link-mobile-admin">
-                        Admin Panel
-                      </Button>
-                    </Link>
-                  </div>
                 </nav>
               </SheetContent>
             </Sheet>

@@ -6,6 +6,7 @@ import { ResultCardSkeleton } from "@/components/loading-skeleton";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import type { LotteryResult, LotteryGame } from "@shared/schema";
+import { useEffect } from "react";
 
 export default function DrawHistoryPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -19,6 +20,15 @@ export default function DrawHistoryPage() {
   });
 
   const isLoading = gameLoading || resultsLoading;
+  const gameName = game?.name || slug?.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") || "Lottery";
+
+  useEffect(() => {
+    document.title = `${gameName} Draw History - Complete Results Archive | African Lottery`;
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.setAttribute("content", `Complete ${gameName} draw history and past results. View all previous winning numbers, jackpots, and statistics for South African ${gameName}.`);
+    }
+  }, [gameName]);
 
   return (
     <div className="min-h-screen">

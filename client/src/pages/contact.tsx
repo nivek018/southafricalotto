@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,13 @@ import { ChevronLeft, Mail, Phone, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function ContactPage() {
+  useEffect(() => {
+    document.title = "Contact Us - African Lottery Results | Get in Touch";
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.setAttribute("content", "Contact African Lottery for questions about South African lottery results. Get in touch with our team for support regarding Powerball, Lotto, and Daily Lotto results.");
+    }
+  }, []);
   const [formData, setFormData] = useState({
     name: "",
     email: "",

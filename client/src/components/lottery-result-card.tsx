@@ -20,6 +20,10 @@ export function LotteryResultCard({ result }: LotteryResultCardProps) {
     });
   };
 
+  const sortedNumbers = result.winningNumbers 
+    ? [...result.winningNumbers].sort((a, b) => a - b) 
+    : [];
+
   return (
     <Card className="hover-elevate" data-testid={`card-result-${result.gameSlug}`}>
       <CardHeader className="pb-3">
@@ -35,7 +39,7 @@ export function LotteryResultCard({ result }: LotteryResultCardProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-wrap items-center gap-2">
-          {result.winningNumbers?.map((num, idx) => (
+          {sortedNumbers.map((num, idx) => (
             <LotteryBall key={idx} number={num} size="md" />
           ))}
           {result.bonusNumber && (

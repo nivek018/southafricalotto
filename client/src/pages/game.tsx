@@ -14,6 +14,7 @@ import {
   CircleDot 
 } from "lucide-react";
 import type { LotteryResult, LotteryGame } from "@shared/schema";
+import { useEffect } from "react";
 
 export default function GamePage() {
   const [, params] = useRoute("/game/:slug");
@@ -30,6 +31,9 @@ export default function GamePage() {
   });
 
   const latestResult = results?.[0];
+
+  const sortNumbers = (nums: number[] | undefined) => 
+    nums ? [...nums].sort((a, b) => a - b) : [];
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -59,6 +63,14 @@ export default function GamePage() {
   }
 
   const gameName = latestResult?.gameName || slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+
+  useEffect(() => {
+    document.title = `${gameName} Results - Latest Winning Numbers | African Lottery`;
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.setAttribute("content", `Check the latest ${gameName} results and winning numbers. View draw history, hot/cold numbers, and jackpot information for South African ${gameName}.`);
+    }
+  }, [gameName]);
 
   return (
     <div className="min-h-screen">
@@ -105,7 +117,7 @@ export default function GamePage() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="flex flex-wrap justify-center items-center gap-3">
-                    {latestResult.winningNumbers?.map((num, idx) => (
+                    {sortNumbers(latestResult.winningNumbers).map((num, idx) => (
                       <LotteryBall key={idx} number={num} size="lg" />
                     ))}
                     {latestResult.bonusNumber && (
@@ -161,7 +173,7 @@ export default function GamePage() {
                               </Badge>
                             </div>
                             <div className="flex flex-wrap items-center gap-2">
-                              {result.winningNumbers?.map((num, idx) => (
+                              {sortNumbers(result.winningNumbers).map((num, idx) => (
                                 <LotteryBall key={idx} number={num} size="sm" />
                               ))}
                               {result.bonusNumber && (

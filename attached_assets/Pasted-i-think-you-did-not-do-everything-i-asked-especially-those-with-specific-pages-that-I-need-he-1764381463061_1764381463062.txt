@@ -1,0 +1,60 @@
+i think you did not do everything i asked. especially those with specific pages that I need.
+
+
+here are the corrections:
+
+the african lottery has the following lotto games:
+Powerball
+Powerball Plus
+Lotto 
+Lotto Plus 1
+Lotto Plus 2
+Daily Lotto
+Daily Lotto Plus
+
+* on the news section, is there a way to create new post, edit, and delete in admin mode?
+
+* you also have to use mysql as the database for simplicity otherwise, use postgresql if this is not viable for this app.
+
+* ensure that you use random fake headers when scraping to mask ourself as real users not some bot.
+
+* when scraping I want you to follow these draw time so we dont flood the source server when scraping and gets our system flagged as bot.
+
+Daily Lotto / Daily Lotto Plus
+Every day (Monday–Sunday) 
+21:00 SAST South African Standard Time
+
+Lotto / Lotto Plus 1 / Lotto Plus 2
+Wednesday and Saturday 
+~ 20:57 SAST South African Standard Time
+
+PowerBall / PowerBall Plus
+Tuesday and Friday 
+~ 20:58 SAST South African Standard Time
+
+in case there are no draw yet, you have to keep on retrying the connection every 5 minutes until you get a result. do not record null or empty values.
+
+* when showing the lotto result, i also want you to sort it from the lowest number to highest (do not include the bonus ball (the different colored ball)
+
+* hot and cold numbers is not hard coded, its a computation base on the data on the database which number appear usually and which rarest number appear.
+
+* i want you to apply proper SEO keyword for title, meta description, and heading for each page.
+
+* I want you to create a daily lotto result yesteday page (it shows all of the results being drawn yesterday based on african time - show everything -powerball, powerball plus, daily lotto, Lotto, Lotto Plus 1,Lotto Plus 2 [in case theres a draw yesterday]), create powerball result yesterday page (Powerball and Powerball Plus), and create daily lotto results yesterday page (Daily Lotto / Daily Lotto Plus) - these pages is where you must show the results of yesterdays draw with proper date. the data will update on 12:00 midnight.
+
+* i want you to create EACH lotto draw history page for EVERY lotto games.
+
+* i want you to create a sitemap.xml for it.
+
+* i want you to create about page, contact us, privacy policy page.
+
+* in the admin mode, i want to have a settings where I can toggle the web scraping on, off, and scrape now button and set the schedule when it will scrape for each lotto games (this function is important in case lotto games change their schedule) 
+
+* i want you to create a debug.log inside the directory so I can monitor what is happening. keep only 14 days log and delete if more that 14 days.
+
+
+
+
+read my instructions again. as for the admin page, i want you to hide it so people wont be able to see that URL
+
+and the url /yesterday-results should be lotto-result/yesterday for SEO as well as the Yesterday's Results should be Lotto Results Yesterday for SEO

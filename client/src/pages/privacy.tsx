@@ -1,8 +1,16 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
+import { useEffect } from "react";
 
 export default function PrivacyPolicyPage() {
+  useEffect(() => {
+    document.title = "Privacy Policy - African Lottery Results | Data Protection";
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.setAttribute("content", "Read African Lottery's privacy policy. Learn how we collect, use, and protect your personal information when you use our South African lottery results website.");
+    }
+  }, []);
   return (
     <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-4 lg:px-8 py-8">
