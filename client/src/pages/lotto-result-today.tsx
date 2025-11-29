@@ -95,8 +95,21 @@ export default function LottoResultTodayPage() {
     }
   }, []);
 
-  const sortNumbers = (nums: number[] | undefined) => 
-    nums ? [...nums].sort((a, b) => a - b) : [];
+  const sortNumbers = (nums: number[] | string | undefined) => {
+    if (!nums) return [];
+    let parsedNums: number[] = [];
+    if (Array.isArray(nums)) {
+      parsedNums = nums;
+    } else if (typeof nums === "string") {
+      try {
+        parsedNums = JSON.parse(nums);
+      } catch (e) {
+        console.error("Failed to parse winningNumbers:", nums);
+        return [];
+      }
+    }
+    return [...parsedNums].sort((a, b) => a - b);
+  };
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -248,12 +261,12 @@ export default function LottoResultTodayPage() {
         <div className="mt-12 bg-card rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">About Today's Lottery Results</h2>
           <p className="text-muted-foreground mb-4">
-            This page displays all South African lottery results for today. Results are updated live 
-            as draws take place throughout the day. Games marked as "TBA" (To Be Announced) will be 
+            This page displays all South African lottery results for today. Results are updated live
+            as draws take place throughout the day. Games marked as "TBA" (To Be Announced) will be
             updated once the official draw has been completed.
           </p>
           <p className="text-muted-foreground">
-            Draw times are: Daily Lotto at 21:00, Lotto on Wednesday/Saturday at 20:57, and 
+            Draw times are: Daily Lotto at 21:00, Lotto on Wednesday/Saturday at 20:57, and
             Powerball on Tuesday/Friday at 20:58 South African Standard Time (SAST).
           </p>
         </div>

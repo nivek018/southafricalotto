@@ -20,9 +20,20 @@ export function LotteryResultCard({ result }: LotteryResultCardProps) {
     });
   };
 
-  const sortedNumbers = result.winningNumbers 
-    ? [...result.winningNumbers].sort((a, b) => a - b) 
-    : [];
+  const sortedNumbers = (() => {
+    if (!result.winningNumbers) return [];
+    let nums: number[] = [];
+    if (Array.isArray(result.winningNumbers)) {
+      nums = result.winningNumbers;
+    } else if (typeof result.winningNumbers === "string") {
+      try {
+        nums = JSON.parse(result.winningNumbers);
+      } catch {
+        return [];
+      }
+    }
+    return [...nums].sort((a, b) => a - b);
+  })();
 
   return (
     <Card className="hover-elevate" data-testid={`card-result-${result.gameSlug}`}>
