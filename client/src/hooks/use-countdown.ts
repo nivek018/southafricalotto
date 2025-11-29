@@ -63,11 +63,11 @@ function calculateCountdown(targetDate: Date | null): CountdownResult {
   if (days > 0) {
     formattedTime = `${days}d ${hours}h ${minutes}m`;
   } else if (hours > 0) {
-    formattedTime = `${hours}h ${minutes}m ${seconds}s`;
+    formattedTime = `${hours}h ${minutes}m`;
   } else if (minutes > 0) {
-    formattedTime = `${minutes}m ${seconds}s`;
+    formattedTime = `${minutes}m`;
   } else {
-    formattedTime = `${seconds}s`;
+    formattedTime = "Less than a minute";
   }
 
   let relativeTime = "";
