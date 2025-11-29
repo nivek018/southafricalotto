@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { scrapeLotteryResults } from "./scraper";
+import { scrapeLotteryResults, processScrapedResults } from "./scraper";
 import {
   insertLotteryResultSchema,
   insertNewsArticleSchema,
@@ -295,39 +295,8 @@ export async function registerRoutes(
       const scrapedResults = await scrapeLotteryResults();
       console.log(`[Scraper] Got ${scrapedResults.length} results from scraper`);
 
-      let addedCount = 0;
-      const addedResults: any[] = [];
-      const skippedResults: any[] = [];
-
-      for (const result of scrapedResults) {
-        console.log(`[Scraper] Processing ${result.gameName}: ${result.winningNumbers.join(',')}${result.bonusNumber ? ` + ${result.bonusNumber}` : ''} (${result.drawDate})`);
-
-        const existingResults = await storage.getResultsByGameSlug(result.gameSlug);
-        const exists = existingResults.some(
-          r => r.drawDate === result.drawDate && r.gameSlug === result.gameSlug
-        );
-
-        if (!exists) {
-          await storage.createResult(result);
-          addedCount++;
-          addedResults.push({
-            game: result.gameName,
-            numbers: result.winningNumbers.join(', '),
-            bonus: result.bonusNumber,
-            date: result.drawDate
-          });
-          console.log(`[Scraper] Added new result for ${result.gameName}`);
-        } else {
-          skippedResults.push({
-            game: result.gameName,
-            numbers: result.winningNumbers.join(', '),
-            bonus: result.bonusNumber,
-            date: result.drawDate,
-            reason: "Already exists"
-          });
-          console.log(`[Scraper] Skipped ${result.gameName} - already exists for ${result.drawDate}`);
-        }
-      }
+      const { addedCount, addedResults, skippedResults } = await processScrapedResults(scrapedResults);
+      await storage.updateScraperLastRun(new Date().toISOString());
 
       console.log(`[Scraper] Complete: scraped ${scrapedResults.length}, added ${addedCount}`);
 
@@ -421,21 +390,30 @@ export async function registerRoutes(
       };
 
       const frequencyMap: Record<number, number> = {};
+      const parseNumbers = (nums: number[] | string) => {
+        if (Array.isArray(nums)) return nums;
+        try {
+          const parsed = JSON.parse(nums);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          return [];
+        }
+      };
 
       results.forEach(result => {
-        result.winningNumbers.forEach(num => {
+        parseNumbers(result.winningNumbers as any).forEach((num: number) => {
           frequencyMap[num] = (frequencyMap[num] || 0) + 1;
         });
       });
 
       const sortedNumbers = Object.entries(frequencyMap)
         .map(([num, count]) => ({ number: parseInt(num), count }))
-        .sort((a, b) => b.count - a.count);
+        .sort((a, b) => b.count === a.count ? a.number - b.number : b.count - a.count);
 
       const hotNumbers = sortedNumbers.slice(0, 5);
 
-      const coldNumbers = sortedNumbers
-        .sort((a, b) => a.count - b.count)
+      const coldNumbers = [...sortedNumbers]
+        .sort((a, b) => a.count === b.count ? a.number - b.number : a.count - b.count)
         .slice(0, 5);
 
       res.json({

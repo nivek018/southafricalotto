@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LotteryBall } from "@/components/lottery-ball";
-import { Calendar, TrendingUp, TrendingDown, ArrowRight } from "lucide-react";
+import { Calendar, ArrowRight } from "lucide-react";
 import type { LotteryResult } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 
@@ -58,23 +58,6 @@ export function LotteryResultCard({ result }: LotteryResultCardProps) {
               <span className="text-xl font-bold text-muted-foreground mx-1">+</span>
               <LotteryBall number={result.bonusNumber} isBonus size="md" />
             </>
-          )}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-4 text-sm">
-          {result.hotNumber && (
-            <div className="flex items-center gap-1.5">
-              <TrendingUp className="w-4 h-4 text-lottery-hot" />
-              <span className="text-muted-foreground">Hot:</span>
-              <span className="font-mono font-semibold">{result.hotNumber}</span>
-            </div>
-          )}
-          {result.coldNumber && (
-            <div className="flex items-center gap-1.5">
-              <TrendingDown className="w-4 h-4 text-lottery-cold" />
-              <span className="text-muted-foreground">Cold:</span>
-              <span className="font-mono font-semibold">{result.coldNumber}</span>
-            </div>
           )}
         </div>
 

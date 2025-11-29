@@ -50,9 +50,9 @@ export function PrizeHistoryChart({ groupSlug, variants }: PrizeHistoryChartProp
       return resultDate >= cutoffDate;
     });
 
-    const parseJackpot = (jackpotStr: string | null | undefined): number => {
-      if (!jackpotStr) return 0;
-      const cleaned = jackpotStr.replace(/[R,\s]/g, "");
+    const parsePrize = (amount: string | null | undefined): number => {
+      if (!amount) return 0;
+      const cleaned = amount.replace(/[R,\s]/g, "");
       const num = parseFloat(cleaned);
       return isNaN(num) ? 0 : num;
     };
@@ -61,8 +61,8 @@ export function PrizeHistoryChart({ groupSlug, variants }: PrizeHistoryChartProp
       .map(result => ({
         date: result.drawDate,
         displayDate: format(parseISO(result.drawDate), "MMM d"),
-        jackpot: parseJackpot(result.jackpotAmount),
-        formattedJackpot: result.jackpotAmount || "N/A"
+        jackpot: parsePrize(result.nextJackpot || result.jackpotAmount),
+        formattedJackpot: result.nextJackpot || result.jackpotAmount || "N/A"
       }))
       .reverse();
 
@@ -174,7 +174,7 @@ export function PrizeHistoryChart({ groupSlug, variants }: PrizeHistoryChartProp
           </ResponsiveContainer>
         </div>
         <p className="text-xs text-muted-foreground text-center mt-4">
-          Jackpot amounts over the selected time period. Data based on recorded draw results.
+          Next jackpot estimates over the selected time period. Data based on recorded draw results.
         </p>
       </CardContent>
     </Card>

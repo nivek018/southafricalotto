@@ -13,8 +13,6 @@ import {
 } from "@/components/ui/accordion";
 import {
   Calendar,
-  TrendingUp,
-  TrendingDown,
   ArrowLeft,
   Trophy,
   CircleDot,
@@ -169,6 +167,8 @@ const GAME_FAQS: Record<string, { question: string; answer: string }[]> = {
   ]
 };
 
+const HOT_COLD_GAMES = ["powerball", "lotto", "daily-lotto"];
+
 export default function GamePage() {
   const [, params] = useRoute("/game/:slug");
   const slug = params?.slug || "";
@@ -286,6 +286,8 @@ export default function GamePage() {
   const groupDescription = hasGroup
     ? groupedData?.group?.description || groupInfo?.group?.description
     : null;
+
+  const showHotColdSection = HOT_COLD_GAMES.includes(groupSlug || slug);
 
   useEffect(() => {
     if (!isLoading) {
@@ -437,40 +439,19 @@ export default function GamePage() {
                               {sortNumbers(latestResult.winningNumbers).map((num, idx) => (
                                 <LotteryBall key={idx} number={num} size="lg" />
                               ))}
-                              {latestResult.bonusNumber && (
-                                <>
-                                  <span className="text-2xl font-bold text-muted-foreground mx-2">+</span>
-                                  <LotteryBall number={latestResult.bonusNumber} isBonus size="lg" />
-                                </>
-                              )}
-                            </div>
+                            {latestResult.bonusNumber && (
+                              <>
+                                <span className="text-2xl font-bold text-muted-foreground mx-2">+</span>
+                                <LotteryBall number={latestResult.bonusNumber} isBonus size="lg" />
+                              </>
+                            )}
+                          </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                              {latestResult.hotNumber && (
-                                <div className="bg-muted/50 rounded-lg p-4 text-center">
-                                  <div className="flex items-center justify-center gap-2 mb-2">
-                                    <TrendingUp className="w-5 h-5 text-lottery-hot" />
-                                    <span className="text-sm text-muted-foreground">Hot Number</span>
-                                  </div>
-                                  <span className="text-2xl font-mono font-bold">{latestResult.hotNumber}</span>
-                                </div>
-                              )}
-                              {latestResult.coldNumber && (
-                                <div className="bg-muted/50 rounded-lg p-4 text-center">
-                                  <div className="flex items-center justify-center gap-2 mb-2">
-                                    <TrendingDown className="w-5 h-5 text-lottery-cold" />
-                                    <span className="text-sm text-muted-foreground">Cold Number</span>
-                                  </div>
-                                  <span className="text-2xl font-mono font-bold">{latestResult.coldNumber}</span>
-                                </div>
-                              )}
+                          {latestResult.jackpotAmount && (
+                            <div className="bg-gradient-to-r from-lottery-ball-main/10 to-lottery-ball-bonus/10 rounded-lg p-4 text-center">
+                              <p className="text-sm text-muted-foreground mb-1">Jackpot</p>
+                              <p className="text-2xl font-bold">{latestResult.jackpotAmount}</p>
                             </div>
-
-                            {latestResult.jackpotAmount && (
-                              <div className="bg-gradient-to-r from-lottery-ball-main/10 to-lottery-ball-bonus/10 rounded-lg p-4 text-center">
-                                <p className="text-sm text-muted-foreground mb-1">Jackpot</p>
-                                <p className="text-2xl font-bold">{latestResult.jackpotAmount}</p>
-                              </div>
                             )}
 
                             {latestResult.nextJackpot && (
@@ -552,34 +533,13 @@ export default function GamePage() {
                             {sortNumbers(singleResults[0].winningNumbers).map((num, idx) => (
                               <LotteryBall key={idx} number={num} size="lg" />
                             ))}
-                            {singleResults[0].bonusNumber && (
-                              <>
-                                <span className="text-2xl font-bold text-muted-foreground mx-2">+</span>
-                                <LotteryBall number={singleResults[0].bonusNumber} isBonus size="lg" />
-                              </>
-                            )}
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4">
-                            {singleResults[0].hotNumber && (
-                              <div className="bg-muted/50 rounded-lg p-4 text-center">
-                                <div className="flex items-center justify-center gap-2 mb-2">
-                                  <TrendingUp className="w-5 h-5 text-lottery-hot" />
-                                  <span className="text-sm text-muted-foreground">Hot Number</span>
-                                </div>
-                                <span className="text-2xl font-mono font-bold">{singleResults[0].hotNumber}</span>
-                              </div>
-                            )}
-                            {singleResults[0].coldNumber && (
-                              <div className="bg-muted/50 rounded-lg p-4 text-center">
-                                <div className="flex items-center justify-center gap-2 mb-2">
-                                  <TrendingDown className="w-5 h-5 text-lottery-cold" />
-                                  <span className="text-sm text-muted-foreground">Cold Number</span>
-                                </div>
-                                <span className="text-2xl font-mono font-bold">{singleResults[0].coldNumber}</span>
-                              </div>
-                            )}
-                          </div>
+                              {singleResults[0].bonusNumber && (
+                                <>
+                                  <span className="text-2xl font-bold text-muted-foreground mx-2">+</span>
+                                  <LotteryBall number={singleResults[0].bonusNumber} isBonus size="lg" />
+                                </>
+                              )}
+                            </div>
 
                           {singleResults[0].nextJackpot && (
                             <div className="bg-gradient-to-r from-lottery-ball-main/10 to-lottery-ball-bonus/10 rounded-lg p-6 text-center">
@@ -639,6 +599,86 @@ export default function GamePage() {
                 </Link>
               </div>
 
+              {showHotColdSection && statistics && (statistics.hotNumbers.length > 0 || statistics.coldNumbers.length > 0) && (
+                <section className="mt-12" data-testid="section-hot-cold-numbers">
+                  <div className="bg-card/60 border rounded-xl p-6 lg:p-8 shadow-sm">
+                    <div className="text-center mb-8">
+                      <h2 className="text-3xl font-bold mb-1">Hot & Cold Numbers</h2>
+                      <p className="text-muted-foreground">
+                        Analysis based on the last {statistics.totalDraws} draws
+                        {statistics.dateRange.from && statistics.dateRange.to && (
+                          <span className="block text-sm mt-1">
+                            From {new Date(statistics.dateRange.from).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })} to {new Date(statistics.dateRange.to).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {statistics.hotNumbers.length > 0 && (
+                        <Card className="bg-muted/40" data-testid="card-hot-numbers">
+                          <CardHeader className="pb-3">
+                            <div className="flex items-center gap-2">
+                              <div className="p-2 bg-red-500/10 rounded-full">
+                                <Flame className="h-5 w-5 text-red-500" />
+                              </div>
+                              <div>
+                                <CardTitle className="text-lg">Hot Numbers</CardTitle>
+                                <p className="text-xs text-muted-foreground">Most frequently drawn in last {statistics.totalDraws} draws</p>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="flex flex-wrap items-center gap-3">
+                              {statistics.hotNumbers.slice(0, 5).map((item) => (
+                                <div key={item.number} className="flex flex-col items-center" data-testid={`hot-number-${item.number}`}>
+                                  <LotteryBall number={item.number} size="lg" />
+                                  <Badge variant="secondary" className="mt-2 text-xs bg-red-500/10 text-red-600 dark:text-red-400">
+                                    {item.count}x
+                                  </Badge>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {statistics.coldNumbers.length > 0 && (
+                        <Card className="bg-muted/40" data-testid="card-cold-numbers">
+                          <CardHeader className="pb-3">
+                            <div className="flex items-center gap-2">
+                              <div className="p-2 bg-blue-500/10 rounded-full">
+                                <Snowflake className="h-5 w-5 text-blue-500" />
+                              </div>
+                              <div>
+                                <CardTitle className="text-lg">Cold Numbers</CardTitle>
+                                <p className="text-xs text-muted-foreground">Least frequently drawn in last {statistics.totalDraws} draws</p>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="flex flex-wrap items-center gap-3">
+                              {statistics.coldNumbers.slice(0, 5).map((item) => (
+                                <div key={item.number} className="flex flex-col items-center" data-testid={`cold-number-${item.number}`}>
+                                  <LotteryBall number={item.number} size="lg" />
+                                  <Badge variant="secondary" className="mt-2 text-xs bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                                    {item.count}x
+                                  </Badge>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </div>
+
+                    <p className="text-center text-xs text-muted-foreground mt-6">
+                      Note: Past performance does not guarantee future results. All lottery draws are random.
+                    </p>
+                  </div>
+                </section>
+              )}
+
               {hasGroup && groupedData && (
                 <PrizeHistoryChart
                   groupSlug={groupSlug || ""}
@@ -660,86 +700,6 @@ export default function GamePage() {
           )}
         </div>
       </section>
-
-      {statistics && (statistics.hotNumbers.length > 0 || statistics.coldNumbers.length > 0) && (
-        <section className="py-8 lg:py-12 bg-gradient-to-b from-background to-card" data-testid="section-hot-cold-numbers">
-          <div className="max-w-7xl mx-auto px-4 lg:px-8">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl lg:text-3xl font-bold mb-2">Hot & Cold Numbers</h2>
-              <p className="text-muted-foreground">
-                Analysis based on the last {statistics.totalDraws} draws
-                {statistics.dateRange.from && statistics.dateRange.to && (
-                  <span className="block text-sm mt-1">
-                    From {new Date(statistics.dateRange.from).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })} to {new Date(statistics.dateRange.to).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}
-                  </span>
-                )}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {statistics.hotNumbers.length > 0 && (
-                <Card data-testid="card-hot-numbers">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="p-2 bg-red-500/10 rounded-full">
-                        <Flame className="h-5 w-5 text-red-500" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg">Hot Numbers</CardTitle>
-                        <p className="text-xs text-muted-foreground">Most frequently drawn in last {statistics.totalDraws} draws</p>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap gap-3">
-                      {statistics.hotNumbers.map((item) => (
-                        <div key={item.number} className="flex flex-col items-center" data-testid={`hot-number-${item.number}`}>
-                          <LotteryBall number={item.number} size="md" />
-                          <Badge variant="secondary" className="mt-1 text-xs bg-red-500/10 text-red-600 dark:text-red-400">
-                            {item.count}x
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {statistics.coldNumbers.length > 0 && (
-                <Card data-testid="card-cold-numbers">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="p-2 bg-blue-500/10 rounded-full">
-                        <Snowflake className="h-5 w-5 text-blue-500" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg">Cold Numbers</CardTitle>
-                        <p className="text-xs text-muted-foreground">Least frequently drawn in last {statistics.totalDraws} draws</p>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap gap-3">
-                      {statistics.coldNumbers.map((item) => (
-                        <div key={item.number} className="flex flex-col items-center" data-testid={`cold-number-${item.number}`}>
-                          <LotteryBall number={item.number} size="md" />
-                          <Badge variant="secondary" className="mt-1 text-xs bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                            {item.count}x
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-
-            <p className="text-center text-xs text-muted-foreground mt-6">
-              Note: Past performance does not guarantee future results. All lottery draws are random.
-            </p>
-          </div>
-        </section>
-      )}
 
       <section className="py-8 lg:py-12 bg-card" data-testid="section-how-to-play">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">

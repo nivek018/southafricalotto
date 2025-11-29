@@ -2,6 +2,7 @@ import axios from "axios";
 import * as cheerio from "cheerio";
 import type { InsertLotteryResult } from "@shared/schema";
 import { scrape as logScrape, error as logError, info as logInfo } from "./logger";
+import { storage } from "./storage";
 
 interface ScrapedResult {
   gameName: string;
@@ -10,8 +11,6 @@ interface ScrapedResult {
   bonusNumber: number | null;
   drawDate: string;
   nextJackpot: string | null;
-  hotNumber: number | null;
-  coldNumber: number | null;
 }
 
 const USER_AGENTS = [
@@ -90,8 +89,6 @@ function parseGameSection(sectionText: string, config: GameConfig): ScrapedResul
   const winningNumbers: number[] = [];
   let bonusNumber: number | null = null;
   let drawDate = '';
-  let hotNumber: number | null = null;
-  let coldNumber: number | null = null;
   let nextJackpot: string | null = null;
 
   for (let i = 0; i < lines.length; i++) {
@@ -125,20 +122,6 @@ function parseGameSection(sectionText: string, config: GameConfig): ScrapedResul
     if (dateMatch) {
       drawDate = dateMatch[1];
       logScrape(`Found draw date: ${drawDate}`);
-      continue;
-    }
-
-    const hotMatch = line.match(/Hot Number:\s*(\d{1,2})/i);
-    if (hotMatch) {
-      hotNumber = parseInt(hotMatch[1], 10);
-      logScrape(`Found hot number: ${hotNumber}`);
-      continue;
-    }
-
-    const coldMatch = line.match(/Cold Number:\s*(\d{1,2})/i);
-    if (coldMatch) {
-      coldNumber = parseInt(coldMatch[1], 10);
-      logScrape(`Found cold number: ${coldNumber}`);
       continue;
     }
 
@@ -178,8 +161,6 @@ function parseGameSection(sectionText: string, config: GameConfig): ScrapedResul
     bonusNumber: config.hasBonus ? bonusNumber : null,
     drawDate,
     nextJackpot,
-    hotNumber,
-    coldNumber,
   };
 }
 
@@ -250,8 +231,6 @@ export async function scrapeLotteryResults(
                 drawDate: parsed.drawDate,
                 jackpotAmount: null,
                 nextJackpot: parsed.nextJackpot,
-                hotNumber: parsed.hotNumber,
-                coldNumber: parsed.coldNumber,
               });
               logScrape(`Added result for ${config.name}`);
             }
@@ -276,8 +255,6 @@ export async function scrapeLotteryResults(
                 drawDate: parsed.drawDate,
                 jackpotAmount: null,
                 nextJackpot: parsed.nextJackpot,
-                hotNumber: parsed.hotNumber,
-                coldNumber: parsed.coldNumber,
               });
               logScrape(`Added result for ${config.name} via regex search`);
             }
@@ -310,6 +287,89 @@ export async function scrapeLotteryResults(
   const errorMsg = lastError?.message || "Failed to scrape lottery results after multiple attempts.";
   logError(`All scraping attempts failed: ${errorMsg}`);
   throw lastError || new Error(errorMsg);
+}
+
+export async function processScrapedResults(scrapedResults: InsertLotteryResult[]) {
+  let addedCount = 0;
+  const addedResults: any[] = [];
+  const skippedResults: any[] = [];
+
+  for (const result of scrapedResults) {
+    const existingResults = await storage.getResultsByGameSlug(result.gameSlug);
+    const exists = existingResults.some(
+      r => r.drawDate === result.drawDate && r.gameSlug === result.gameSlug
+    );
+
+    if (!exists) {
+      await storage.createResult(result);
+      addedCount++;
+      addedResults.push({
+        game: result.gameName,
+        numbers: result.winningNumbers.join(', '),
+        bonus: result.bonusNumber,
+        date: result.drawDate
+      });
+      logScrape(`[Cron] Added new result for ${result.gameName}`);
+    } else {
+      skippedResults.push({
+        game: result.gameName,
+        numbers: result.winningNumbers.join(', '),
+        bonus: result.bonusNumber,
+        date: result.drawDate,
+        reason: "Already exists"
+      });
+      logScrape(`[Cron] Skipped ${result.gameName} - already exists for ${result.drawDate}`);
+    }
+  }
+
+  return { addedCount, addedResults, skippedResults };
+}
+
+const parsedInterval = parseInt(process.env.SCRAPER_INTERVAL_MINUTES || "60", 10);
+const DEFAULT_SCRAPER_INTERVAL_MINUTES = Number.isFinite(parsedInterval)
+  ? Math.max(15, parsedInterval)
+  : 60;
+let cronTimer: NodeJS.Timeout | null = null;
+let isCronRunning = false;
+
+export function startScraperCron(): void {
+  if (cronTimer) return;
+
+  const intervalMs = DEFAULT_SCRAPER_INTERVAL_MINUTES * 60 * 1000;
+
+  const run = async (trigger: string) => {
+    if (isCronRunning) {
+      logScrape(`[Cron] Skip ${trigger} trigger - scraper already running`);
+      return;
+    }
+
+    const settings = await storage.getScraperSettings();
+    const allDisabled = settings.length > 0 && settings.every(s => s.isEnabled === false);
+    if (allDisabled) {
+      logInfo("[Cron] Skipping scrape run because all scraper settings are disabled");
+      return;
+    }
+
+    isCronRunning = true;
+    try {
+      logInfo(`[Cron] Automatic scrape started (${trigger})`);
+      const scrapedResults = await scrapeLotteryResults(1, 0);
+      const { addedCount } = await processScrapedResults(scrapedResults);
+      const timestamp = new Date().toISOString();
+      await storage.updateScraperLastRun(timestamp);
+      logInfo(`[Cron] Automatic scrape complete: scraped ${scrapedResults.length}, added ${addedCount}`);
+    } catch (error) {
+      logError(`[Cron] Automatic scrape failed: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      isCronRunning = false;
+    }
+  };
+
+  cronTimer = setInterval(() => {
+    void run("interval");
+  }, intervalMs);
+
+  void run("startup");
 }
 
 export async function testScraper(): Promise<{

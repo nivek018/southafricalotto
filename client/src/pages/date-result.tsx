@@ -50,8 +50,16 @@ export default function DateResultPage() {
     return nameMap[variantSlug] || variantSlug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
   };
 
-  const sortNumbers = (nums: number[] | undefined) => 
-    nums ? [...nums].sort((a, b) => a - b) : [];
+  const sortNumbers = (nums: number[] | string | undefined) => {
+    if (!nums) return [];
+    if (Array.isArray(nums)) return [...nums].sort((a, b) => a - b);
+    try {
+      const parsed = JSON.parse(nums);
+      return Array.isArray(parsed) ? [...parsed].sort((a, b) => a - b) : [];
+    } catch {
+      return [];
+    }
+  };
 
   const formatDisplayDate = (dateStr: string) => {
     try {
