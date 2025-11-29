@@ -224,13 +224,7 @@ export default function DateResultPage() {
                       )}
                     </div>
 
-                    {result.nextJackpot && (
-                      <div className="text-center pt-4 border-t">
-                        <p className="text-sm text-muted-foreground">
-                          Next Draw Estimated Jackpot: <span className="font-semibold">{result.nextJackpot}</span>
-                        </p>
-                      </div>
-                    )}
+
                   </CardContent>
                 </Card>
               );

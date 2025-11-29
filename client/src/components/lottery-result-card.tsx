@@ -61,13 +61,6 @@ export function LotteryResultCard({ result }: LotteryResultCardProps) {
           )}
         </div>
 
-        {result.nextJackpot && (
-          <div className="bg-muted/50 rounded-md p-3">
-            <p className="text-sm text-muted-foreground">Estimated Next Jackpot</p>
-            <p className="text-lg font-bold text-foreground">{result.nextJackpot}</p>
-          </div>
-        )}
-
         <Link href={`/game/${result.gameSlug}`}>
           <Button variant="ghost" className="w-full group" data-testid={`button-view-${result.gameSlug}`}>
             View Draw Summary

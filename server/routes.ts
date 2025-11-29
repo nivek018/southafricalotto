@@ -310,7 +310,7 @@ export async function registerRoutes(
           numbers: r.winningNumbers.join(', '),
           bonus: r.bonusNumber,
           date: r.drawDate,
-          jackpot: r.nextJackpot
+          jackpot: r.jackpotAmount
         })),
         addedResults,
         skippedResults

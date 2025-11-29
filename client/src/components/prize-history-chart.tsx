@@ -61,8 +61,8 @@ export function PrizeHistoryChart({ groupSlug, variants }: PrizeHistoryChartProp
       .map(result => ({
         date: result.drawDate,
         displayDate: format(parseISO(result.drawDate), "MMM d"),
-        jackpot: parsePrize(result.nextJackpot || result.jackpotAmount),
-        formattedJackpot: result.nextJackpot || result.jackpotAmount || "N/A"
+        jackpot: parsePrize(result.jackpotAmount),
+        formattedJackpot: result.jackpotAmount || "N/A"
       }))
       .reverse();
 
@@ -174,7 +174,7 @@ export function PrizeHistoryChart({ groupSlug, variants }: PrizeHistoryChartProp
           </ResponsiveContainer>
         </div>
         <p className="text-xs text-muted-foreground text-center mt-4">
-          Next jackpot estimates over the selected time period. Data based on recorded draw results.
+          Jackpot amounts over the selected time period. Data based on recorded draw results.
         </p>
       </CardContent>
     </Card>

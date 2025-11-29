@@ -74,7 +74,6 @@ export default function AdminResults() {
       bonusNumber: "",
       drawDate: new Date().toISOString().split("T")[0],
       jackpotAmount: "",
-      nextJackpot: "",
       hotNumber: "",
       coldNumber: "",
     },
@@ -90,7 +89,6 @@ export default function AdminResults() {
         bonusNumber: data.bonusNumber ? parseInt(data.bonusNumber) : null,
         drawDate: data.drawDate,
         jackpotAmount: data.jackpotAmount || null,
-        nextJackpot: data.nextJackpot || null,
       };
       const res = await apiRequest("POST", "/api/results", payload);
       return res.json();
@@ -125,7 +123,6 @@ export default function AdminResults() {
         bonusNumber: data.bonusNumber ? parseInt(data.bonusNumber) : null,
         drawDate: data.drawDate,
         jackpotAmount: data.jackpotAmount || null,
-        nextJackpot: data.nextJackpot || null,
       };
       const res = await apiRequest("PATCH", `/api/results/${data.id}`, payload);
       return res.json();
@@ -191,7 +188,6 @@ export default function AdminResults() {
       bonusNumber: result.bonusNumber?.toString() || "",
       drawDate: result.drawDate,
       jackpotAmount: result.jackpotAmount || "",
-      nextJackpot: result.nextJackpot || "",
       hotNumber: result.hotNumber?.toString() || "",
       coldNumber: result.coldNumber?.toString() || "",
     });
@@ -324,43 +320,23 @@ export default function AdminResults() {
                   )}
                 />
 
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="jackpotAmount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Jackpot Amount</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="e.g., R40,000,000"
-                            data-testid="input-jackpot"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="nextJackpot"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Next Jackpot</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="e.g., R50,000,000"
-                            data-testid="input-next-jackpot"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                <FormField
+                  control={form.control}
+                  name="jackpotAmount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Jackpot Amount</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g., R40,000,000"
+                          data-testid="input-jackpot"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <div className="flex gap-2 pt-4">
                   <Button
@@ -400,7 +376,7 @@ export default function AdminResults() {
                   <TableHead>Game</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Numbers</TableHead>
-                  <TableHead>Next Jackpot</TableHead>
+                  <TableHead>Jackpot</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -429,7 +405,7 @@ export default function AdminResults() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>{result.nextJackpot || "-"}</TableCell>
+                    <TableCell>{result.jackpotAmount || "-"}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
                         <Button

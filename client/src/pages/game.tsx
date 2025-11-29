@@ -208,17 +208,6 @@ export default function GamePage() {
 
   const countdown = useCountdown(nextDrawDate);
 
-  const getEstimatedJackpot = () => {
-    if (hasGroup && groupedData) {
-      const mainVariant = groupedData.group.variants[0];
-      const latestResult = groupedData.latestResults[mainVariant];
-      return latestResult?.nextJackpot || null;
-    } else if (singleResults && singleResults[0]) {
-      return singleResults[0].nextJackpot || null;
-    }
-    return null;
-  };
-
   const parsedDrawDays = useMemo(() => {
     if (!gameData?.drawDays) return [];
     if (Array.isArray(gameData.drawDays)) return gameData.drawDays;
@@ -228,8 +217,6 @@ export default function GamePage() {
       return [];
     }
   }, [gameData]);
-
-  const estimatedJackpot = getEstimatedJackpot();
 
   const sortNumbers = (nums: number[] | string | undefined) => {
     if (!nums) return [];
@@ -366,24 +353,6 @@ export default function GamePage() {
                 </Card>
               )}
 
-              {estimatedJackpot && (
-                <Card className="bg-background/80 backdrop-blur" data-testid="card-estimated-jackpot">
-                  <CardContent className="py-6">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="p-2 bg-lottery-ball-bonus/10 rounded-full">
-                        <Trophy className="h-5 w-5 text-lottery-ball-bonus" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-sm text-muted-foreground">Estimated Jackpot</h3>
-                        <p className="text-2xl font-bold text-lottery-ball-bonus" data-testid="text-jackpot">{estimatedJackpot}</p>
-                      </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Jackpot estimate for next draw. Actual amount may vary.
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
             </div>
           </div>
         </section>
@@ -454,13 +423,6 @@ export default function GamePage() {
                             </div>
                             )}
 
-                            {latestResult.nextJackpot && (
-                              <div className="text-center">
-                                <p className="text-sm text-muted-foreground">
-                                  Estimated Next Jackpot: <span className="font-semibold">{latestResult.nextJackpot}</span>
-                                </p>
-                              </div>
-                            )}
                           </CardContent>
                         </Card>
 
@@ -541,12 +503,6 @@ export default function GamePage() {
                               )}
                             </div>
 
-                          {singleResults[0].nextJackpot && (
-                            <div className="bg-gradient-to-r from-lottery-ball-main/10 to-lottery-ball-bonus/10 rounded-lg p-6 text-center">
-                              <p className="text-sm text-muted-foreground mb-1">Estimated Next Jackpot</p>
-                              <p className="text-3xl font-bold">{singleResults[0].nextJackpot}</p>
-                            </div>
-                          )}
                         </CardContent>
                       </Card>
 

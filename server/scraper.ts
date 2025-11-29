@@ -222,6 +222,7 @@ export async function scrapeLotteryResults(
             const parsed = parseGameSection(sectionContent, config);
 
             if (parsed) {
+              const jackpotAmount = parsed.nextJackpot || null;
               results.push({
                 gameId: config.slug,
                 gameName: parsed.gameName,
@@ -229,8 +230,8 @@ export async function scrapeLotteryResults(
                 winningNumbers: parsed.winningNumbers,
                 bonusNumber: parsed.bonusNumber,
                 drawDate: parsed.drawDate,
-                jackpotAmount: null,
-                nextJackpot: parsed.nextJackpot,
+                jackpotAmount,
+                nextJackpot: null,
               });
               logScrape(`Added result for ${config.name}`);
             }
@@ -246,6 +247,7 @@ export async function scrapeLotteryResults(
           if (headingMatch) {
             const parsed = parseGameSection(headingMatch[0], config);
             if (parsed) {
+              const jackpotAmount = parsed.nextJackpot || null;
               results.push({
                 gameId: config.slug,
                 gameName: parsed.gameName,
@@ -253,8 +255,8 @@ export async function scrapeLotteryResults(
                 winningNumbers: parsed.winningNumbers,
                 bonusNumber: parsed.bonusNumber,
                 drawDate: parsed.drawDate,
-                jackpotAmount: null,
-                nextJackpot: parsed.nextJackpot,
+                jackpotAmount,
+                nextJackpot: null,
               });
               logScrape(`Added result for ${config.name} via regex search`);
             }
