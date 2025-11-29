@@ -9,11 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { 
-  CircleDot, 
-  LogOut, 
-  Newspaper, 
-  RefreshCw, 
+import {
+  CircleDot,
+  LogOut,
+  Newspaper,
+  RefreshCw,
   Database,
   Download,
   Settings,
@@ -187,7 +187,7 @@ export default function AdminDashboard() {
               <p className="text-sm text-muted-foreground">Lottery results stored</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-medium flex items-center gap-2">
@@ -267,8 +267,8 @@ export default function AdminDashboard() {
                       className="w-32"
                       data-testid="input-global-schedule"
                     />
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       onClick={applyGlobalSchedule}
                       disabled={settingsMutation.isPending}
                       data-testid="button-apply-global-schedule"
@@ -295,7 +295,7 @@ export default function AdminDashboard() {
                       const setting = getSettingForGame(game.slug);
                       const isEnabled = setting?.isEnabled ?? true;
                       const scheduleTime = setting?.scheduleTime || globalScheduleTime;
-                      
+
                       return (
                         <div key={game.slug} className="flex items-center justify-between py-3 border-b last:border-0">
                           <div className="flex items-center gap-4">
@@ -311,7 +311,7 @@ export default function AdminDashboard() {
                                 {game.name}
                               </Label>
                               <p className="text-xs text-muted-foreground">
-                                Draw days: {game.drawDays?.join(", ") || "N/A"}
+                                Draw days: {(Array.isArray(game.drawDays) ? game.drawDays : JSON.parse(game.drawDays as unknown as string || "[]")).join(", ") || "N/A"}
                               </p>
                             </div>
                           </div>

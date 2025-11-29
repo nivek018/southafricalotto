@@ -5,12 +5,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
   FormMessage,
   FormDescription
 } from "@/components/ui/form";
@@ -187,7 +187,7 @@ export default function AdminResults() {
       gameId: result.gameId,
       gameName: result.gameName,
       gameSlug: result.gameSlug,
-      winningNumbers: result.winningNumbers.join(", "),
+      winningNumbers: (Array.isArray(result.winningNumbers) ? result.winningNumbers : JSON.parse(result.winningNumbers as unknown as string || "[]")).join(", "),
       bonusNumber: result.bonusNumber?.toString() || "",
       drawDate: result.drawDate,
       jackpotAmount: result.jackpotAmount || "",
@@ -380,8 +380,8 @@ export default function AdminResults() {
                     {createMutation.isPending || updateMutation.isPending
                       ? "Saving..."
                       : editingResult
-                      ? "Update Result"
-                      : "Add Result"}
+                        ? "Update Result"
+                        : "Add Result"}
                   </Button>
                 </div>
               </form>
@@ -413,12 +413,12 @@ export default function AdminResults() {
                     <TableCell>{formatDate(result.drawDate)}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1 flex-wrap">
-                        {result.winningNumbers.slice(0, 4).map((num, idx) => (
+                        {(Array.isArray(result.winningNumbers) ? result.winningNumbers : JSON.parse(result.winningNumbers as unknown as string || "[]")).slice(0, 4).map((num: number, idx: number) => (
                           <LotteryBall key={idx} number={num} size="sm" />
                         ))}
-                        {result.winningNumbers.length > 4 && (
+                        {(Array.isArray(result.winningNumbers) ? result.winningNumbers : JSON.parse(result.winningNumbers as unknown as string || "[]")).length > 4 && (
                           <span className="text-xs text-muted-foreground ml-1">
-                            +{result.winningNumbers.length - 4} more
+                            +{(Array.isArray(result.winningNumbers) ? result.winningNumbers : JSON.parse(result.winningNumbers as unknown as string || "[]")).length - 4} more
                           </span>
                         )}
                         {result.bonusNumber && (

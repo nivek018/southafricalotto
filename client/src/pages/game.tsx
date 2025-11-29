@@ -219,6 +219,16 @@ export default function GamePage() {
     return null;
   };
 
+  const parsedDrawDays = useMemo(() => {
+    if (!gameData?.drawDays) return [];
+    if (Array.isArray(gameData.drawDays)) return gameData.drawDays;
+    try {
+      return JSON.parse(gameData.drawDays);
+    } catch {
+      return [];
+    }
+  }, [gameData]);
+
   const estimatedJackpot = getEstimatedJackpot();
 
   const sortNumbers = (nums: number[] | string | undefined) => {
@@ -347,7 +357,7 @@ export default function GamePage() {
                     </div>
                     {gameData?.drawDays && (
                       <p className="text-xs text-muted-foreground mt-2">
-                        Draws: {gameData.drawDays.join(", ")} at {gameData.drawTime} SAST
+                        Draws: {parsedDrawDays.join(", ")} at {gameData.drawTime} SAST
                       </p>
                     )}
                   </CardContent>
