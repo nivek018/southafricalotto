@@ -3,9 +3,58 @@ import { LotteryResultCard } from "@/components/lottery-result-card";
 import { ResultCardSkeleton } from "@/components/loading-skeleton";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Calendar } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { ChevronLeft, Calendar, Bell, HelpCircle, AlertCircle } from "lucide-react";
 import type { LotteryResult } from "@shared/schema";
 import { useEffect } from "react";
+
+const REMINDERS = [
+  {
+    title: "Check Your Tickets",
+    description: "Always verify your lottery tickets against the official results. Keep your tickets in a safe place until you've confirmed whether you've won.",
+  },
+  {
+    title: "Claim Deadlines",
+    description: "Winners have 365 days from the draw date to claim prizes. Don't let your winnings expire!",
+  },
+  {
+    title: "Play Responsibly",
+    description: "Set a budget for lottery play and stick to it. Remember, lottery should be fun entertainment, not a financial strategy.",
+  },
+  {
+    title: "Multiple Games",
+    description: "Playing Plus games (Powerball Plus, Lotto Plus 1 & 2) gives you additional chances to win with the same numbers.",
+  },
+];
+
+const FAQS = [
+  {
+    question: "When are yesterday's lottery results available?",
+    answer: "Results from the previous day are available immediately after midnight SAST. All draws from the previous day will be displayed on this page.",
+  },
+  {
+    question: "Which games are shown on this page?",
+    answer: "This page shows all South African lottery games that had draws yesterday, including Powerball, Powerball Plus, Lotto, Lotto Plus 1, Lotto Plus 2, Daily Lotto, and Daily Lotto Plus.",
+  },
+  {
+    question: "Why might there be no results for yesterday?",
+    answer: "Not all games have draws every day. Powerball draws on Tuesday and Friday, Lotto draws on Wednesday and Saturday. Only Daily Lotto has draws every day.",
+  },
+  {
+    question: "How do I claim a lottery prize?",
+    answer: "Prizes up to R2,000 can be claimed at any lottery retailer. Larger prizes must be claimed at a regional lottery office or the head office. You'll need your winning ticket and valid ID.",
+  },
+  {
+    question: "How long do I have to claim my prize?",
+    answer: "You have 365 days from the draw date to claim your prize. After this period, unclaimed prizes are forfeited and used for good causes.",
+  },
+];
 
 function getYesterdayDateSAST(): string {
   const now = new Date();
@@ -115,6 +164,53 @@ export default function LottoResultYesterdayPage() {
             Draw times are: Daily Lotto at 21:00, Lotto on Wednesday/Saturday at 20:57, and 
             Powerball on Tuesday/Friday at 20:58 South African Standard Time (SAST).
           </p>
+        </div>
+
+        <div className="mt-8" data-testid="section-reminders">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-amber-500/10 rounded-full">
+              <Bell className="h-6 w-6 text-amber-500" />
+            </div>
+            <h2 className="text-2xl font-bold">Reminders</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {REMINDERS.map((reminder, index) => (
+              <Card key={index} data-testid={`reminder-${index}`}>
+                <CardContent className="pt-4">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h3 className="font-semibold mb-1">{reminder.title}</h3>
+                      <p className="text-sm text-muted-foreground">{reminder.description}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-8" data-testid="section-faqs">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-primary/10 rounded-full">
+              <HelpCircle className="h-6 w-6 text-primary" />
+            </div>
+            <h2 className="text-2xl font-bold">Frequently Asked Questions</h2>
+          </div>
+          <Card>
+            <CardContent className="pt-4">
+              <Accordion type="single" collapsible className="w-full">
+                {FAQS.map((faq, index) => (
+                  <AccordionItem key={index} value={`item-${index}`} data-testid={`faq-item-${index}`}>
+                    <AccordionTrigger className="text-left">{faq.question}</AccordionTrigger>
+                    <AccordionContent className="text-muted-foreground">
+                      {faq.answer}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

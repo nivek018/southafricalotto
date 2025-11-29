@@ -57,7 +57,18 @@ export default function HomePage() {
             </div>
           ) : results && results.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {results.map((result) => (
+              {[...results].sort((a, b) => {
+                const order: Record<string, number> = {
+                  'lotto': 1,
+                  'lotto-plus-1': 2,
+                  'lotto-plus-2': 3,
+                  'powerball': 4,
+                  'powerball-plus': 5,
+                  'daily-lotto': 6,
+                  'daily-lotto-plus': 7,
+                };
+                return (order[a.gameSlug] || 99) - (order[b.gameSlug] || 99);
+              }).map((result) => (
                 <LotteryResultCard key={result.id} result={result} />
               ))}
             </div>
