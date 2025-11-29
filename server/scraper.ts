@@ -20,27 +20,12 @@ const USER_AGENTS = [
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15",
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0",
-  "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0",
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15",
-  "Mozilla/5.0 (Windows NT 11.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-  "Mozilla/5.0 (iPad; CPU OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Mobile/15E148 Safari/604.1",
 ];
 
 const ACCEPT_LANGUAGES = [
   "en-US,en;q=0.9",
   "en-GB,en;q=0.9,en-US;q=0.8",
   "en-ZA,en;q=0.9,en-GB;q=0.8,en-US;q=0.7",
-  "en;q=0.9",
-  "en-AU,en;q=0.9,en-GB;q=0.8",
-];
-
-const REFERERS = [
-  "https://www.google.com/",
-  "https://www.google.co.za/",
-  "https://www.bing.com/",
-  "https://duckduckgo.com/",
-  "",
 ];
 
 function getRandomItem<T>(arr: T[]): T {
@@ -48,132 +33,267 @@ function getRandomItem<T>(arr: T[]): T {
 }
 
 function getRandomHeaders(): Record<string, string> {
-  const headers: Record<string, string> = {
+  return {
     "User-Agent": getRandomItem(USER_AGENTS),
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
     "Accept-Language": getRandomItem(ACCEPT_LANGUAGES),
     "Accept-Encoding": "gzip, deflate, br",
     "DNT": "1",
     "Connection": "keep-alive",
     "Upgrade-Insecure-Requests": "1",
-    "Sec-Fetch-Dest": "document",
-    "Sec-Fetch-Mode": "navigate",
-    "Sec-Fetch-Site": "none",
-    "Sec-Fetch-User": "?1",
     "Cache-Control": "max-age=0",
   };
-
-  const referer = getRandomItem(REFERERS);
-  if (referer) {
-    headers["Referer"] = referer;
-  }
-
-  return headers;
 }
 
 function sortNumbers(numbers: number[]): number[] {
   return [...numbers].sort((a, b) => a - b);
 }
 
+function splitConcatenatedNumbers(numString: string, count: number): number[] {
+  const numbers: number[] = [];
+  const cleanString = numString.replace(/\D/g, '');
+
+  for (let i = 0; i < cleanString.length && numbers.length < count; i += 2) {
+    const num = parseInt(cleanString.substring(i, i + 2), 10);
+    if (!isNaN(num) && num > 0) {
+      numbers.push(num);
+    }
+  }
+
+  return numbers;
+}
+
+interface GameConfig {
+  slug: string;
+  name: string;
+  numberCount: number;
+  hasBonus: boolean;
+  headingPattern: RegExp;
+}
+
+const GAME_CONFIGS: GameConfig[] = [
+  { slug: "powerball", name: "Powerball", numberCount: 5, hasBonus: true, headingPattern: /Powerball results/i },
+  { slug: "powerball-plus", name: "Powerball Plus", numberCount: 5, hasBonus: true, headingPattern: /Powerball Plus results/i },
+  { slug: "lotto", name: "Lotto", numberCount: 6, hasBonus: true, headingPattern: /^Lotto results/i },
+  { slug: "lotto-plus-1", name: "Lotto Plus 1", numberCount: 6, hasBonus: true, headingPattern: /Lotto Plus 1 results/i },
+  { slug: "lotto-plus-2", name: "Lotto Plus 2", numberCount: 6, hasBonus: true, headingPattern: /Lotto Plus 2 results/i },
+  { slug: "daily-lotto", name: "Daily Lotto", numberCount: 5, hasBonus: false, headingPattern: /^Daily Lotto results/i },
+  { slug: "daily-lotto-plus", name: "Daily Lotto Plus", numberCount: 5, hasBonus: false, headingPattern: /Daily Lotto Plus results/i },
+];
+
+function parseGameSection(sectionText: string, config: GameConfig): ScrapedResult | null {
+  logScrape(`Parsing section for ${config.name}...`);
+  logScrape(`Section text preview: ${sectionText.substring(0, 200)}...`);
+
+  const lines = sectionText.split('\n').map(l => l.trim()).filter(l => l);
+
+  const winningNumbers: number[] = [];
+  let bonusNumber: number | null = null;
+  let drawDate = '';
+  let hotNumber: number | null = null;
+  let coldNumber: number | null = null;
+  let nextJackpot: string | null = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    const singleNumberMatch = line.match(/^(\d{2})$/);
+    if (singleNumberMatch && winningNumbers.length < config.numberCount) {
+      const num = parseInt(singleNumberMatch[1], 10);
+      if (num > 0) {
+        winningNumbers.push(num);
+        logScrape(`Found number ${winningNumbers.length}: ${num}`);
+      }
+      continue;
+    }
+
+    const bonusMatch = line.match(/^\+\s*(\d{1,2})$/);
+    if (bonusMatch) {
+      bonusNumber = parseInt(bonusMatch[1], 10);
+      logScrape(`Found bonus number: ${bonusNumber}`);
+      continue;
+    }
+
+    const backslashBonusMatch = line.match(/^\\?\+\s*(\d{1,2})$/);
+    if (backslashBonusMatch) {
+      bonusNumber = parseInt(backslashBonusMatch[1], 10);
+      logScrape(`Found bonus number (backslash format): ${bonusNumber}`);
+      continue;
+    }
+
+    const dateMatch = line.match(/^(\d{4}-\d{2}-\d{2})/);
+    if (dateMatch) {
+      drawDate = dateMatch[1];
+      logScrape(`Found draw date: ${drawDate}`);
+      continue;
+    }
+
+    const hotMatch = line.match(/Hot Number:\s*(\d{1,2})/i);
+    if (hotMatch) {
+      hotNumber = parseInt(hotMatch[1], 10);
+      logScrape(`Found hot number: ${hotNumber}`);
+      continue;
+    }
+
+    const coldMatch = line.match(/Cold Number:\s*(\d{1,2})/i);
+    if (coldMatch) {
+      coldNumber = parseInt(coldMatch[1], 10);
+      logScrape(`Found cold number: ${coldNumber}`);
+      continue;
+    }
+
+    const jackpotMatch = line.match(/Estimated Jackpot[^:]*:\s*(R[\d,]+)/i);
+    if (jackpotMatch) {
+      nextJackpot = jackpotMatch[1];
+      logScrape(`Found jackpot: ${nextJackpot}`);
+      continue;
+    }
+
+    const nextDrawJackpotMatch = line.match(/next draw:\s*(R[\d,]+)/i);
+    if (nextDrawJackpotMatch) {
+      nextJackpot = nextDrawJackpotMatch[1];
+      logScrape(`Found next draw jackpot: ${nextJackpot}`);
+      continue;
+    }
+  }
+
+  if (winningNumbers.length !== config.numberCount) {
+    logScrape(`Expected ${config.numberCount} numbers for ${config.name}, got ${winningNumbers.length}: [${winningNumbers.join(', ')}]`);
+    return null;
+  }
+
+  if (!drawDate) {
+    drawDate = new Date().toISOString().split('T')[0];
+    logScrape(`No date found, using today: ${drawDate}`);
+  }
+
+  const sortedNumbers = sortNumbers(winningNumbers);
+
+  logScrape(`Successfully parsed ${config.name}: ${sortedNumbers.join(', ')}${bonusNumber ? ` + ${bonusNumber}` : ''} on ${drawDate}`);
+
+  return {
+    gameName: config.name,
+    gameSlug: config.slug,
+    winningNumbers: sortedNumbers,
+    bonusNumber: config.hasBonus ? bonusNumber : null,
+    drawDate,
+    nextJackpot,
+    hotNumber,
+    coldNumber,
+  };
+}
+
 export async function scrapeLotteryResults(
   retries: number = 3,
-  delayMs: number = 300000
+  delayMs: number = 5000
 ): Promise<InsertLotteryResult[]> {
   let lastError: Error | null = null;
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       logScrape(`Starting scrape attempt ${attempt} of ${retries}`);
-      
+
       const headers = getRandomHeaders();
       logScrape(`Using User-Agent: ${headers["User-Agent"].substring(0, 50)}...`);
-      
+
       const response = await axios.get("https://www.africanlottery.net/", {
         headers,
         timeout: 30000,
       });
 
-      logScrape(`Response received, status: ${response.status}`);
+      logScrape(`Response received, status: ${response.status}, content length: ${response.data.length}`);
 
       const $ = cheerio.load(response.data);
       const results: InsertLotteryResult[] = [];
 
-      const gameConfigs: Record<
-        string,
-        { slug: string; hasBonus: boolean }
-      > = {
-        "Powerball results": { slug: "powerball", hasBonus: true },
-        "Powerball Plus results": { slug: "powerball-plus", hasBonus: true },
-        "Lotto results": { slug: "lotto", hasBonus: true },
-        "Lotto Plus 1 results": { slug: "lotto-plus-1", hasBonus: true },
-        "Lotto Plus 2 results": { slug: "lotto-plus-2", hasBonus: true },
-        "Daily Lotto results": { slug: "daily-lotto", hasBonus: false },
-        "Daily Lotto Plus results": { slug: "daily-lotto-plus", hasBonus: false },
-      };
+      const fullText = $('body').text();
 
-      $("h2").each((_, element) => {
-        const heading = $(element).text().trim();
-        const config = gameConfigs[heading];
+      for (const config of GAME_CONFIGS) {
+        logScrape(`Looking for ${config.name}...`);
 
-        if (config) {
-          const section = $(element).parent();
-          const numbersText =
-            section.find(".numbers, .result-numbers").text() ||
-            section.text().match(/\d{2}/g)?.join("") ||
-            "";
+        let sectionFound = false;
 
-          const allNumbers = numbersText.match(/\d{2}/g)?.map(Number) || [];
+        $('h2').each((_, h2Element) => {
+          const headingText = $(h2Element).text().trim();
 
-          let winningNumbers: number[] = [];
-          let bonusNumber: number | null = null;
+          if (config.headingPattern.test(headingText)) {
+            logScrape(`Found heading: "${headingText}" for ${config.name}`);
+            sectionFound = true;
 
-          if (config.hasBonus && allNumbers.length > 0) {
-            const bonus = allNumbers[allNumbers.length - 1];
-            winningNumbers = sortNumbers(allNumbers.slice(0, -1));
-            bonusNumber = bonus || null;
-          } else {
-            winningNumbers = sortNumbers(allNumbers);
+            let sectionContent = '';
+            let currentElement = $(h2Element).parent();
+
+            const nearbyElements: string[] = [];
+
+            let sibling = $(h2Element).next();
+            for (let j = 0; j < 15 && sibling.length; j++) {
+              nearbyElements.push(sibling.text().trim());
+              sibling = sibling.next();
+            }
+
+            const parentText = currentElement.text();
+            sectionContent = parentText;
+
+            if (sectionContent.length < 50) {
+              sectionContent = nearbyElements.join('\n');
+            }
+
+            const parsed = parseGameSection(sectionContent, config);
+
+            if (parsed) {
+              results.push({
+                gameId: config.slug,
+                gameName: parsed.gameName,
+                gameSlug: parsed.gameSlug,
+                winningNumbers: parsed.winningNumbers,
+                bonusNumber: parsed.bonusNumber,
+                drawDate: parsed.drawDate,
+                jackpotAmount: null,
+                nextJackpot: parsed.nextJackpot,
+                hotNumber: parsed.hotNumber,
+                coldNumber: parsed.coldNumber,
+              });
+              logScrape(`Added result for ${config.name}`);
+            }
+
+            return false;
           }
+        });
 
-          const dateMatch =
-            section.text().match(/\d{4}-\d{2}-\d{2}/) ||
-            section.text().match(/(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
-          const drawDate = dateMatch
-            ? dateMatch[0]
-            : new Date().toISOString().split("T")[0];
+        if (!sectionFound) {
+          logScrape(`Trying regex search for ${config.name} in full page text...`);
 
-          const jackpotMatch = section.text().match(/R[\d,]+/);
-          const nextJackpot = jackpotMatch ? jackpotMatch[0] : null;
-
-          const gameName = heading.replace(" results", "");
-
-          if (winningNumbers.length > 0) {
-            results.push({
-              gameId: config.slug,
-              gameName,
-              gameSlug: config.slug,
-              winningNumbers,
-              bonusNumber,
-              drawDate,
-              jackpotAmount: null,
-              nextJackpot,
-              hotNumber: null,
-              coldNumber: null,
-            });
-            logScrape(`Found result for ${gameName}: ${winningNumbers.join(", ")}${bonusNumber ? ` + ${bonusNumber}` : ""}`);
+          const headingMatch = fullText.match(new RegExp(`${config.name}\\s+results[\\s\\S]{0,500}`, 'i'));
+          if (headingMatch) {
+            const parsed = parseGameSection(headingMatch[0], config);
+            if (parsed) {
+              results.push({
+                gameId: config.slug,
+                gameName: parsed.gameName,
+                gameSlug: parsed.gameSlug,
+                winningNumbers: parsed.winningNumbers,
+                bonusNumber: parsed.bonusNumber,
+                drawDate: parsed.drawDate,
+                jackpotAmount: null,
+                nextJackpot: parsed.nextJackpot,
+                hotNumber: parsed.hotNumber,
+                coldNumber: parsed.coldNumber,
+              });
+              logScrape(`Added result for ${config.name} via regex search`);
+            }
           }
         }
-      });
+      }
 
       if (results.length > 0) {
         logScrape(`Successfully scraped ${results.length} lottery results`);
         return results;
       }
 
-      logScrape(`No results found on attempt ${attempt}, will retry after ${delayMs / 60000} minutes if attempts remain`);
+      logScrape(`No results found on attempt ${attempt}`);
 
       if (attempt < retries) {
-        logScrape(`Waiting ${delayMs / 60000} minutes before retry...`);
+        logScrape(`Waiting ${delayMs / 1000} seconds before retry...`);
         await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
     } catch (error) {
@@ -181,13 +301,13 @@ export async function scrapeLotteryResults(
       logError(`Scraping attempt ${attempt} failed: ${lastError.message}`);
 
       if (attempt < retries) {
-        logScrape(`Retrying in ${delayMs / 60000} minutes (attempt ${attempt + 1} of ${retries})...`);
+        logScrape(`Retrying in ${delayMs / 1000} seconds (attempt ${attempt + 1} of ${retries})...`);
         await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
     }
   }
 
-  const errorMsg = lastError?.message || "Failed to scrape lottery results after multiple attempts. The website may be unavailable.";
+  const errorMsg = lastError?.message || "Failed to scrape lottery results after multiple attempts.";
   logError(`All scraping attempts failed: ${errorMsg}`);
   throw lastError || new Error(errorMsg);
 }
@@ -196,15 +316,22 @@ export async function testScraper(): Promise<{
   success: boolean;
   message: string;
   count: number;
+  results?: InsertLotteryResult[];
 }> {
   try {
     logInfo("Testing scraper connection...");
     const results = await scrapeLotteryResults(1, 0);
     logInfo(`Scraper test successful: ${results.length} results found`);
+
+    results.forEach(r => {
+      logInfo(`  - ${r.gameName}: ${r.winningNumbers.join(', ')}${r.bonusNumber ? ` + ${r.bonusNumber}` : ''} (${r.drawDate})`);
+    });
+
     return {
       success: true,
       message: `Successfully scraped ${results.length} lottery results`,
       count: results.length,
+      results,
     };
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : "Unknown error occurred";

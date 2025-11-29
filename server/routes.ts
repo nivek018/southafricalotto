@@ -51,7 +51,6 @@ export async function registerRoutes(
       if (!game) {
         return res.status(404).json({ error: "Game not found" });
       }
-      console.log(`[DEBUG] Game data for ${req.params.slug}:`, JSON.stringify(game, null, 2));
       res.json(game);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch game" });
@@ -79,7 +78,6 @@ export async function registerRoutes(
   app.get("/api/results/game/:slug", async (req, res) => {
     try {
       const results = await storage.getResultsByGameSlug(req.params.slug);
-      console.log(`[DEBUG] Results for ${req.params.slug}:`, JSON.stringify(results, null, 2));
       res.json(results);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch game results" });
@@ -293,10 +291,17 @@ export async function registerRoutes(
 
   app.post("/api/scrape", async (req, res) => {
     try {
+      console.log("[Scraper] Starting scrape operation...");
       const scrapedResults = await scrapeLotteryResults();
+      console.log(`[Scraper] Got ${scrapedResults.length} results from scraper`);
 
       let addedCount = 0;
+      const addedResults: any[] = [];
+      const skippedResults: any[] = [];
+
       for (const result of scrapedResults) {
+        console.log(`[Scraper] Processing ${result.gameName}: ${result.winningNumbers.join(',')}${result.bonusNumber ? ` + ${result.bonusNumber}` : ''} (${result.drawDate})`);
+
         const existingResults = await storage.getResultsByGameSlug(result.gameSlug);
         const exists = existingResults.some(
           r => r.drawDate === result.drawDate && r.gameSlug === result.gameSlug
@@ -305,17 +310,44 @@ export async function registerRoutes(
         if (!exists) {
           await storage.createResult(result);
           addedCount++;
+          addedResults.push({
+            game: result.gameName,
+            numbers: result.winningNumbers.join(', '),
+            bonus: result.bonusNumber,
+            date: result.drawDate
+          });
+          console.log(`[Scraper] Added new result for ${result.gameName}`);
+        } else {
+          skippedResults.push({
+            game: result.gameName,
+            numbers: result.winningNumbers.join(', '),
+            bonus: result.bonusNumber,
+            date: result.drawDate,
+            reason: "Already exists"
+          });
+          console.log(`[Scraper] Skipped ${result.gameName} - already exists for ${result.drawDate}`);
         }
       }
+
+      console.log(`[Scraper] Complete: scraped ${scrapedResults.length}, added ${addedCount}`);
 
       res.json({
         success: true,
         message: `Scraped ${scrapedResults.length} results, added ${addedCount} new results`,
         scraped: scrapedResults.length,
-        added: addedCount
+        added: addedCount,
+        results: scrapedResults.map(r => ({
+          game: r.gameName,
+          numbers: r.winningNumbers.join(', '),
+          bonus: r.bonusNumber,
+          date: r.drawDate,
+          jackpot: r.nextJackpot
+        })),
+        addedResults,
+        skippedResults
       });
     } catch (error) {
-      console.error("Scraping error:", error);
+      console.error("[Scraper] Error:", error);
       res.status(500).json({
         error: "Failed to scrape results",
         message: error instanceof Error ? error.message : "Unknown error"

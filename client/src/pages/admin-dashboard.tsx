@@ -60,15 +60,27 @@ export default function AdminDashboard() {
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/results"] });
       queryClient.invalidateQueries({ queryKey: ["/api/results/latest"] });
-      toast({
-        title: "Scraping Complete",
-        description: data?.message || "Latest lottery results have been fetched.",
-      });
+
+      if (data?.results && data.results.length > 0) {
+        const resultsList = data.results.map((r: any) =>
+          `${r.game}: ${r.numbers}${r.bonus ? ` + ${r.bonus}` : ''}`
+        ).join('\n');
+
+        toast({
+          title: `Scraped ${data.scraped} Results (${data.added} New)`,
+          description: resultsList.substring(0, 200) + (resultsList.length > 200 ? '...' : ''),
+        });
+      } else {
+        toast({
+          title: "Scraping Complete",
+          description: data?.message || "Latest lottery results have been fetched.",
+        });
+      }
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
         title: "Scraping Failed",
-        description: "Could not fetch lottery results. Please try again.",
+        description: error?.message || "Could not fetch lottery results. Please try again.",
         variant: "destructive",
       });
     },
