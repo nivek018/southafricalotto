@@ -5,17 +5,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LotteryBall } from "@/components/lottery-ball";
 import { GameDetailSkeleton } from "@/components/loading-skeleton";
-import { 
+import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { 
-  Calendar, 
-  TrendingUp, 
-  TrendingDown, 
-  ArrowLeft, 
+import {
+  Calendar,
+  TrendingUp,
+  TrendingDown,
+  ArrowLeft,
   Trophy,
   CircleDot,
   History,
@@ -221,8 +221,21 @@ export default function GamePage() {
 
   const estimatedJackpot = getEstimatedJackpot();
 
-  const sortNumbers = (nums: number[] | undefined) => 
-    nums ? [...nums].sort((a, b) => a - b) : [];
+  const sortNumbers = (nums: number[] | string | undefined) => {
+    if (!nums) return [];
+    let parsedNums: number[] = [];
+    if (Array.isArray(nums)) {
+      parsedNums = nums;
+    } else if (typeof nums === "string") {
+      try {
+        parsedNums = JSON.parse(nums);
+      } catch (e) {
+        console.error("Failed to parse winningNumbers:", nums);
+        return [];
+      }
+    }
+    return [...parsedNums].sort((a, b) => a - b);
+  };
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -256,7 +269,7 @@ export default function GamePage() {
     return nameMap[variantSlug] || variantSlug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
   };
 
-  const groupName = hasGroup 
+  const groupName = hasGroup
     ? groupedData?.group?.name || groupInfo?.group?.name || slug
     : singleResults?.[0]?.gameName || slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 
@@ -282,7 +295,7 @@ export default function GamePage() {
     );
   }
 
-  const hasResults = hasGroup 
+  const hasResults = hasGroup
     ? groupedData && Object.keys(groupedData.latestResults).length > 0
     : singleResults && singleResults.length > 0;
 
@@ -296,7 +309,7 @@ export default function GamePage() {
               Back to Results
             </Button>
           </Link>
-          
+
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 mb-4">
               <CircleDot className="h-8 w-8 text-lottery-ball-main" />
@@ -340,7 +353,7 @@ export default function GamePage() {
                   </CardContent>
                 </Card>
               )}
-              
+
               {estimatedJackpot && (
                 <Card className="bg-background/80 backdrop-blur" data-testid="card-estimated-jackpot">
                   <CardContent className="py-6">
@@ -617,9 +630,9 @@ export default function GamePage() {
               </div>
 
               {hasGroup && groupedData && (
-                <PrizeHistoryChart 
-                  groupSlug={groupSlug || ""} 
-                  variants={groupedData.group.variants} 
+                <PrizeHistoryChart
+                  groupSlug={groupSlug || ""}
+                  variants={groupedData.group.variants}
                 />
               )}
             </>
@@ -763,7 +776,7 @@ export default function GamePage() {
                     after each draw to see if you've won!`}
                   </p>
                   <p>
-                    Remember to always verify your results with official lottery retailers 
+                    Remember to always verify your results with official lottery retailers
                     and keep your ticket safe until you've claimed any winnings.
                   </p>
                 </div>

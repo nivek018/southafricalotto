@@ -111,13 +111,25 @@ export function getNextDrawDate(drawDays: string[] | null, drawTime: string | nu
   const sastOffset = 2 * 60;
   const localOffset = now.getTimezoneOffset();
   const sastNow = new Date(now.getTime() + (sastOffset + localOffset) * 60000);
-  
+
   const [hours, minutes] = drawTime.split(":").map(Number);
   const currentDay = sastNow.getDay();
   const currentHour = sastNow.getHours();
   const currentMinute = sastNow.getMinutes();
 
-  const drawDayNumbers = drawDays
+  let parsedDrawDays: string[] = [];
+  if (Array.isArray(drawDays)) {
+    parsedDrawDays = drawDays;
+  } else if (typeof drawDays === "string") {
+    try {
+      parsedDrawDays = JSON.parse(drawDays);
+    } catch (e) {
+      console.error("Failed to parse drawDays:", drawDays);
+      return null;
+    }
+  }
+
+  const drawDayNumbers = parsedDrawDays
     .map(day => dayMap[day])
     .filter(num => num !== undefined)
     .sort((a, b) => a - b);
@@ -127,11 +139,11 @@ export function getNextDrawDate(drawDays: string[] | null, drawTime: string | nu
   }
 
   let daysUntilDraw = 7;
-  
+
   for (const drawDay of drawDayNumbers) {
     let diff = drawDay - currentDay;
     if (diff < 0) diff += 7;
-    
+
     if (diff === 0) {
       if (currentHour < hours || (currentHour === hours && currentMinute < minutes)) {
         daysUntilDraw = 0;
