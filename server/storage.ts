@@ -296,6 +296,7 @@ export class MemStorage implements IStorage {
       hasBonusBall: insertGame.hasBonusBall ?? false,
       bonusMaxNumber: insertGame.bonusMaxNumber ?? null,
       drawDays: insertGame.drawDays ?? null,
+      drawTime: insertGame.drawTime ?? null,
       isActive: insertGame.isActive ?? true
     };
     this.games.set(id, game);
