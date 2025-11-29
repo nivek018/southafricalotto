@@ -170,3 +170,11 @@ The workflow named 'Start application' runs `npm run dev` which starts the Expre
 - Added prize history chart component with 3mo/6mo/1yr filter options
 - Updated sitemap.xml to include last 90 days of date-specific result pages per game group
 - Fixed URL routing pattern: changed from hyphen-separated to slash-separated URLs for proper wouter parsing
+- Removed seconds from Next Draw countdown timer (now shows days, hours, minutes only)
+- Populated database with 208 realistic dummy records from October 2025 to present
+- Created Lotto Result Today page at /lotto-result/today showing all games with TBA for unreleased results
+- Added /api/results/today endpoint for today's lottery results (uses SAST timezone)
+- Added Hot & Cold Numbers section to game pages showing top 5 most/least frequently drawn numbers from last 15 draws with occurrence counts
+- Enhanced /api/statistics/:gameSlug endpoint to support ?draws=N parameter, returns frequency counts and date range
+- Added game-specific How to Play guides with step-by-step instructions and tips
+- Added game-specific FAQ sections with accordion UI for Powerball, Lotto, and Daily Lotto game families

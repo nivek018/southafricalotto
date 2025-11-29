@@ -195,7 +195,7 @@ export default function GamePage() {
   });
 
   const { data: statistics } = useQuery<StatisticsResponse>({
-    queryKey: ["/api/statistics", mainGameSlug],
+    queryKey: [`/api/statistics/${mainGameSlug}?draws=15`],
     enabled: !!mainGameSlug,
   });
 
