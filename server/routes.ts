@@ -118,6 +118,18 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Invalid result data", details: parsed.error });
       }
       
+      const existingResults = await storage.getResultsByGameSlug(parsed.data.gameSlug);
+      const duplicate = existingResults.find(
+        r => r.drawDate === parsed.data.drawDate && r.gameSlug === parsed.data.gameSlug
+      );
+      
+      if (duplicate) {
+        return res.status(409).json({ 
+          error: "Duplicate result", 
+          message: `A result for ${parsed.data.gameName} on ${parsed.data.drawDate} already exists.` 
+        });
+      }
+      
       const result = await storage.createResult(parsed.data);
       res.status(201).json(result);
     } catch (error) {
@@ -321,6 +333,7 @@ export async function registerRoutes(
         { url: "/lotto-result/yesterday", priority: "0.9", changefreq: "daily" },
         { url: "/powerball-result/yesterday", priority: "0.9", changefreq: "daily" },
         { url: "/daily-lotto-result/yesterday", priority: "0.9", changefreq: "daily" },
+        { url: "/sa-lotto-result/yesterday", priority: "0.9", changefreq: "daily" },
         { url: "/news", priority: "0.8", changefreq: "daily" },
         { url: "/about", priority: "0.5", changefreq: "monthly" },
         { url: "/contact", priority: "0.5", changefreq: "monthly" },

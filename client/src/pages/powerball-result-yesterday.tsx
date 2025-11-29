@@ -75,6 +75,11 @@ export default function PowerballResultYesterdayPage() {
               All Results Yesterday
             </Button>
           </Link>
+          <Link href="/sa-lotto-result/yesterday">
+            <Button variant="outline" size="sm" data-testid="link-sa-lotto-yesterday">
+              SA Lotto Yesterday
+            </Button>
+          </Link>
           <Link href="/daily-lotto-result/yesterday">
             <Button variant="outline" size="sm" data-testid="link-daily-lotto-yesterday">
               Daily Lotto Yesterday

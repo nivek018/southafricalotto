@@ -50,25 +50,30 @@ A lottery results news website for Africa, similar to africanlottery.net. Featur
 ## Features
 1. **Public Pages**:
    - Homepage with latest lottery results
-   - Individual game pages with result history
-   - SEO-optimized Yesterday pages:
+   - Individual game pages with result history and "View Complete Draw History" button
+   - SEO-optimized Yesterday pages with cross-navigation links:
      - /lotto-result/yesterday (all games)
      - /powerball-result/yesterday (Powerball & Powerball Plus)
      - /daily-lotto-result/yesterday (Daily Lotto & Daily Lotto Plus)
-   - Draw History page (/draw-history/:slug)
+     - /sa-lotto-result/yesterday (Lotto, Lotto Plus 1 & Lotto Plus 2 - Wed/Sat draws)
+   - Enhanced Draw History page (/draw-history/:slug) with:
+     - Date picker (greys out dates with no records)
+     - Monthly view navigation
+     - Last 7 draws default display
    - News section with article listings
    - Individual article pages
    - About, Contact, and Privacy Policy pages
    - Lottery numbers sorted lowest to highest (bonus ball excluded)
 
 2. **Admin Panel** (password: admin123):
-   - Hidden login page at /lotto-admin-x7k9m (obscured for security)
-   - Dashboard at /lotto-admin-x7k9m/dashboard with tabs:
-     - Results: CRUD operations for lottery results
+   - Login page at /encode
+   - Dashboard at /encode/dashboard with tabs:
+     - Results: CRUD operations for lottery results (Hot/Cold numbers calculated programmatically via /api/statistics)
      - News: CRUD operations for news articles
      - Settings: Scraper configuration per game
    - Web scraper to fetch latest results with "Scrape Now" button
    - Per-game scraper toggles and schedule configuration
+   - Deduplication logic prevents duplicate results from manual encoding + web scraping (checks gameSlug + drawDate)
 
 3. **Lottery Games Supported**:
    - Powerball
@@ -141,6 +146,13 @@ The workflow named 'Start application' runs `npm run dev` which starts the Expre
 - Added comprehensive SEO meta tags (title, description, keywords) to all pages using react-helmet-async
 - Enhanced scraper with diverse random headers, retry logic, and logging integration
 - Sorted lottery numbers in ascending order across all display components (excluding bonus ball)
-- Hidden admin URL changed to /lotto-admin-x7k9m with updated routes and navigation
+- Hidden admin URL changed to /encode with updated routes and navigation
 - Updated sitemap.xml with new SEO-friendly routes and hidden admin path
 - Created /api/results/yesterday endpoint with SAST timezone filtering
+- Removed Hot/Cold number input fields from admin panel (now calculated programmatically via /api/statistics endpoint)
+- Added deduplication logic to prevent conflicts between manual encoding and web scraping (checks gameSlug + drawDate)
+- Created dedicated /lotto-sa-result/yesterday page for Lotto SA games (Lotto, Lotto Plus 1, Lotto Plus 2) with Wed/Sat draw filtering
+- Enhanced draw-history pages with date picker, monthly view, and last 7 draws default display
+- Added cross-navigation links between all yesterday result pages
+- Fixed React hooks error in game.tsx by moving useEffect before conditional returns
+- Added "View Complete Draw History" button to individual game pages

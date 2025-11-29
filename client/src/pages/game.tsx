@@ -54,6 +54,18 @@ export default function GamePage() {
     });
   };
 
+  const gameName = latestResult?.gameName || slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+
+  useEffect(() => {
+    if (!gameLoading && !resultsLoading) {
+      document.title = `${gameName} Results - Latest Winning Numbers | African Lottery`;
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) {
+        metaDesc.setAttribute("content", `Check the latest ${gameName} results and winning numbers. View draw history, hot/cold numbers, and jackpot information for South African ${gameName}.`);
+      }
+    }
+  }, [gameName, gameLoading, resultsLoading]);
+
   if (gameLoading || resultsLoading) {
     return (
       <div className="max-w-7xl mx-auto px-4 lg:px-8 py-12">
@@ -61,16 +73,6 @@ export default function GamePage() {
       </div>
     );
   }
-
-  const gameName = latestResult?.gameName || slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
-
-  useEffect(() => {
-    document.title = `${gameName} Results - Latest Winning Numbers | African Lottery`;
-    const metaDesc = document.querySelector('meta[name="description"]');
-    if (metaDesc) {
-      metaDesc.setAttribute("content", `Check the latest ${gameName} results and winning numbers. View draw history, hot/cold numbers, and jackpot information for South African ${gameName}.`);
-    }
-  }, [gameName]);
 
   return (
     <div className="min-h-screen">
@@ -206,6 +208,16 @@ export default function GamePage() {
               </p>
               <Link href="/">
                 <Button data-testid="button-back-home-empty">Return to Homepage</Button>
+              </Link>
+            </div>
+          )}
+          
+          {latestResult && (
+            <div className="mt-8 text-center">
+              <Link href={`/draw-history/${slug}`}>
+                <Button variant="outline" data-testid="button-view-draw-history">
+                  View Complete Draw History
+                </Button>
               </Link>
             </div>
           )}

@@ -14,6 +14,7 @@ import AdminDashboard from "@/pages/admin-dashboard";
 import LottoResultYesterdayPage from "@/pages/lotto-result-yesterday";
 import PowerballResultYesterdayPage from "@/pages/powerball-result-yesterday";
 import DailyLottoResultYesterdayPage from "@/pages/daily-lotto-result-yesterday";
+import LottoSaResultYesterdayPage from "@/pages/lotto-sa-result-yesterday";
 import DrawHistoryPage from "@/pages/draw-history";
 import AboutPage from "@/pages/about";
 import ContactPage from "@/pages/contact";
@@ -29,13 +30,14 @@ function Router() {
       <Route path="/lotto-result/yesterday" component={LottoResultYesterdayPage} />
       <Route path="/powerball-result/yesterday" component={PowerballResultYesterdayPage} />
       <Route path="/daily-lotto-result/yesterday" component={DailyLottoResultYesterdayPage} />
+      <Route path="/sa-lotto-result/yesterday" component={LottoSaResultYesterdayPage} />
       <Route path="/news" component={NewsPage} />
       <Route path="/news/:slug" component={NewsArticlePage} />
       <Route path="/about" component={AboutPage} />
       <Route path="/contact" component={ContactPage} />
       <Route path="/privacy" component={PrivacyPolicyPage} />
-      <Route path="/lotto-admin-x7k9m" component={AdminLoginPage} />
-      <Route path="/lotto-admin-x7k9m/dashboard" component={AdminDashboard} />
+      <Route path="/encode" component={AdminLoginPage} />
+      <Route path="/encode/dashboard" component={AdminDashboard} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -43,7 +45,7 @@ function Router() {
 
 function AppLayout() {
   const [location] = useLocation();
-  const isAdminRoute = location.startsWith("/lotto-admin-x7k9m");
+  const isAdminRoute = location.startsWith("/encode");
 
   if (isAdminRoute) {
     return <Router />;

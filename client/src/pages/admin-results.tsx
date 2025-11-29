@@ -91,8 +91,6 @@ export default function AdminResults() {
         drawDate: data.drawDate,
         jackpotAmount: data.jackpotAmount || null,
         nextJackpot: data.nextJackpot || null,
-        hotNumber: data.hotNumber ? parseInt(data.hotNumber) : null,
-        coldNumber: data.coldNumber ? parseInt(data.coldNumber) : null,
       };
       const res = await apiRequest("POST", "/api/results", payload);
       return res.json();
@@ -107,10 +105,11 @@ export default function AdminResults() {
         description: "Lottery result has been added successfully.",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      const message = error?.message || "Failed to add lottery result.";
       toast({
         title: "Error",
-        description: "Failed to add lottery result.",
+        description: message.includes("Duplicate") ? message : "Failed to add lottery result. It may already exist for this date.",
         variant: "destructive",
       });
     },
@@ -127,8 +126,6 @@ export default function AdminResults() {
         drawDate: data.drawDate,
         jackpotAmount: data.jackpotAmount || null,
         nextJackpot: data.nextJackpot || null,
-        hotNumber: data.hotNumber ? parseInt(data.hotNumber) : null,
-        coldNumber: data.coldNumber ? parseInt(data.coldNumber) : null,
       };
       const res = await apiRequest("PATCH", `/api/results/${data.id}`, payload);
       return res.json();
@@ -356,46 +353,6 @@ export default function AdminResults() {
                           <Input
                             placeholder="e.g., R50,000,000"
                             data-testid="input-next-jackpot"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="hotNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Hot Number</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            placeholder="e.g., 28"
-                            data-testid="input-hot-number"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="coldNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Cold Number</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            placeholder="e.g., 34"
-                            data-testid="input-cold-number"
                             {...field}
                           />
                         </FormControl>
