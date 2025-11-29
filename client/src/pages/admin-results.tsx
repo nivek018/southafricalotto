@@ -178,6 +178,13 @@ export default function AdminResults() {
     }
   };
 
+  const handleDelete = (id: string) => {
+    const confirmed = window.confirm("Are you sure you want to delete this result? This action cannot be undone.");
+    if (confirmed) {
+      deleteMutation.mutate(id);
+    }
+  };
+
   const handleEdit = (result: LotteryResult) => {
     setEditingResult(result);
     form.reset({
@@ -419,7 +426,7 @@ export default function AdminResults() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => deleteMutation.mutate(result.id)}
+                          onClick={() => handleDelete(result.id)}
                           data-testid={`button-delete-${result.id}`}
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />

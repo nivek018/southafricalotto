@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LotteryBall } from "@/components/lottery-ball";
-import { Calendar, ArrowRight } from "lucide-react";
+import { Calendar, ArrowRight, Trophy } from "lucide-react";
 import type { LotteryResult } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 
@@ -60,6 +60,14 @@ export function LotteryResultCard({ result }: LotteryResultCardProps) {
             </>
           )}
         </div>
+
+        {result.jackpotAmount && (
+          <div className="inline-flex items-center gap-2 rounded-md bg-muted/50 px-3 py-2 text-sm font-semibold">
+            <Trophy className="w-4 h-4 text-lottery-ball-bonus" />
+            <span className="text-muted-foreground">Jackpot:</span>
+            <span>{result.jackpotAmount}</span>
+          </div>
+        )}
 
         <Link href={`/game/${result.gameSlug}`}>
           <Button variant="ghost" className="w-full group" data-testid={`button-view-${result.gameSlug}`}>

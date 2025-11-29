@@ -206,6 +206,17 @@ export default function GamePage() {
     return getNextDrawDate(gameData.drawDays, gameData.drawTime);
   }, [gameData]);
 
+  const getCurrentJackpot = () => {
+    if (hasGroup && groupedData) {
+      const mainVariant = groupedData.group.variants[0];
+      const latestResult = groupedData.latestResults[mainVariant];
+      return latestResult?.jackpotAmount || null;
+    } else if (singleResults && singleResults[0]) {
+      return singleResults[0].jackpotAmount || null;
+    }
+    return null;
+  };
+
   const countdown = useCountdown(nextDrawDate);
 
   const parsedDrawDays = useMemo(() => {
@@ -324,7 +335,7 @@ export default function GamePage() {
         </div>
       </section>
 
-      {(nextDrawDate || estimatedJackpot) && (
+      {(nextDrawDate || getCurrentJackpot()) && (
         <section className="py-6 bg-gradient-to-r from-lottery-ball-main/5 to-lottery-ball-bonus/5 border-y border-border/50">
           <div className="max-w-7xl mx-auto px-4 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -349,6 +360,25 @@ export default function GamePage() {
                         Draws: {parsedDrawDays.join(", ")} at {gameData.drawTime} SAST
                       </p>
                     )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {getCurrentJackpot() && (
+                <Card className="bg-background/80 backdrop-blur" data-testid="card-latest-jackpot">
+                  <CardContent className="py-6">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 bg-lottery-ball-bonus/10 rounded-full">
+                        <Trophy className="h-5 w-5 text-lottery-ball-bonus" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-sm text-muted-foreground">Latest Jackpot</h3>
+                        <p className="text-2xl font-bold text-lottery-ball-bonus" data-testid="text-jackpot">{getCurrentJackpot()}</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Based on the most recent recorded draw.
+                    </p>
                   </CardContent>
                 </Card>
               )}
