@@ -1,67 +1,127 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useParams, Link } from "wouter";
-import { LotteryResultCard } from "@/components/lottery-result-card";
+import { useParams, Link, useLocation } from "wouter";
+import { LotteryBall } from "@/components/lottery-ball";
 import { ResultCardSkeleton } from "@/components/loading-skeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ChevronLeft, CalendarIcon, History } from "lucide-react";
-import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, parseISO } from "date-fns";
-import type { LotteryResult, LotteryGame } from "@shared/schema";
-import { useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
+import { ChevronLeft, History, Calendar, CircleDot, Trophy } from "lucide-react";
+import { format } from "date-fns";
+import type { LotteryResult } from "@shared/schema";
+import { getGroupForSlug, LOTTERY_GROUPS } from "@shared/schema";
+
+interface GroupedResultsResponse {
+  group: {
+    slug: string;
+    name: string;
+    description: string;
+    variants: string[];
+  };
+  latestResults: Record<string, LotteryResult>;
+  allResults: Record<string, LotteryResult[]>;
+}
 
 export default function DrawHistoryPage() {
   const { slug } = useParams<{ slug: string }>();
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [, setLocation] = useLocation();
   const [showAll, setShowAll] = useState(false);
 
-  const { data: game, isLoading: gameLoading } = useQuery<LotteryGame>({
-    queryKey: ["/api/games", slug],
-    enabled: !!slug,
+  const groupInfo = useMemo(() => getGroupForSlug(slug || ""), [slug]);
+  const groupSlug = groupInfo?.groupSlug || null;
+  const hasGroup = !!groupInfo;
+
+  const { data: groupedData, isLoading: groupLoading } = useQuery<GroupedResultsResponse>({
+    queryKey: ["/api/results/group", groupSlug],
+    enabled: !!slug && hasGroup && !!groupSlug,
   });
 
-  const { data: results, isLoading: resultsLoading } = useQuery<LotteryResult[]>({
+  const { data: singleResults, isLoading: singleLoading } = useQuery<LotteryResult[]>({
     queryKey: ["/api/results/game", slug],
-    enabled: !!slug,
+    enabled: !!slug && !hasGroup,
   });
 
-  const isLoading = gameLoading || resultsLoading;
-  const gameName = game?.name || slug?.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") || "Lottery";
+  const isLoading = hasGroup ? groupLoading : singleLoading;
 
-  const datesWithResults = useMemo(() => {
-    if (!results) return new Set<string>();
-    return new Set(results.map(r => r.drawDate));
-  }, [results]);
+  const groupName = hasGroup 
+    ? groupedData?.group?.name || groupInfo?.group?.name || slug
+    : singleResults?.[0]?.gameName || slug?.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") || "Lottery";
 
-  const filteredResults = useMemo(() => {
-    if (!results) return [];
-    
-    if (selectedDate) {
-      const dateStr = format(selectedDate, "yyyy-MM-dd");
-      return results.filter(r => r.drawDate === dateStr);
+  const getVariantDisplayName = (variantSlug: string): string => {
+    const nameMap: Record<string, string> = {
+      "powerball": "Powerball",
+      "powerball-plus": "Powerball Plus",
+      "lotto": "Lotto",
+      "lotto-plus-1": "Lotto Plus 1",
+      "lotto-plus-2": "Lotto Plus 2",
+      "daily-lotto": "Daily Lotto",
+      "daily-lotto-plus": "Daily Lotto Plus"
+    };
+    return nameMap[variantSlug] || variantSlug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+  };
+
+  const sortNumbers = (nums: number[] | undefined) => 
+    nums ? [...nums].sort((a, b) => a - b) : [];
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-ZA", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const getDateSlug = (dateStr: string) => {
+    const effectiveGroupSlug = groupSlug || slug;
+    return `/${effectiveGroupSlug}-result/${dateStr}`;
+  };
+
+  const allDates = useMemo(() => {
+    if (hasGroup && groupedData) {
+      const dateMap: Record<string, boolean> = {};
+      Object.values(groupedData.allResults).forEach(results => {
+        results.forEach(r => { dateMap[r.drawDate] = true; });
+      });
+      return Object.keys(dateMap).sort((a, b) => b.localeCompare(a));
+    } else if (singleResults) {
+      const dateMap: Record<string, boolean> = {};
+      singleResults.forEach(r => { dateMap[r.drawDate] = true; });
+      return Object.keys(dateMap).sort((a, b) => b.localeCompare(a));
     }
-    
-    if (showAll) {
+    return [];
+  }, [hasGroup, groupedData, singleResults]);
+
+  const displayDates = showAll ? allDates : allDates.slice(0, 7);
+
+  const getResultsForDate = (date: string) => {
+    if (hasGroup && groupedData) {
+      const results: Record<string, LotteryResult> = {};
+      groupedData.group.variants.forEach(variantSlug => {
+        const variantResults = groupedData.allResults[variantSlug] || [];
+        const result = variantResults.find(r => r.drawDate === date);
+        if (result) {
+          results[variantSlug] = result;
+        }
+      });
       return results;
+    } else if (singleResults) {
+      const result = singleResults.find(r => r.drawDate === date);
+      if (result) {
+        return { [slug || ""]: result };
+      }
     }
-    
-    return results.slice(0, 7);
-  }, [results, selectedDate, showAll]);
-
-  const hasResultsForDate = (date: Date) => {
-    const dateStr = format(date, "yyyy-MM-dd");
-    return datesWithResults.has(dateStr);
+    return {};
   };
 
   useEffect(() => {
-    document.title = `${gameName} Draw History - Complete Results Archive | African Lottery`;
+    document.title = `${groupName} Draw History - Complete Results Archive | African Lottery`;
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
-      metaDesc.setAttribute("content", `Complete ${gameName} draw history and past results. View all previous winning numbers, jackpots, and statistics for South African ${gameName}.`);
+      metaDesc.setAttribute("content", `Complete ${groupName} draw history and past results. View all previous winning numbers, jackpots for South African ${groupName}.`);
     }
-  }, [gameName]);
+  }, [groupName]);
 
   return (
     <div className="min-h-screen">
@@ -77,95 +137,126 @@ export default function DrawHistoryPage() {
           <div className="flex items-center gap-3 mb-2">
             <History className="h-8 w-8 text-primary" />
             <h1 className="text-3xl lg:text-4xl font-bold" data-testid="heading-draw-history">
-              {gameName} - Draw History
+              {groupName} - Draw History
             </h1>
           </div>
           <p className="text-muted-foreground">
-            Complete history of {gameName} results. Select a date to view specific results.
+            Complete history of {groupName} results{hasGroup ? " including all variants" : ""}. Click on any date to view the full results page.
           </p>
+          {hasGroup && groupedData && (
+            <div className="flex flex-wrap gap-2 mt-3">
+              {groupedData.group.variants.map(v => (
+                <Badge key={v} variant="secondary" data-testid={`badge-variant-${v}`}>
+                  {getVariantDisplayName(v)}
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div className="mb-8 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-          <div className="flex flex-wrap items-center gap-4">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-[240px] justify-start text-left font-normal" data-testid="button-date-picker">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {selectedDate ? format(selectedDate, "PPP") : "Select a date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  modifiers={{
-                    hasResults: (date) => hasResultsForDate(date),
-                    noResults: (date) => !hasResultsForDate(date) && date <= new Date(),
-                  }}
-                  modifiersClassNames={{
-                    hasResults: "bg-primary/20 font-bold",
-                    noResults: "text-muted-foreground/50",
-                  }}
-                  disabled={(date) => date > new Date() || !hasResultsForDate(date)}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-            
-            {selectedDate && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => setSelectedDate(undefined)}
-                data-testid="button-clear-date"
-              >
-                Clear Date
-              </Button>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">
-              {results?.length || 0} total results
-            </span>
-          </div>
+        <div className="mb-6 flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">
+            {allDates.length} draw dates available
+          </span>
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
+          <div className="grid grid-cols-1 gap-6">
+            {[...Array(4)].map((_, i) => (
               <ResultCardSkeleton key={i} />
             ))}
           </div>
-        ) : filteredResults.length > 0 ? (
+        ) : displayDates.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredResults.map((result) => (
-                <LotteryResultCard key={result.id} result={result} />
-              ))}
+            <div className="space-y-6">
+              {displayDates.map((date) => {
+                const resultsForDate = getResultsForDate(date);
+                const variants = hasGroup && groupedData ? groupedData.group.variants : [slug || ""];
+                
+                return (
+                  <Card key={date} className="overflow-hidden" data-testid={`card-date-${date}`}>
+                    <CardHeader className="bg-muted/30 pb-3">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-5 w-5 text-primary" />
+                          <CardTitle className="text-lg">{formatDate(date)}</CardTitle>
+                        </div>
+                        <Link href={getDateSlug(date)}>
+                          <Button variant="outline" size="sm" data-testid={`button-view-${date}`}>
+                            View Full Results
+                          </Button>
+                        </Link>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <div className="space-y-4">
+                        {variants.map(variantSlug => {
+                          const result = resultsForDate[variantSlug];
+                          if (!result) {
+                            return (
+                              <div key={variantSlug} className="py-2 px-3 bg-muted/20 rounded-md">
+                                <span className="text-sm text-muted-foreground">
+                                  {getVariantDisplayName(variantSlug)}: No draw
+                                </span>
+                              </div>
+                            );
+                          }
+                          
+                          return (
+                            <div key={variantSlug} className="py-3 px-4 bg-muted/20 rounded-lg" data-testid={`result-${variantSlug}-${date}`}>
+                              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                                <div className="flex items-center gap-2">
+                                  <CircleDot className="h-4 w-4 text-lottery-ball-main" />
+                                  <span className="font-semibold">{getVariantDisplayName(variantSlug)}</span>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  {sortNumbers(result.winningNumbers).map((num, idx) => (
+                                    <LotteryBall key={idx} number={num} size="sm" />
+                                  ))}
+                                  {result.bonusNumber && (
+                                    <>
+                                      <span className="text-sm font-bold text-muted-foreground">+</span>
+                                      <LotteryBall number={result.bonusNumber} isBonus size="sm" />
+                                    </>
+                                  )}
+                                </div>
+                                {result.jackpotAmount && (
+                                  <div className="flex items-center gap-1">
+                                    <Trophy className="h-4 w-4 text-lottery-ball-bonus" />
+                                    <span className="font-semibold text-sm">{result.jackpotAmount}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
             
-            {!selectedDate && !showAll && results && results.length > 7 && (
+            {!showAll && allDates.length > 7 && (
               <div className="mt-8 text-center">
                 <Button 
                   variant="outline" 
                   onClick={() => setShowAll(true)}
                   data-testid="button-show-all"
                 >
-                  Show All {results.length} Results
+                  Show All {allDates.length} Draw Dates
                 </Button>
               </div>
             )}
             
-            {showAll && (
+            {showAll && allDates.length > 7 && (
               <div className="mt-8 text-center">
                 <Button 
                   variant="outline" 
                   onClick={() => setShowAll(false)}
                   data-testid="button-show-less"
                 >
-                  Show Last 7 Results
+                  Show Last 7 Draw Dates
                 </Button>
               </div>
             )}
@@ -173,44 +264,31 @@ export default function DrawHistoryPage() {
         ) : (
           <div className="text-center py-16 bg-card rounded-lg" data-testid="text-no-results">
             <History className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">
-              {selectedDate ? "No Results for Selected Date" : "No Results Found"}
-            </h3>
+            <h3 className="text-xl font-semibold mb-2">No Results Found</h3>
             <p className="text-muted-foreground">
-              {selectedDate 
-                ? `No ${gameName} results were recorded on ${format(selectedDate, "PPP")}.`
-                : `No draw history available for ${gameName} yet.`
-              }
+              No draw history available for {groupName} yet.
             </p>
-            {selectedDate && (
-              <Button 
-                variant="outline" 
-                className="mt-4"
-                onClick={() => setSelectedDate(undefined)}
-              >
-                View All Results
-              </Button>
-            )}
           </div>
         )}
 
         <Card className="mt-12">
           <CardHeader>
-            <CardTitle>About {gameName} Draw History</CardTitle>
+            <CardTitle>About {groupName} Draw History</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground">
-              This page shows the complete history of {gameName} lottery draws. Use the date picker 
-              above to find results from a specific date. Dates with available results are highlighted.
+              This page shows the complete history of {groupName} lottery draws
+              {hasGroup ? " including all game variants" : ""}. Click on any draw date 
+              to view the detailed results page.
             </p>
             <p className="text-muted-foreground">
-              Greyed out dates indicate no results are available for that day - either no draw was 
-              held or the results haven't been recorded yet.
+              Each date-specific page is optimized for search engines, making it easy 
+              to find historical lottery results.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
               <Link href={`/game/${slug}`}>
                 <Button variant="outline" data-testid="link-game-page">
-                  View Latest {gameName} Results
+                  View Latest {groupName} Results
                 </Button>
               </Link>
             </div>

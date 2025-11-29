@@ -164,3 +164,9 @@ The workflow named 'Start application' runs `npm run dev` which starts the Expre
 - Added LOTTERY_GROUPS constant in shared/schema.ts for grouping lottery families
 - Created /api/results/group/:groupSlug endpoint for fetching grouped results
 - Updated game pages to show all variants together (e.g., /game/powerball shows Powerball + Powerball Plus)
+- Created date-specific result pages for SEO at /lotto-result/:date, /powerball-result/:date, /daily-lotto-result/:date
+- Added /api/results/date/:groupSlug/:date endpoint for fetching grouped results by date with prev/next navigation
+- Added countdown timer to game pages showing time until next draw
+- Added prize history chart component with 3mo/6mo/1yr filter options
+- Updated sitemap.xml to include last 90 days of date-specific result pages per game group
+- Fixed URL routing pattern: changed from hyphen-separated to slash-separated URLs for proper wouter parsing

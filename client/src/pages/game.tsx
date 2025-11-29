@@ -12,11 +12,15 @@ import {
   ArrowLeft, 
   Trophy,
   CircleDot,
-  History
+  History,
+  Clock,
+  Timer
 } from "lucide-react";
-import type { LotteryResult } from "@shared/schema";
+import type { LotteryResult, LotteryGame } from "@shared/schema";
 import { getGroupForSlug } from "@shared/schema";
 import { useEffect, useMemo } from "react";
+import { useCountdown, getNextDrawDate } from "@/hooks/use-countdown";
+import { PrizeHistoryChart } from "@/components/prize-history-chart";
 
 interface GroupedResultsResponse {
   group: {
@@ -37,6 +41,13 @@ export default function GamePage() {
   const groupSlug = groupInfo?.groupSlug || null;
   const hasGroup = !!groupInfo;
 
+  const mainGameSlug = hasGroup ? (groupInfo?.group?.slugs?.[0] || slug) : slug;
+
+  const { data: gameData } = useQuery<LotteryGame>({
+    queryKey: ["/api/games", mainGameSlug],
+    enabled: !!mainGameSlug,
+  });
+
   const { data: groupedData, isLoading: groupLoading } = useQuery<GroupedResultsResponse>({
     queryKey: ["/api/results/group", groupSlug],
     enabled: !!slug && hasGroup && !!groupSlug,
@@ -48,6 +59,26 @@ export default function GamePage() {
   });
 
   const isLoading = hasGroup ? groupLoading : singleLoading;
+
+  const nextDrawDate = useMemo(() => {
+    if (!gameData) return null;
+    return getNextDrawDate(gameData.drawDays, gameData.drawTime);
+  }, [gameData]);
+
+  const countdown = useCountdown(nextDrawDate);
+
+  const getEstimatedJackpot = () => {
+    if (hasGroup && groupedData) {
+      const mainVariant = groupedData.group.variants[0];
+      const latestResult = groupedData.latestResults[mainVariant];
+      return latestResult?.nextJackpot || null;
+    } else if (singleResults && singleResults[0]) {
+      return singleResults[0].nextJackpot || null;
+    }
+    return null;
+  };
+
+  const estimatedJackpot = getEstimatedJackpot();
 
   const sortNumbers = (nums: number[] | undefined) => 
     nums ? [...nums].sort((a, b) => a - b) : [];
@@ -139,6 +170,58 @@ export default function GamePage() {
           </div>
         </div>
       </section>
+
+      {(nextDrawDate || estimatedJackpot) && (
+        <section className="py-6 bg-gradient-to-r from-lottery-ball-main/5 to-lottery-ball-bonus/5 border-y border-border/50">
+          <div className="max-w-7xl mx-auto px-4 lg:px-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {nextDrawDate && !countdown.isExpired && (
+                <Card className="bg-background/80 backdrop-blur" data-testid="card-next-draw">
+                  <CardContent className="py-6">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 bg-lottery-ball-main/10 rounded-full">
+                        <Timer className="h-5 w-5 text-lottery-ball-main" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-sm text-muted-foreground">Next Draw</h3>
+                        <p className="text-lg font-bold" data-testid="text-countdown">{countdown.relativeTime}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Clock className="h-4 w-4" />
+                      <span>{countdown.formattedTime} remaining</span>
+                    </div>
+                    {gameData?.drawDays && (
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Draws: {gameData.drawDays.join(", ")} at {gameData.drawTime} SAST
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+              
+              {estimatedJackpot && (
+                <Card className="bg-background/80 backdrop-blur" data-testid="card-estimated-jackpot">
+                  <CardContent className="py-6">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 bg-lottery-ball-bonus/10 rounded-full">
+                        <Trophy className="h-5 w-5 text-lottery-ball-bonus" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-sm text-muted-foreground">Estimated Jackpot</h3>
+                        <p className="text-2xl font-bold text-lottery-ball-bonus" data-testid="text-jackpot">{estimatedJackpot}</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Jackpot estimate for next draw. Actual amount may vary.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="py-8 lg:py-12">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">
@@ -391,6 +474,13 @@ export default function GamePage() {
                   </Button>
                 </Link>
               </div>
+
+              {hasGroup && groupedData && (
+                <PrizeHistoryChart 
+                  groupSlug={groupSlug || ""} 
+                  variants={groupedData.group.variants} 
+                />
+              )}
             </>
           ) : (
             <div className="text-center py-16">

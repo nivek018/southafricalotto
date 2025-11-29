@@ -295,6 +295,50 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/results/date/:groupSlug/:date", async (req, res) => {
+    try {
+      const { groupSlug, date } = req.params;
+      const group = LOTTERY_GROUPS[groupSlug];
+      
+      if (!group) {
+        return res.status(404).json({ error: "Game group not found" });
+      }
+      
+      const results: Record<string, any> = {};
+      const allDates: string[] = [];
+      
+      for (const slug of group.slugs) {
+        const gameResults = await storage.getResultsByGameSlug(slug);
+        gameResults.forEach(r => {
+          if (!allDates.includes(r.drawDate)) {
+            allDates.push(r.drawDate);
+          }
+        });
+        const dateResult = gameResults.find(r => r.drawDate === date);
+        if (dateResult) {
+          results[slug] = dateResult;
+        }
+      }
+      
+      allDates.sort((a, b) => a.localeCompare(b));
+      const dateIndex = allDates.indexOf(date);
+      const previousDate = dateIndex > 0 ? allDates[dateIndex - 1] : null;
+      const nextDate = dateIndex < allDates.length - 1 ? allDates[dateIndex + 1] : null;
+      
+      res.json({
+        date,
+        groupSlug,
+        groupName: group.name,
+        results,
+        previousDate,
+        nextDate,
+        variants: group.slugs
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch date results" });
+    }
+  });
+
   app.get("/api/statistics/:gameSlug", async (req, res) => {
     try {
       const results = await storage.getResultsByGameSlug(req.params.gameSlug);
@@ -363,6 +407,7 @@ export async function registerRoutes(
     try {
       const games = await storage.getGames();
       const news = await storage.getPublishedNews();
+      const allResults = await storage.getResults();
       const baseUrl = `https://${req.get('host')}`;
 
       const staticPages = [
@@ -400,6 +445,29 @@ export async function registerRoutes(
         xml += `    <priority>0.7</priority>\n`;
         xml += `  </url>\n`;
       });
+
+      const datesByGroup: Record<string, Set<string>> = {};
+      for (const [groupSlug, group] of Object.entries(LOTTERY_GROUPS)) {
+        datesByGroup[groupSlug] = new Set();
+      }
+      
+      allResults.forEach(result => {
+        const groupInfo = getGroupForSlug(result.gameSlug);
+        if (groupInfo) {
+          datesByGroup[groupInfo.groupSlug].add(result.drawDate);
+        }
+      });
+
+      for (const [groupSlug, dates] of Object.entries(datesByGroup)) {
+        const sortedDates = Array.from(dates).sort((a, b) => b.localeCompare(a));
+        sortedDates.forEach(date => {
+          xml += `  <url>\n`;
+          xml += `    <loc>${baseUrl}/${groupSlug}-result/${date}</loc>\n`;
+          xml += `    <changefreq>never</changefreq>\n`;
+          xml += `    <priority>0.6</priority>\n`;
+          xml += `  </url>\n`;
+        });
+      }
 
       news.forEach(article => {
         xml += `  <url>\n`;
