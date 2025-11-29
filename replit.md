@@ -4,10 +4,10 @@
 A lottery results news website for Africa, similar to africanlottery.net. Features include displaying South African lottery results (Powerball, Lotto, Daily Lotto, etc.), lottery news articles, and an admin panel for data management with web scraping capabilities.
 
 ## Tech Stack
-- **Frontend**: React, TypeScript, TailwindCSS, Shadcn UI
+- **Frontend**: React, TypeScript, TailwindCSS, Shadcn UI, react-helmet-async (SEO)
 - **Backend**: Express.js, Node.js
 - **Database**: PostgreSQL with Drizzle ORM
-- **Web Scraping**: Cheerio, Axios
+- **Web Scraping**: Cheerio, Axios (with random user agents and retry logic)
 - **State Management**: TanStack Query (React Query)
 - **Routing**: Wouter
 
@@ -25,7 +25,9 @@ A lottery results news website for Africa, similar to africanlottery.net. Featur
 │   ├── pages/           # Page components
 │   │   ├── home.tsx
 │   │   ├── game.tsx
-│   │   ├── yesterday-results.tsx
+│   │   ├── lotto-result-yesterday.tsx    # SEO-optimized yesterday page (all games)
+│   │   ├── powerball-result-yesterday.tsx # Powerball games yesterday
+│   │   ├── daily-lotto-result-yesterday.tsx # Daily Lotto games yesterday
 │   │   ├── draw-history.tsx
 │   │   ├── news.tsx
 │   │   ├── news-article.tsx
@@ -39,7 +41,8 @@ A lottery results news website for Africa, similar to africanlottery.net. Featur
 │   ├── routes.ts        # API endpoints
 │   ├── storage.ts       # Database storage (PostgreSQL)
 │   ├── db.ts            # Database connection
-│   └── scraper.ts       # Web scraper for lottery results
+│   ├── scraper.ts       # Web scraper with random headers and retry logic
+│   └── logger.ts        # Debug logging with 14-day retention (SAST timezone)
 └── shared/
     └── schema.ts        # Data models and Zod schemas
 ```
@@ -48,19 +51,23 @@ A lottery results news website for Africa, similar to africanlottery.net. Featur
 1. **Public Pages**:
    - Homepage with latest lottery results
    - Individual game pages with result history
-   - Yesterday's Results page (/yesterday-results)
+   - SEO-optimized Yesterday pages:
+     - /lotto-result/yesterday (all games)
+     - /powerball-result/yesterday (Powerball & Powerball Plus)
+     - /daily-lotto-result/yesterday (Daily Lotto & Daily Lotto Plus)
    - Draw History page (/draw-history/:slug)
    - News section with article listings
    - Individual article pages
    - About, Contact, and Privacy Policy pages
+   - Lottery numbers sorted lowest to highest (bonus ball excluded)
 
 2. **Admin Panel** (password: admin123):
-   - Login page at /admin
-   - Dashboard at /admin/dashboard with tabs:
+   - Hidden login page at /lotto-admin-x7k9m (obscured for security)
+   - Dashboard at /lotto-admin-x7k9m/dashboard with tabs:
      - Results: CRUD operations for lottery results
      - News: CRUD operations for news articles
      - Settings: Scraper configuration per game
-   - Web scraper to fetch latest results
+   - Web scraper to fetch latest results with "Scrape Now" button
    - Per-game scraper toggles and schedule configuration
 
 3. **Lottery Games Supported**:
@@ -129,3 +136,11 @@ The workflow named 'Start application' runs `npm run dev` which starts the Expre
 - Added /api/statistics/:gameSlug endpoint for hot/cold number analysis
 - Added admin settings tab with per-game scraper configuration
 - Fixed optional chaining for winningNumbers in components
+- Restructured URLs to SEO-friendly paths: /lotto-result/yesterday (all games), /powerball-result/yesterday (Powerball games), /daily-lotto-result/yesterday (Daily Lotto games)
+- Implemented debug logging system with 14-day retention in SAST timezone
+- Added comprehensive SEO meta tags (title, description, keywords) to all pages using react-helmet-async
+- Enhanced scraper with diverse random headers, retry logic, and logging integration
+- Sorted lottery numbers in ascending order across all display components (excluding bonus ball)
+- Hidden admin URL changed to /lotto-admin-x7k9m with updated routes and navigation
+- Updated sitemap.xml with new SEO-friendly routes and hidden admin path
+- Created /api/results/yesterday endpoint with SAST timezone filtering
