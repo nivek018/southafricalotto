@@ -11,6 +11,7 @@ import NewsPage from "@/pages/news";
 import NewsArticlePage from "@/pages/news-article";
 import AdminLoginPage from "@/pages/admin-login";
 import AdminDashboard from "@/pages/admin-dashboard";
+import LottoResultTodayPage from "@/pages/lotto-result-today";
 import LottoResultYesterdayPage from "@/pages/lotto-result-yesterday";
 import PowerballResultYesterdayPage from "@/pages/powerball-result-yesterday";
 import DailyLottoResultYesterdayPage from "@/pages/daily-lotto-result-yesterday";
@@ -28,6 +29,7 @@ function Router() {
       <Route path="/" component={HomePage} />
       <Route path="/game/:slug" component={GamePage} />
       <Route path="/draw-history/:slug" component={DrawHistoryPage} />
+      <Route path="/lotto-result/today" component={LottoResultTodayPage} />
       <Route path="/lotto-result/yesterday" component={LottoResultYesterdayPage} />
       <Route path="/powerball-result/yesterday" component={PowerballResultYesterdayPage} />
       <Route path="/daily-lotto-result/yesterday" component={DailyLottoResultYesterdayPage} />

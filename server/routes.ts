@@ -136,6 +136,32 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/results/today", async (req, res) => {
+    try {
+      const now = new Date();
+      const sastOffset = 2 * 60;
+      const localOffset = now.getTimezoneOffset();
+      const sastTime = new Date(now.getTime() + (sastOffset + localOffset) * 60000);
+      const todayDate = sastTime.toISOString().split("T")[0];
+      
+      const games = await storage.getGames();
+      const allResults = await storage.getResults();
+      const todayResults = allResults.filter(r => r.drawDate === todayDate);
+      
+      const gamesWithResults = games.map(game => {
+        const result = todayResults.find(r => r.gameSlug === game.slug) || null;
+        return { game, result };
+      });
+      
+      res.json({
+        date: todayDate,
+        games: gamesWithResults
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch today's results" });
+    }
+  });
+
   app.get("/api/results/:id", async (req, res) => {
     try {
       const result = await storage.getResultById(req.params.id);
@@ -341,11 +367,24 @@ export async function registerRoutes(
 
   app.get("/api/statistics/:gameSlug", async (req, res) => {
     try {
-      const results = await storage.getResultsByGameSlug(req.params.gameSlug);
+      const allResults = await storage.getResultsByGameSlug(req.params.gameSlug);
+      const drawCount = parseInt(req.query.draws as string) || 15;
       
-      if (results.length === 0) {
-        return res.json({ hotNumbers: [], coldNumbers: [], frequencyMap: {} });
+      if (allResults.length === 0) {
+        return res.json({ 
+          hotNumbers: [], 
+          coldNumbers: [], 
+          frequencyMap: {},
+          dateRange: { from: null, to: null },
+          totalDraws: 0
+        });
       }
+
+      const results = allResults.slice(0, drawCount);
+      const dateRange = {
+        from: results[results.length - 1]?.drawDate || null,
+        to: results[0]?.drawDate || null
+      };
 
       const frequencyMap: Record<number, number> = {};
       
@@ -359,14 +398,19 @@ export async function registerRoutes(
         .map(([num, count]) => ({ number: parseInt(num), count }))
         .sort((a, b) => b.count - a.count);
 
-      const hotNumbers = sortedNumbers.slice(0, 5).map(n => n.number);
-      const coldNumbers = sortedNumbers.slice(-5).reverse().map(n => n.number);
+      const hotNumbers = sortedNumbers.slice(0, 5);
+      
+      const coldNumbers = sortedNumbers
+        .sort((a, b) => a.count - b.count)
+        .slice(0, 5);
 
       res.json({
         hotNumbers,
         coldNumbers,
         frequencyMap,
-        totalDraws: results.length
+        dateRange,
+        totalDraws: results.length,
+        analyzedDraws: drawCount
       });
     } catch (error) {
       res.status(500).json({ error: "Failed to calculate statistics" });

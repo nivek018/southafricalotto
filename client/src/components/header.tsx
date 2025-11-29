@@ -7,6 +7,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const navLinks = [
   { href: "/", label: "Home" },
+  { href: "/lotto-result/today", label: "Today" },
   { href: "/lotto-result/yesterday", label: "Yesterday" },
   { href: "/game/powerball", label: "Powerball" },
   { href: "/game/lotto", label: "Lotto" },
