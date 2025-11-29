@@ -27,6 +27,7 @@ export const lotteryGames = pgTable("lottery_games", {
   hasBonusBall: boolean("has_bonus_ball").default(false),
   bonusMaxNumber: integer("bonus_max_number"),
   drawDays: text("draw_days").array(),
+  drawTime: text("draw_time"), // e.g., "20:58"
   isActive: boolean("is_active").default(true),
 });
 
@@ -77,6 +78,21 @@ export const insertNewsArticleSchema = createInsertSchema(newsArticles).omit({
 export type InsertNewsArticle = z.infer<typeof insertNewsArticleSchema>;
 export type NewsArticle = typeof newsArticles.$inferSelect;
 
+export const scraperSettings = pgTable("scraper_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  gameSlug: text("game_slug").notNull().unique(),
+  isEnabled: boolean("is_enabled").default(true),
+  scheduleTime: text("schedule_time"), // cron format or HH:MM
+  lastScrapedAt: text("last_scraped_at"),
+});
+
+export const insertScraperSettingSchema = createInsertSchema(scraperSettings).omit({
+  id: true,
+});
+
+export type InsertScraperSetting = z.infer<typeof insertScraperSettingSchema>;
+export type ScraperSetting = typeof scraperSettings.$inferSelect;
+
 export const adminLoginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
@@ -110,3 +126,11 @@ export const newsFormSchema = z.object({
 });
 
 export type NewsForm = z.infer<typeof newsFormSchema>;
+
+export const scraperSettingsFormSchema = z.object({
+  gameSlug: z.string().min(1, "Game is required"),
+  isEnabled: z.boolean(),
+  scheduleTime: z.string().optional(),
+});
+
+export type ScraperSettingsForm = z.infer<typeof scraperSettingsFormSchema>;

@@ -153,7 +153,7 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="grid w-full max-w-md grid-cols-3">
             <TabsTrigger value="results" data-testid="tab-results">
               <CircleDot className="h-4 w-4 mr-2" />
               Lottery Results
@@ -161,6 +161,9 @@ export default function AdminDashboard() {
             <TabsTrigger value="news" data-testid="tab-news">
               <Newspaper className="h-4 w-4 mr-2" />
               News Articles
+            </TabsTrigger>
+            <TabsTrigger value="settings" data-testid="tab-settings">
+              Settings
             </TabsTrigger>
           </TabsList>
 
@@ -170,6 +173,24 @@ export default function AdminDashboard() {
 
           <TabsContent value="news" className="mt-6">
             <AdminNews />
+          </TabsContent>
+
+          <TabsContent value="settings" className="mt-6">
+            <div className="max-w-2xl">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Scraper Settings</CardTitle>
+                  <CardDescription>
+                    Configure automated web scraping for lottery results
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Scraper settings management coming soon. You can manually trigger scraping using the "Fetch Latest Results" button above.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </main>

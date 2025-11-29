@@ -11,6 +11,11 @@ import NewsPage from "@/pages/news";
 import NewsArticlePage from "@/pages/news-article";
 import AdminLoginPage from "@/pages/admin-login";
 import AdminDashboard from "@/pages/admin-dashboard";
+import YesterdayResultsPage from "@/pages/yesterday-results";
+import DrawHistoryPage from "@/pages/draw-history";
+import AboutPage from "@/pages/about";
+import ContactPage from "@/pages/contact";
+import PrivacyPolicyPage from "@/pages/privacy";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -18,8 +23,13 @@ function Router() {
     <Switch>
       <Route path="/" component={HomePage} />
       <Route path="/game/:slug" component={GamePage} />
+      <Route path="/draw-history/:slug" component={DrawHistoryPage} />
+      <Route path="/yesterday-results" component={YesterdayResultsPage} />
       <Route path="/news" component={NewsPage} />
       <Route path="/news/:slug" component={NewsArticlePage} />
+      <Route path="/about" component={AboutPage} />
+      <Route path="/contact" component={ContactPage} />
+      <Route path="/privacy" component={PrivacyPolicyPage} />
       <Route path="/admin" component={AdminLoginPage} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route component={NotFound} />
