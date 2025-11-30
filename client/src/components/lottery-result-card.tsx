@@ -49,7 +49,7 @@ export function LotteryResultCard({ result }: LotteryResultCardProps) {
         </div>
       </CardHeader>
       <CardContent className="space-y-5 text-center">
-        <div className="flex flex-wrap items-center justify-center gap-2">
+        <div className="flex flex-wrap items-center justify-center gap-2 mt-1">
           {sortedNumbers.map((num, idx) => (
             <LotteryBall key={idx} number={num} size="md" />
           ))}
