@@ -37,7 +37,7 @@ export function LotteryResultCard({ result }: LotteryResultCardProps) {
 
   return (
     <Card className="hover-elevate" data-testid={`card-result-${result.gameSlug}`}>
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-3 bg-gradient-to-r from-lottery-ball-main/10 to-lottery-ball-bonus/10">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <CardTitle className="text-xl lg:text-2xl font-semibold">
             {result.gameName}
@@ -48,8 +48,8 @@ export function LotteryResultCard({ result }: LotteryResultCardProps) {
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex flex-wrap items-center gap-2">
+      <CardContent className="space-y-5 text-center">
+        <div className="flex flex-wrap items-center justify-center gap-2">
           {sortedNumbers.map((num, idx) => (
             <LotteryBall key={idx} number={num} size="md" />
           ))}
@@ -62,10 +62,10 @@ export function LotteryResultCard({ result }: LotteryResultCardProps) {
         </div>
 
         {result.jackpotAmount && (
-          <div className="inline-flex items-center gap-2 rounded-md bg-muted/50 px-3 py-2 text-sm font-semibold">
+          <div className="inline-flex items-center gap-2 rounded-md bg-muted/50 px-4 py-2 text-sm font-semibold">
             <Trophy className="w-4 h-4 text-lottery-ball-bonus" />
             <span className="text-muted-foreground">Jackpot:</span>
-            <span>{result.jackpotAmount}</span>
+            <span className="text-foreground">{result.jackpotAmount}</span>
           </div>
         )}
 
