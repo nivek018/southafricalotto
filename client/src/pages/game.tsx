@@ -217,16 +217,21 @@ export default function GamePage() {
     return getNextDrawDate(gameData.drawDays, gameData.drawTime);
   }, [gameData]);
 
-  const getCurrentJackpot = () => {
+  const latestJackpots = useMemo(() => {
     if (hasGroup && groupedData) {
-      const mainVariant = groupedData.group.variants[0];
-      const latestResult = groupedData.latestResults[mainVariant];
-      return latestResult?.jackpotAmount || null;
-    } else if (singleResults && singleResults[0]) {
-      return singleResults[0].jackpotAmount || null;
+      return groupedData.group.variants
+        .map((variant) => {
+          const res = groupedData.latestResults[variant];
+          const amount = res?.jackpotAmount || null;
+          return amount ? { name: getVariantDisplayName(variant), amount } : null;
+        })
+        .filter(Boolean) as { name: string; amount: string }[];
     }
-    return null;
-  };
+    if (singleResults && singleResults[0]?.jackpotAmount) {
+      return [{ name: groupName, amount: singleResults[0].jackpotAmount }];
+    }
+    return [];
+  }, [hasGroup, groupedData, singleResults, groupName]);
 
   const countdown = useCountdown(nextDrawDate);
 
@@ -399,10 +404,10 @@ export default function GamePage() {
         </div>
       </section>
 
-      {(nextDrawDate || getCurrentJackpot()) && (
+      {(nextDrawDate || latestJackpots.length > 0) && (
         <section className="py-6 bg-gradient-to-r from-lottery-ball-main/5 to-lottery-ball-bonus/5 border-y border-border/50">
           <div className="max-w-7xl mx-auto px-4 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {nextDrawDate && !countdown.isExpired && (
                 <Card className="bg-background/80 backdrop-blur" data-testid="card-next-draw">
                   <CardContent className="py-6">
@@ -428,8 +433,8 @@ export default function GamePage() {
                 </Card>
               )}
 
-              {getCurrentJackpot() && (
-                <Card className="bg-background/80 backdrop-blur" data-testid="card-latest-jackpot">
+              {latestJackpots.map((item, idx) => (
+                <Card key={idx} className="bg-background/80 backdrop-blur" data-testid={`card-latest-jackpot-${idx}`}>
                   <CardContent className="py-6">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="p-2 bg-lottery-ball-bonus/10 rounded-full">
@@ -437,15 +442,18 @@ export default function GamePage() {
                       </div>
                       <div>
                         <h3 className="font-semibold text-sm text-muted-foreground">Latest Jackpot</h3>
-                        <p className="text-2xl font-bold text-lottery-ball-bonus" data-testid="text-jackpot">{getCurrentJackpot()}</p>
+                        <p className="text-sm font-semibold text-foreground">{item.name}</p>
                       </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-2xl font-bold text-lottery-ball-bonus text-center" data-testid="text-jackpot">
+                      {item.amount}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2 text-center">
                       Based on the most recent recorded draw.
                     </p>
                   </CardContent>
                 </Card>
-              )}
+              ))}
 
             </div>
           </div>
