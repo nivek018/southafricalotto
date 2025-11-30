@@ -217,6 +217,19 @@ export default function GamePage() {
     return getNextDrawDate(gameData.drawDays, gameData.drawTime);
   }, [gameData]);
 
+  const getVariantDisplayName = (variantSlug: string): string => {
+    const nameMap: Record<string, string> = {
+      "powerball": "Powerball",
+      "powerball-plus": "Powerball Plus",
+      "lotto": "Lotto",
+      "lotto-plus-1": "Lotto Plus 1",
+      "lotto-plus-2": "Lotto Plus 2",
+      "daily-lotto": "Daily Lotto",
+      "daily-lotto-plus": "Daily Lotto Plus"
+    };
+    return nameMap[variantSlug] || variantSlug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+  };
+
   const latestJackpots = useMemo(() => {
     if (hasGroup && groupedData) {
       return groupedData.group.variants
@@ -231,7 +244,7 @@ export default function GamePage() {
       return [{ name: groupName, amount: singleResults[0].jackpotAmount }];
     }
     return [];
-  }, [hasGroup, groupedData, singleResults, groupSlug, slug]);
+  }, [hasGroup, groupedData, singleResults, groupSlug, slug, groupName]);
 
   const countdown = useCountdown(nextDrawDate);
 
@@ -278,19 +291,6 @@ export default function GamePage() {
       month: "short",
       year: "numeric",
     });
-  };
-
-  const getVariantDisplayName = (variantSlug: string): string => {
-    const nameMap: Record<string, string> = {
-      "powerball": "Powerball",
-      "powerball-plus": "Powerball Plus",
-      "lotto": "Lotto",
-      "lotto-plus-1": "Lotto Plus 1",
-      "lotto-plus-2": "Lotto Plus 2",
-      "daily-lotto": "Daily Lotto",
-      "daily-lotto-plus": "Daily Lotto Plus"
-    };
-    return nameMap[variantSlug] || variantSlug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
   };
 
   const groupName = hasGroup
