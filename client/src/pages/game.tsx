@@ -881,32 +881,6 @@ export default function GamePage() {
           </section>
         </>
       )}
-          <div className="max-w-7xl mx-auto px-4 lg:px-8">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <HelpCircle className="h-6 w-6 text-primary" />
-                  <CardTitle>Frequently Asked Questions about {groupName}</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <Accordion type="single" collapsible className="w-full">
-                  {GAME_FAQS[groupSlug || slug].map((faq, idx) => (
-                    <AccordionItem key={idx} value={`faq-${idx}`} data-testid={`faq-item-${idx}`}>
-                      <AccordionTrigger className="text-left">
-                        {faq.question}
-                      </AccordionTrigger>
-                      <AccordionContent className="text-muted-foreground">
-                        {faq.answer}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-      )}
     </div>
   );
 }
