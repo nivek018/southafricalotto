@@ -58,11 +58,19 @@ const FAQS = [
 ];
 
 function getTodayDateSAST(): string {
+  const fmt = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Johannesburg",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
   const now = new Date();
-  // Convert to SAST using the timezone-aware formatter to avoid local offset drift
-  const sastString = now.toLocaleString("en-US", { timeZone: "Africa/Johannesburg" });
-  const sastDate = new Date(sastString);
-  return sastDate.toISOString().split("T")[0];
+  const parts = fmt.formatToParts(now);
+  const year = Number(parts.find(p => p.type === "year")?.value || 0);
+  const month = Number(parts.find(p => p.type === "month")?.value || 1);
+  const day = Number(parts.find(p => p.type === "day")?.value || 1);
+  const base = new Date(Date.UTC(year, month - 1, day));
+  return fmt.format(base);
 }
 
 interface TodayResultsResponse {

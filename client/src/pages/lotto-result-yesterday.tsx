@@ -57,11 +57,20 @@ const FAQS = [
 ];
 
 function getYesterdayDateSAST(): string {
+  const fmt = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Johannesburg",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
   const now = new Date();
-  const sastString = now.toLocaleString("en-US", { timeZone: "Africa/Johannesburg" });
-  const sastTime = new Date(sastString);
-  sastTime.setDate(sastTime.getDate() - 1);
-  return sastTime.toISOString().split("T")[0];
+  const parts = fmt.formatToParts(now);
+  const year = Number(parts.find(p => p.type === "year")?.value || 0);
+  const month = Number(parts.find(p => p.type === "month")?.value || 1);
+  const day = Number(parts.find(p => p.type === "day")?.value || 1);
+  const base = new Date(Date.UTC(year, month - 1, day));
+  base.setUTCDate(base.getUTCDate() - 1);
+  return fmt.format(base);
 }
 
 export default function LottoResultYesterdayPage() {
