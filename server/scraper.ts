@@ -333,45 +333,124 @@ const DEFAULT_SCRAPER_INTERVAL_MINUTES = Number.isFinite(parsedInterval)
   : 60;
 let cronTimer: NodeJS.Timeout | null = null;
 let isCronRunning = false;
+const gameRunState: Record<string, { lastRunDate: string | null; nextRetryAt: number | null; retryDeadline: number | null }> = {};
+
+function getSASTDate(base?: Date): Date {
+  const now = base ? new Date(base) : new Date();
+  const sastOffset = 2 * 60;
+  const localOffset = now.getTimezoneOffset();
+  return new Date(now.getTime() + (sastOffset + localOffset) * 60000);
+}
+
+function isDrawDay(gameDrawDays: string[] | null | undefined, sastNow: Date): boolean {
+  if (!gameDrawDays || gameDrawDays.length === 0) return false;
+  const dayMap: Record<number, string> = {
+    0: "Sunday",
+    1: "Monday",
+    2: "Tuesday",
+    3: "Wednesday",
+    4: "Thursday",
+    5: "Friday",
+    6: "Saturday",
+  };
+  const todayName = dayMap[sastNow.getDay()];
+  return gameDrawDays.includes(todayName);
+}
+
+function parseScheduleTime(timeStr: string | null | undefined): { hours: number; minutes: number } | null {
+  if (!timeStr) return null;
+  const [h, m] = timeStr.split(":").map(part => parseInt(part, 10));
+  if (Number.isNaN(h) || Number.isNaN(m)) return null;
+  return { hours: h, minutes: m };
+}
 
 export function startScraperCron(): void {
   if (cronTimer) return;
 
-  const intervalMs = DEFAULT_SCRAPER_INTERVAL_MINUTES * 60 * 1000;
+  const intervalMs = 60 * 1000; // check every minute
 
-  const run = async (trigger: string) => {
+  const runForGame = async (gameSlug: string, trigger: string, todayStr: string) => {
     if (isCronRunning) {
-      logScrape(`[Cron] Skip ${trigger} trigger - scraper already running`);
+      logScrape(`[Cron] Skip ${trigger} for ${gameSlug} - scraper already running`);
       return;
     }
-
-    const settings = await storage.getScraperSettings();
-    const allDisabled = settings.length > 0 && settings.every(s => s.isEnabled === false);
-    if (allDisabled) {
-      logInfo("[Cron] Skipping scrape run because all scraper settings are disabled");
-      return;
-    }
-
     isCronRunning = true;
     try {
-      logInfo(`[Cron] Automatic scrape started (${trigger})`);
+      logInfo(`[Cron] Automatic scrape started for ${gameSlug} (${trigger})`);
       const scrapedResults = await scrapeLotteryResults(1, 0);
       const { addedCount } = await processScrapedResults(scrapedResults);
       const timestamp = new Date().toISOString();
       await storage.updateScraperLastRun(timestamp);
+
+      const hasResultForGame = scrapedResults.some(r => r.gameSlug === gameSlug);
+      if (hasResultForGame) {
+        gameRunState[gameSlug] = { lastRunDate: todayStr, nextRetryAt: null, retryDeadline: null };
+      } else {
+        const state = gameRunState[gameSlug] || { lastRunDate: null, nextRetryAt: null, retryDeadline: null };
+        const nextRetry = Date.now() + 5 * 60 * 1000;
+        const deadline = state.retryDeadline ?? Date.now() + 60 * 60 * 1000;
+        gameRunState[gameSlug] = { lastRunDate: state.lastRunDate, nextRetryAt: nextRetry, retryDeadline: deadline };
+        logInfo(`[Cron] No results yet for ${gameSlug}, will retry after 5 minutes (until ${new Date(deadline).toISOString()})`);
+      }
+
       logInfo(`[Cron] Automatic scrape complete: scraped ${scrapedResults.length}, added ${addedCount}`);
     } catch (error) {
-      logError(`[Cron] Automatic scrape failed: ${error instanceof Error ? error.message : String(error)}`);
+      logError(`[Cron] Automatic scrape failed for ${gameSlug}: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       isCronRunning = false;
     }
   };
 
+  const tick = async () => {
+    const settings = await storage.getScraperSettings();
+    const games = await storage.getGames();
+    const sastNow = getSASTDate();
+    const todayStr = sastNow.toISOString().split("T")[0];
+
+    for (const setting of settings) {
+      if (setting.isEnabled === false) continue;
+      const game = games.find(g => g.slug === setting.gameSlug);
+      if (!game) continue;
+
+      const drawDays = Array.isArray(game.drawDays)
+        ? game.drawDays
+        : (typeof (game.drawDays as any) === "string"
+            ? (() => { try { return JSON.parse(game.drawDays as any); } catch { return []; } })()
+            : []);
+      if (!isDrawDay(drawDays, sastNow)) {
+        // not a draw day: reset retry window
+        gameRunState[game.slug] = { lastRunDate: gameRunState[game.slug]?.lastRunDate ?? null, nextRetryAt: null, retryDeadline: null };
+        continue;
+      }
+
+      const timeParts = parseScheduleTime(setting.scheduleTime || "21:30");
+      if (!timeParts) continue;
+
+      const scheduled = new Date(sastNow);
+      scheduled.setHours(timeParts.hours, timeParts.minutes, 0, 0);
+      const scheduledMs = scheduled.getTime();
+      const nowMs = sastNow.getTime();
+
+      if (nowMs < scheduledMs) continue;
+
+      const state = gameRunState[game.slug] || { lastRunDate: null, nextRetryAt: null, retryDeadline: null };
+      if (state.lastRunDate === todayStr) continue;
+
+      const deadline = state.retryDeadline ?? (scheduledMs + 60 * 60 * 1000);
+      if (nowMs > deadline) continue;
+
+      const nextAllowed = state.nextRetryAt ?? scheduledMs;
+      if (nowMs < nextAllowed) continue;
+
+      await runForGame(game.slug, "scheduled", todayStr);
+    }
+  };
+
   cronTimer = setInterval(() => {
-    void run("interval");
+    void tick();
   }, intervalMs);
 
-  void run("startup");
+  void tick();
 }
 
 export async function testScraper(): Promise<{

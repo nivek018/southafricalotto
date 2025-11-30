@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
@@ -17,7 +18,8 @@ import {
   Database,
   Download,
   Settings,
-  Clock
+  Clock,
+  CalendarRange
 } from "lucide-react";
 import type { LotteryResult, NewsArticle, LotteryGame, ScraperSetting } from "@shared/schema";
 import AdminResults from "@/pages/admin-results";
@@ -107,6 +109,27 @@ export default function AdminDashboard() {
     },
   });
 
+  const drawDaysMutation = useMutation({
+    mutationFn: async (payload: { gameSlug: string; drawDays: string[] }) => {
+      const res = await apiRequest("PATCH", `/api/games/${payload.gameSlug}/draw-days`, payload);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/games"] });
+      toast({
+        title: "Draw Days Updated",
+        description: "The draw days have been saved for this game.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Failed to Save",
+        description: "Could not save draw days. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleLogout = () => {
     localStorage.removeItem("adminAuth");
     setLocation("/encode");
@@ -136,6 +159,10 @@ export default function AdminDashboard() {
       isEnabled: setting?.isEnabled ?? true,
       scheduleTime: time,
     });
+  };
+
+  const handleDrawDaysUpdate = (gameSlug: string, drawDays: string[]) => {
+    drawDaysMutation.mutate({ gameSlug, drawDays });
   };
 
   const applyGlobalSchedule = () => {
@@ -309,11 +336,11 @@ export default function AdminDashboard() {
                       const scheduleTime = setting?.scheduleTime || globalScheduleTime;
 
                       return (
-                        <div key={game.slug} className="flex items-center justify-between py-3 border-b last:border-0">
-                          <div className="flex items-center gap-4">
-                            <Switch
-                              id={`scraper-${game.slug}`}
-                              checked={isEnabled}
+                    <div key={game.slug} className="flex items-center justify-between py-3 border-b last:border-0">
+                      <div className="flex items-center gap-4">
+                        <Switch
+                          id={`scraper-${game.slug}`}
+                          checked={isEnabled}
                               onCheckedChange={() => handleToggle(game.slug, isEnabled)}
                               disabled={settingsMutation.isPending}
                               data-testid={`switch-scraper-${game.slug}`}
@@ -325,8 +352,9 @@ export default function AdminDashboard() {
                               <p className="text-xs text-muted-foreground">
                                 Draw days: {(Array.isArray(game.drawDays) ? game.drawDays : JSON.parse(game.drawDays as unknown as string || "[]")).join(", ") || "N/A"}
                               </p>
-                            </div>
                           </div>
+                        </div>
+                        <div className="flex flex-col gap-2 items-end min-w-[260px]">
                           <div className="flex items-center gap-2">
                             <Input
                               type="time"
@@ -340,11 +368,35 @@ export default function AdminDashboard() {
                               {isEnabled ? "Active" : "Disabled"}
                             </span>
                           </div>
+                          <div className="flex flex-wrap items-center gap-2 text-xs">
+                            <CalendarRange className="h-4 w-4 text-muted-foreground" />
+                            {["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"].map((day) => {
+                              const selectedDays = Array.isArray(game.drawDays) ? game.drawDays : (() => { try { return JSON.parse(game.drawDays as unknown as string || "[]"); } catch { return []; } })();
+                              const checked = selectedDays.includes(day);
+                              return (
+                                <label key={`${game.slug}-${day}`} className="inline-flex items-center gap-1 px-2 py-1 rounded border text-muted-foreground hover:bg-muted cursor-pointer">
+                                  <Checkbox
+                                    checked={checked}
+                                    onCheckedChange={(val) => {
+                                      const current = selectedDays;
+                                      const next = val
+                                        ? Array.from(new Set([...current, day]))
+                                        : current.filter(d => d !== day);
+                                      handleDrawDaysUpdate(game.slug, next);
+                                    }}
+                                    disabled={!isEnabled || drawDaysMutation.isPending}
+                                  />
+                                  <span className="text-[11px]">{day.slice(0,3)}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
                         </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
               </Card>
 
               <Card>

@@ -7,6 +7,7 @@ import {
   insertNewsArticleSchema,
   adminLoginSchema,
   insertScraperSettingSchema,
+  updateDrawDaysSchema,
   LOTTERY_GROUPS,
   getGroupForSlug
 } from "@shared/schema";
@@ -54,6 +55,28 @@ export async function registerRoutes(
       res.json(game);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch game" });
+    }
+  });
+
+  app.patch("/api/games/:slug/draw-days", async (req, res) => {
+    try {
+      const parsed = updateDrawDaysSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid draw days payload" });
+      }
+
+      if (parsed.data.gameSlug !== req.params.slug) {
+        return res.status(400).json({ error: "Mismatched game slug" });
+      }
+
+      const updated = await storage.updateDrawDays(parsed.data.gameSlug, parsed.data.drawDays);
+      if (!updated) {
+        return res.status(404).json({ error: "Game not found" });
+      }
+
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update draw days" });
     }
   });
 

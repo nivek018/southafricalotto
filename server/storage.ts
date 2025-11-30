@@ -48,6 +48,7 @@ export interface IStorage {
   getScraperSettingByGameSlug(gameSlug: string): Promise<ScraperSetting | undefined>;
   upsertScraperSetting(setting: InsertScraperSetting): Promise<ScraperSetting>;
   updateScraperLastRun(timestamp: string): Promise<void>;
+  updateDrawDays(gameSlug: string, drawDays: string[]): Promise<LotteryGame | undefined>;
 
   initializeDefaultData(): Promise<void>;
 }
@@ -209,6 +210,14 @@ export class DatabaseStorage implements IStorage {
         .set({ lastScrapedAt: timestamp })
         .where(eq(scraperSettings.id, setting.id));
     }
+  }
+
+  async updateDrawDays(gameSlug: string, drawDays: string[]): Promise<LotteryGame | undefined> {
+    await db.update(lotteryGames)
+      .set({ drawDays })
+      .where(eq(lotteryGames.slug, gameSlug));
+    const [game] = await db.select().from(lotteryGames).where(eq(lotteryGames.slug, gameSlug));
+    return game;
   }
 
   async initializeDefaultData(): Promise<void> {

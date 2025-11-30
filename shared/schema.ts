@@ -39,6 +39,11 @@ export const insertLotteryGameSchema = createInsertSchema(lotteryGames, {
 export type InsertLotteryGame = z.infer<typeof insertLotteryGameSchema>;
 export type LotteryGame = typeof lotteryGames.$inferSelect;
 
+export const updateDrawDaysSchema = z.object({
+  gameSlug: z.string(),
+  drawDays: z.array(z.string()),
+});
+
 export const lotteryResults = mysqlTable("lottery_results", {
   id: varchar("id", { length: 36 }).primaryKey(),
   gameId: varchar("game_id", { length: 36 }).notNull(),
