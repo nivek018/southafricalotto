@@ -59,9 +59,10 @@ const FAQS = [
 
 function getTodayDateSAST(): string {
   const now = new Date();
-  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
-  const sastMs = utcMs + 2 * 60 * 60000; // UTC+2
-  return new Date(sastMs).toISOString().split("T")[0];
+  // Convert to SAST using the timezone-aware formatter to avoid local offset drift
+  const sastString = now.toLocaleString("en-US", { timeZone: "Africa/Johannesburg" });
+  const sastDate = new Date(sastString);
+  return sastDate.toISOString().split("T")[0];
 }
 
 interface TodayResultsResponse {

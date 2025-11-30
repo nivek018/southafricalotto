@@ -58,9 +58,8 @@ const FAQS = [
 
 function getYesterdayDateSAST(): string {
   const now = new Date();
-  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
-  const sastMs = utcMs + 2 * 60 * 60000; // UTC+2
-  const sastTime = new Date(sastMs);
+  const sastString = now.toLocaleString("en-US", { timeZone: "Africa/Johannesburg" });
+  const sastTime = new Date(sastString);
   sastTime.setDate(sastTime.getDate() - 1);
   return sastTime.toISOString().split("T")[0];
 }
