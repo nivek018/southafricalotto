@@ -241,10 +241,11 @@ export default function GamePage() {
         .filter(Boolean) as { name: string; amount: string }[];
     }
     if (singleResults && singleResults[0]?.jackpotAmount) {
-      return [{ name: groupName, amount: singleResults[0].jackpotAmount }];
+      const displayName = singleResults[0].gameName || slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+      return [{ name: displayName, amount: singleResults[0].jackpotAmount }];
     }
     return [];
-  }, [hasGroup, groupedData, singleResults, groupSlug, slug, groupName]);
+  }, [hasGroup, groupedData, singleResults, slug]);
 
   const countdown = useCountdown(nextDrawDate);
 
