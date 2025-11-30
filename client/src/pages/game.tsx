@@ -408,7 +408,7 @@ export default function GamePage() {
       {(nextDrawDate || latestJackpots.length > 0) && (
         <section className="py-6 bg-gradient-to-r from-lottery-ball-main/5 to-lottery-ball-bonus/5 border-y border-border/50">
           <div className="max-w-7xl mx-auto px-4 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {nextDrawDate && !countdown.isExpired && (
                 <Card className="bg-background/80 backdrop-blur" data-testid="card-next-draw">
                   <CardContent className="py-6">
@@ -434,27 +434,29 @@ export default function GamePage() {
                 </Card>
               )}
 
-              {latestJackpots.map((item, idx) => (
-                <Card key={idx} className="bg-background/80 backdrop-blur" data-testid={`card-latest-jackpot-${idx}`}>
+              {latestJackpots.length > 0 && (
+                <Card className="bg-background/80 backdrop-blur" data-testid="card-latest-jackpot">
                   <CardContent className="py-6">
-                    <div className="flex items-center gap-3 mb-3">
+                    <div className="flex items-center gap-3 mb-4">
                       <div className="p-2 bg-lottery-ball-bonus/10 rounded-full">
                         <Trophy className="h-5 w-5 text-lottery-ball-bonus" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-sm text-muted-foreground">Latest Jackpot</h3>
-                        <p className="text-sm font-semibold text-foreground">{item.name}</p>
+                        <h3 className="font-semibold text-sm text-muted-foreground">Latest Jackpots</h3>
+                        <p className="text-xs text-muted-foreground">Most recent recorded draw</p>
                       </div>
                     </div>
-                    <p className="text-2xl font-bold text-lottery-ball-bonus text-center" data-testid="text-jackpot">
-                      {item.amount}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-2 text-center">
-                      Based on the most recent recorded draw.
-                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      {latestJackpots.map((item, idx) => (
+                        <div key={idx} className="rounded-lg border bg-muted/40 px-3 py-2 text-center">
+                          <p className="text-xs text-muted-foreground mb-1">{item.name}</p>
+                          <p className="text-lg font-bold text-lottery-ball-bonus">{item.amount}</p>
+                        </div>
+                      ))}
+                    </div>
                   </CardContent>
                 </Card>
-              ))}
+              )}
 
             </div>
           </div>
