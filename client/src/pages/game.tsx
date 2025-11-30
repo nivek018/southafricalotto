@@ -825,34 +825,62 @@ export default function GamePage() {
       </section>
 
       {GAME_FAQS[groupSlug || slug] && (
-        <section className="py-8 lg:py-12" data-testid="section-how-to-claim">
-          <div className="max-w-7xl mx-auto px-4 lg:px-8">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Trophy className="h-6 w-6 text-lottery-ball-bonus" />
-                  <CardTitle>How to Claim Prize in {groupName}</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3 text-muted-foreground">
-                <p>
-                  1. Verify your ticket against the official {groupName} results for the draw date shown on your ticket.
-                </p>
-                <p>
-                  2. Sign the back of your ticket and keep it safe. You have 365 days from the draw date to claim.
-                </p>
-                <p>
-                  3. Small prizes (typically up to R2,000) can be claimed at authorised lottery retailers. Larger prizes require visiting a regional or head office with your ticket and valid ID.
-                </p>
-                <p>
-                  4. For group entries/syndicates, all participants must complete required claim forms. Always follow the official National Lottery claim process.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
+        <>
+          <section className="py-8 lg:py-12" data-testid="section-how-to-claim">
+            <div className="max-w-7xl mx-auto px-4 lg:px-8">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <Trophy className="h-6 w-6 text-lottery-ball-bonus" />
+                    <CardTitle>How to Claim Prize in {groupName}</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3 text-muted-foreground">
+                  <p>
+                    1. Verify your ticket against the official {groupName} results for the draw date shown on your ticket.
+                  </p>
+                  <p>
+                    2. Sign the back of your ticket and keep it safe. You have 365 days from the draw date to claim.
+                  </p>
+                  <p>
+                    3. Small prizes (typically up to R2,000) can be claimed at authorised lottery retailers. Larger prizes require visiting a regional or head office with your ticket and valid ID.
+                  </p>
+                  <p>
+                    4. For group entries/syndicates, all participants must complete required claim forms. Always follow the official National Lottery claim process.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </section>
 
-        <section className="py-8 lg:py-12" data-testid="section-faqs">
+          <section className="py-8 lg:py-12" data-testid="section-faqs">
+            <div className="max-w-7xl mx-auto px-4 lg:px-8">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <HelpCircle className="h-6 w-6 text-primary" />
+                    <CardTitle>Frequently Asked Questions about {groupName}</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <Accordion type="single" collapsible className="w-full">
+                    {GAME_FAQS[groupSlug || slug].map((faq, idx) => (
+                      <AccordionItem key={idx} value={`faq-${idx}`} data-testid={`faq-item-${idx}`}>
+                        <AccordionTrigger className="text-left">
+                          {faq.question}
+                        </AccordionTrigger>
+                        <AccordionContent className="text-muted-foreground">
+                          {faq.answer}
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+        </>
+      )}
           <div className="max-w-7xl mx-auto px-4 lg:px-8">
             <Card>
               <CardHeader>
