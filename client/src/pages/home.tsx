@@ -10,10 +10,10 @@ import { useEffect } from "react";
 
 export default function HomePage() {
   useEffect(() => {
-    document.title = "South African Lottery Results - Powerball, Lotto, Daily Lotto | African Lottery";
+    document.title = "South Africa Lotto Results - Powerball, Lotto, Daily Lotto";
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
-      metaDesc.setAttribute("content", "Check the latest South African lottery results for Powerball, Lotto, Lotto Plus, and Daily Lotto. Updated immediately after every draw. View winning numbers, jackpots, and hot/cold numbers.");
+      metaDesc.setAttribute("content", "Check the latest South Africa lotto results for Powerball, Lotto, Lotto Plus, and Daily Lotto. Updated immediately after every draw. View winning numbers, jackpots, and hot/cold numbers.");
     }
   }, []);
   const { data: results, isLoading: resultsLoading } = useQuery<LotteryResult[]>({
@@ -34,11 +34,10 @@ export default function HomePage() {
             <CircleDot className="h-6 w-6 text-lottery-ball-main -ml-3" />
           </div>
           <h1 className="text-3xl lg:text-5xl font-bold mb-4">
-            South African Lottery Results
+            South Africa Lotto Results
           </h1>
           <p className="text-muted-foreground text-lg lg:text-xl max-w-2xl mx-auto">
-            Check the latest Powerball, Lotto, and Daily Lotto results. 
-            Updated immediately after each draw.
+            View the latest PowerBall, Lotto, and Daily Lotto results, updated right after each draw.
           </p>
         </div>
       </section>

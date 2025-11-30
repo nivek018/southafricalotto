@@ -29,7 +29,7 @@ export function Header() {
               <CircleDot className="h-6 w-6 text-lottery-ball-bonus -ml-2" />
             </div>
             <span className="font-bold text-lg lg:text-xl hidden sm:block">
-              African Lottery
+              SA Lotto Results
             </span>
           </Link>
 

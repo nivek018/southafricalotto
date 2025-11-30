@@ -12,7 +12,7 @@ export function Footer() {
                 <CircleDot className="h-6 w-6 text-lottery-ball-main" />
                 <CircleDot className="h-5 w-5 text-lottery-ball-bonus -ml-2" />
               </div>
-              <span className="font-bold text-lg">African Lottery</span>
+              <span className="font-bold text-lg">SA Lotto Results</span>
             </Link>
             <p className="text-sm text-muted-foreground max-w-md">
               Your trusted source for South African lottery results. Check Powerball, Lotto, 
@@ -75,7 +75,7 @@ export function Footer() {
         
         <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
           <p>
-            African Lottery Results is not affiliated with the National Lottery. 
+            SA Lotto Results is not affiliated with the National Lottery. 
             Always verify results with official sources.
           </p>
           <p className="mt-2">

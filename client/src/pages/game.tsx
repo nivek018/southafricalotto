@@ -287,15 +287,50 @@ export default function GamePage() {
 
   const showHotColdSection = HOT_COLD_GAMES.includes(groupSlug || slug);
 
-  useEffect(() => {
-    if (!isLoading) {
-      document.title = `${groupName} Results - Latest Winning Numbers | African Lottery`;
-      const metaDesc = document.querySelector('meta[name="description"]');
-      if (metaDesc) {
-        metaDesc.setAttribute("content", `Check the latest ${groupName} results and winning numbers. View draw history, hot/cold numbers, and jackpot information for South African ${groupName}.`);
-      }
+  const getLatestDrawDate = () => {
+    if (hasGroup && groupedData) {
+      const dates = Object.values(groupedData.latestResults || {})
+        .map((r) => r?.drawDate)
+        .filter(Boolean) as string[];
+      if (dates.length === 0) return null;
+      return dates.sort((a, b) => b.localeCompare(a))[0];
     }
-  }, [groupName, isLoading]);
+    if (singleResults && singleResults.length > 0) {
+      return singleResults[0].drawDate;
+    }
+    return null;
+  };
+
+  const formatTitleDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-ZA", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    const latestDate = getLatestDrawDate();
+    const formattedDate = latestDate ? formatTitleDate(latestDate) : null;
+    let title = `${groupName} Results - Latest Winning Numbers | SA Lotto Results`;
+
+    if (groupSlug === "powerball" && formattedDate) {
+      title = `Powerball Results — ${formattedDate} | Powerball & Powerball Plus`;
+    } else if (groupSlug === "lotto" && formattedDate) {
+      title = `Lotto Results — ${formattedDate} | Lotto, Lotto Plus 1 & Plus 2`;
+    } else if (groupSlug === "daily-lotto" && formattedDate) {
+      title = `Daily Lotto Results — ${formattedDate} | Daily Lotto & Daily Lotto Plus`;
+    }
+
+    document.title = title;
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.setAttribute("content", `Check the latest ${groupName} results and winning numbers. View draw history, hot/cold numbers, and jackpot information for South African ${groupName}.`);
+    }
+  }, [groupName, isLoading, groupSlug, groupedData, singleResults]);
 
   if (isLoading) {
     return (

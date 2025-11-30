@@ -388,7 +388,7 @@ export function startScraperCron(): void {
       } else {
         const state = gameRunState[gameSlug] || { lastRunDate: null, nextRetryAt: null, retryDeadline: null };
         const nextRetry = Date.now() + 5 * 60 * 1000;
-        const deadline = state.retryDeadline ?? Date.now() + 60 * 60 * 1000;
+        const deadline = state.retryDeadline ?? Date.now() + 5 * 60 * 60 * 1000; // retry window up to 5 hours
         gameRunState[gameSlug] = { lastRunDate: state.lastRunDate, nextRetryAt: nextRetry, retryDeadline: deadline };
         logInfo(`[Cron] No results yet for ${gameSlug}, will retry after 5 minutes (until ${new Date(deadline).toISOString()})`);
       }
@@ -436,7 +436,7 @@ export function startScraperCron(): void {
       const state = gameRunState[game.slug] || { lastRunDate: null, nextRetryAt: null, retryDeadline: null };
       if (state.lastRunDate === todayStr) continue;
 
-      const deadline = state.retryDeadline ?? (scheduledMs + 60 * 60 * 1000);
+      const deadline = state.retryDeadline ?? (scheduledMs + 5 * 60 * 60 * 1000); // allow up to 5 hours of retries
       if (nowMs > deadline) continue;
 
       const nextAllowed = state.nextRetryAt ?? scheduledMs;

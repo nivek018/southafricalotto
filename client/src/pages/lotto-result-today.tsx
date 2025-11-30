@@ -81,7 +81,13 @@ export default function LottoResultTodayPage() {
   const todayDate = getTodayDateSAST();
 
   useEffect(() => {
-    document.title = "Lotto Results Today - South African Lottery Results | African Lottery";
+    const formattedDate = new Date(todayDate).toLocaleDateString("en-ZA", {
+      weekday: "short",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+    document.title = `Lotto Result Today — ${formattedDate} | Official Results`;
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
       metaDesc.setAttribute("content", "Check today's South African lottery results including Powerball, Lotto, Lotto Plus, and Daily Lotto. Live updates with winning numbers and jackpot amounts.");

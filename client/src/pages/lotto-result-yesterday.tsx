@@ -71,9 +71,15 @@ export default function LottoResultYesterdayPage() {
   });
 
   const yesterdayDate = getYesterdayDateSAST();
+  const formattedYesterday = new Date(yesterdayDate).toLocaleDateString("en-ZA", {
+    weekday: "short",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
   useEffect(() => {
-    document.title = "Lotto Results Yesterday - South African Lottery Results | African Lottery";
+    document.title = `Lotto Result Yesterday — ${formattedYesterday} | Draw Summary`;
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
       metaDesc.setAttribute("content", "Check yesterday's South African lottery results including Powerball, Lotto, Lotto Plus, and Daily Lotto. Updated daily with winning numbers and jackpot amounts.");
