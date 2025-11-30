@@ -212,12 +212,12 @@ export default function DrawHistoryPage() {
                           
                           return (
                             <div key={variantSlug} className="py-3 px-4 bg-muted/20 rounded-lg" data-testid={`result-${variantSlug}-${date}`}>
-                              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                              <div className="grid grid-cols-1 lg:grid-cols-[200px,1fr,200px] items-center gap-3">
                                 <div className="flex items-center gap-2">
                                   <CircleDot className="h-4 w-4 text-lottery-ball-main" />
                                   <span className="font-semibold">{getVariantDisplayName(variantSlug)}</span>
                                 </div>
-                                <div className="flex flex-wrap items-center gap-2 lg:justify-center">
+                                <div className="flex flex-wrap items-center gap-2 justify-center lg:justify-center">
                                   {sortNumbers(result.winningNumbers).map((num, idx) => (
                                     <LotteryBall key={idx} number={num} size="sm" />
                                   ))}
@@ -229,7 +229,7 @@ export default function DrawHistoryPage() {
                                   )}
                                 </div>
                                 {result.jackpotAmount && (
-                                  <div className="flex items-center gap-1">
+                                  <div className="flex items-center gap-1 justify-start lg:justify-end">
                                     <Trophy className="h-4 w-4 text-lottery-ball-bonus" />
                                     <span className="font-semibold text-sm">Jackpot {result.jackpotAmount}</span>
                                   </div>
