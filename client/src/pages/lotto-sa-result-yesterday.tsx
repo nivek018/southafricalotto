@@ -116,7 +116,7 @@ export default function LottoSaResultYesterdayPage() {
           <h2 className="text-xl font-semibold mb-4">About SA Lotto</h2>
           <p className="text-muted-foreground mb-4">
             SA Lotto is South Africa's original lottery game with guaranteed jackpots starting at R2 million. 
-            Players choose 6 numbers from 1-52, plus a bonus ball is drawn.
+            Players choose 6 numbers from 1-58, plus a bonus ball is drawn.
           </p>
           <p className="text-muted-foreground mb-4">
             <strong>Draw Schedule:</strong> Wednesday and Saturday at approximately 20:57 SAST

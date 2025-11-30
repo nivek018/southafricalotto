@@ -68,7 +68,7 @@ const GAME_HOW_TO_PLAY: Record<string, { steps: string[]; tips: string[] }> = {
   },
   lotto: {
     steps: [
-      "Choose 6 numbers from 1 to 52",
+      "Choose 6 numbers from 1 to 58",
       "Select your draw days (Wednesday and/or Saturday)",
       "Purchase your ticket at any authorized lottery retailer or online",
       "Keep your ticket safe and check the results after each draw",
@@ -510,11 +510,13 @@ export default function GamePage() {
                             )}
                           </div>
 
-                          {latestResult.jackpotAmount && (
-                            <div className="bg-gradient-to-r from-lottery-ball-main/10 to-lottery-ball-bonus/10 rounded-lg p-4 text-center">
-                              <p className="text-sm text-muted-foreground mb-1">Jackpot</p>
-                              <p className="text-2xl font-bold">{latestResult.jackpotAmount}</p>
-                            </div>
+                            {latestResult.jackpotAmount && (
+                              <div className="flex justify-center">
+                                <div className="inline-flex flex-col items-center rounded-lg bg-gradient-to-r from-lottery-ball-main/10 to-lottery-ball-bonus/10 px-4 py-3 min-w-[240px]">
+                                  <p className="text-xs text-muted-foreground mb-1">Jackpot</p>
+                                  <p className="text-2xl font-bold">{latestResult.jackpotAmount}</p>
+                                </div>
+                              </div>
                             )}
 
                           </CardContent>

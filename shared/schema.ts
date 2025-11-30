@@ -152,7 +152,7 @@ export const LOTTERY_GROUPS: Record<string, { name: string; slugs: string[]; des
   "lotto": {
     name: "Lotto",
     slugs: ["lotto", "lotto-plus-1", "lotto-plus-2"],
-    description: "South Africa's original lottery game. Choose 6 numbers from 1-52 for a chance to win the jackpot."
+    description: "South Africa's original lottery game. Choose 6 numbers from 1-58 for a chance to win the jackpot."
   },
   "daily-lotto": {
     name: "Daily Lotto",
