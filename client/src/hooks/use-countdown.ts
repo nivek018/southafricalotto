@@ -107,6 +107,16 @@ export function getNextDrawDate(drawDays: string[] | null, drawTime: string | nu
     "Saturday": 6
   };
 
+  const normalizeDays = (days: string[]): number[] => {
+    if (days.some(d => d.toLowerCase() === "daily")) {
+      return [0, 1, 2, 3, 4, 5, 6];
+    }
+    return days
+      .map(day => dayMap[day] ?? dayMap[day.charAt(0).toUpperCase() + day.slice(1).toLowerCase()])
+      .filter((num) => num !== undefined)
+      .sort((a, b) => a - b);
+  };
+
   const now = new Date();
   const sastOffset = 2 * 60;
   const localOffset = now.getTimezoneOffset();
@@ -129,10 +139,7 @@ export function getNextDrawDate(drawDays: string[] | null, drawTime: string | nu
     }
   }
 
-  const drawDayNumbers = parsedDrawDays
-    .map(day => dayMap[day])
-    .filter(num => num !== undefined)
-    .sort((a, b) => a - b);
+  const drawDayNumbers = normalizeDays(parsedDrawDays);
 
   if (drawDayNumbers.length === 0) {
     return null;

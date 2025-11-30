@@ -1,7 +1,8 @@
 import * as fs from "fs";
 import * as path from "path";
 
-const LOG_FILE = path.join(process.cwd(), "debug.log");
+const LOG_DIR = path.join(process.cwd(), "debug");
+const LOG_FILE = path.join(LOG_DIR, "debug.log");
 const MAX_LOG_AGE_DAYS = 14;
 
 function getSASTTime(): string {
@@ -14,6 +15,10 @@ function getSASTTime(): string {
 
 function cleanOldLogs(): void {
   try {
+    if (!fs.existsSync(LOG_DIR)) {
+      fs.mkdirSync(LOG_DIR, { recursive: true });
+    }
+
     if (!fs.existsSync(LOG_FILE)) return;
 
     const content = fs.readFileSync(LOG_FILE, "utf-8");
@@ -46,6 +51,9 @@ export function initializeLogger(): void {
 
 export function logToFile(message: string, level: "INFO" | "ERROR" | "WARN" | "DEBUG" | "SCRAPE" = "INFO"): void {
   try {
+    if (!fs.existsSync(LOG_DIR)) {
+      fs.mkdirSync(LOG_DIR, { recursive: true });
+    }
     const timestamp = getSASTTime();
     const logEntry = `[${timestamp}] [${level}] ${message}\n`;
     fs.appendFileSync(LOG_FILE, logEntry);
