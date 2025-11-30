@@ -449,7 +449,7 @@ export default function GamePage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                       {latestJackpots.map((item, idx) => (
                         <div key={idx} className="rounded-lg border bg-muted/40 px-3 py-2 text-center">
-                          <p className="text-xs text-muted-foreground mb-1">{item.name}</p>
+                          <p className="text-sm font-semibold text-foreground mb-1">{item.name}</p>
                           <p className="text-lg font-bold text-lottery-ball-bonus">{item.amount}</p>
                         </div>
                       ))}
