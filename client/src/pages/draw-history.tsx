@@ -217,7 +217,7 @@ export default function DrawHistoryPage() {
                                   <CircleDot className="h-4 w-4 text-lottery-ball-main" />
                                   <span className="font-semibold">{getVariantDisplayName(variantSlug)}</span>
                                 </div>
-                                <div className="flex flex-wrap items-center gap-2">
+                                <div className="flex flex-wrap items-center gap-2 lg:justify-center">
                                   {sortNumbers(result.winningNumbers).map((num, idx) => (
                                     <LotteryBall key={idx} number={num} size="sm" />
                                   ))}
@@ -231,7 +231,7 @@ export default function DrawHistoryPage() {
                                 {result.jackpotAmount && (
                                   <div className="flex items-center gap-1">
                                     <Trophy className="h-4 w-4 text-lottery-ball-bonus" />
-                                    <span className="font-semibold text-sm">{result.jackpotAmount}</span>
+                                    <span className="font-semibold text-sm">Jackpot {result.jackpotAmount}</span>
                                   </div>
                                 )}
                               </div>
@@ -287,11 +287,10 @@ export default function DrawHistoryPage() {
             <p className="text-muted-foreground">
               This page shows the complete history of {groupName} lottery draws
               {hasGroup ? " including all game variants" : ""}. Click on any draw date 
-              to view the detailed results page.
+              to view the detailed results page and past winning numbers.
             </p>
             <p className="text-muted-foreground">
-              Each date-specific page is optimized for search engines, making it easy 
-              to find historical lottery results.
+              Browse previous draws to compare winning numbers and jackpots over time.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
               <Link href={`/game/${slug}`}>
