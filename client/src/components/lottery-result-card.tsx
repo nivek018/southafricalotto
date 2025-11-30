@@ -48,8 +48,8 @@ export function LotteryResultCard({ result }: LotteryResultCardProps) {
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-5 text-center">
-        <div className="flex flex-wrap items-center justify-center gap-2 mt-1">
+      <CardContent className="space-y-6 text-center">
+        <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
           {sortedNumbers.map((num, idx) => (
             <LotteryBall key={idx} number={num} size="md" />
           ))}
@@ -61,20 +61,22 @@ export function LotteryResultCard({ result }: LotteryResultCardProps) {
           )}
         </div>
 
-        {result.jackpotAmount && (
-          <div className="inline-flex items-center gap-2 rounded-md bg-muted/50 px-4 py-2 text-sm font-semibold">
-            <Trophy className="w-4 h-4 text-lottery-ball-bonus" />
-            <span className="text-muted-foreground">Jackpot:</span>
-            <span className="text-foreground">{result.jackpotAmount}</span>
-          </div>
-        )}
+        <div className="space-y-3">
+          {result.jackpotAmount && (
+            <div className="inline-flex items-center gap-2 rounded-md bg-muted/50 px-4 py-2 text-sm font-semibold">
+              <Trophy className="w-4 h-4 text-lottery-ball-bonus" />
+              <span className="text-muted-foreground">Jackpot:</span>
+              <span className="text-foreground">{result.jackpotAmount}</span>
+            </div>
+          )}
 
-        <Link href={`/game/${result.gameSlug}`}>
-          <Button variant="ghost" className="w-full group" data-testid={`button-view-${result.gameSlug}`}>
-            View Draw Summary
-            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-          </Button>
-        </Link>
+          <Link href={`/game/${result.gameSlug}`}>
+            <Button variant="ghost" className="w-full group" data-testid={`button-view-${result.gameSlug}`}>
+              View Draw Summary
+              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </Link>
+        </div>
       </CardContent>
     </Card>
   );
