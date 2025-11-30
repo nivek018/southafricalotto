@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import type { LotteryResult, LotteryGame } from "@shared/schema";
 import { getGroupForSlug } from "@shared/schema";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCountdown, getNextDrawDate } from "@/hooks/use-countdown";
 import { PrizeHistoryChart } from "@/components/prize-history-chart";
 
@@ -173,28 +173,39 @@ export default function GamePage() {
   const [, params] = useRoute("/game/:slug");
   const slug = params?.slug || "";
 
+  const getSASTDateString = () => {
+    const fmt = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Africa/Johannesburg",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    return fmt.format(new Date());
+  };
+  const [sastDay, setSastDay] = useState(getSASTDateString());
+
   const groupInfo = useMemo(() => getGroupForSlug(slug), [slug]);
   const groupSlug = groupInfo?.groupSlug || null;
   const hasGroup = !!groupInfo;
 
   const mainGameSlug = hasGroup ? (groupInfo?.group?.slugs?.[0] || slug) : slug;
 
-  const { data: gameData } = useQuery<LotteryGame>({
+  const { data: gameData, refetch: refetchGame } = useQuery<LotteryGame>({
     queryKey: ["/api/games", mainGameSlug],
     enabled: !!mainGameSlug,
   });
 
-  const { data: groupedData, isLoading: groupLoading } = useQuery<GroupedResultsResponse>({
+  const { data: groupedData, isLoading: groupLoading, refetch: refetchGrouped } = useQuery<GroupedResultsResponse>({
     queryKey: ["/api/results/group", groupSlug],
     enabled: !!slug && hasGroup && !!groupSlug,
   });
 
-  const { data: singleResults, isLoading: singleLoading } = useQuery<LotteryResult[]>({
+  const { data: singleResults, isLoading: singleLoading, refetch: refetchSingle } = useQuery<LotteryResult[]>({
     queryKey: ["/api/results/game", slug],
     enabled: !!slug && !hasGroup,
   });
 
-  const { data: statistics } = useQuery<StatisticsResponse>({
+  const { data: statistics, refetch: refetchStats } = useQuery<StatisticsResponse>({
     queryKey: [`/api/statistics/${mainGameSlug}?draws=15`],
     enabled: !!mainGameSlug,
   });
@@ -331,6 +342,24 @@ export default function GamePage() {
       metaDesc.setAttribute("content", `Check the latest ${groupName} results and winning numbers. View draw history, hot/cold numbers, and jackpot information for South African ${groupName}.`);
     }
   }, [groupName, isLoading, groupSlug, groupedData, singleResults]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const current = getSASTDateString();
+      setSastDay((prev) => {
+        if (prev !== current) {
+          // SAST day rolled; refetch to get latest draws
+          void refetchGame();
+          void refetchGrouped();
+          void refetchSingle();
+          void refetchStats();
+          return current;
+        }
+        return prev;
+      });
+    }, 60 * 1000);
+    return () => clearInterval(interval);
+  }, [refetchGame, refetchGrouped, refetchSingle, refetchStats]);
 
   if (isLoading) {
     return (

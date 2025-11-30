@@ -3,6 +3,7 @@ import * as cheerio from "cheerio";
 import type { InsertLotteryResult } from "@shared/schema";
 import { scrape as logScrape, error as logError, info as logInfo } from "./logger";
 import { storage } from "./storage";
+import { purgeCloudflareSite } from "./cloudflare";
 
 interface ScrapedResult {
   gameName: string;
@@ -379,6 +380,9 @@ export function startScraperCron(): void {
       logInfo(`[Cron] Automatic scrape started for ${gameSlug} (${trigger})`);
       const scrapedResults = await scrapeLotteryResults(1, 0);
       const { addedCount } = await processScrapedResults(scrapedResults);
+      if (addedCount > 0) {
+        void purgeCloudflareSite();
+      }
       const timestamp = new Date().toISOString();
       await storage.updateScraperLastRun(timestamp);
 

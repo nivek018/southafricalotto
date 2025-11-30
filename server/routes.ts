@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { scrapeLotteryResults, processScrapedResults } from "./scraper";
+import { purgeCloudflareSite } from "./cloudflare";
 import {
   insertLotteryResultSchema,
   insertNewsArticleSchema,
@@ -19,6 +20,38 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  const buildPurgePaths = (results: any[]): string[] => {
+    const paths = new Set<string>();
+    results.forEach((r) => {
+      if (!r) return;
+      const groupInfo = getGroupForSlug(r.gameSlug);
+      const groupSlug = groupInfo?.groupSlug || r.gameSlug;
+      paths.add(`/game/${r.gameSlug}`);
+      paths.add(`/draw-history/${r.gameSlug}`);
+      paths.add(`/draw-history/${groupSlug}`);
+      paths.add(`/${groupSlug}-result/${r.drawDate}`);
+      if (groupSlug === "powerball") {
+        paths.add("/game/powerball");
+        paths.add("/game/powerball-plus");
+        paths.add("/powerball-result/yesterday");
+      }
+      if (groupSlug === "lotto") {
+        paths.add("/game/lotto");
+        paths.add("/game/lotto-plus-1");
+        paths.add("/game/lotto-plus-2");
+        paths.add("/lotto-result/yesterday");
+      }
+      if (groupSlug === "daily-lotto") {
+        paths.add("/game/daily-lotto");
+        paths.add("/game/daily-lotto-plus");
+        paths.add("/daily-lotto-result/yesterday");
+      }
+    });
+    paths.add("/");
+    paths.add("/sitemap.xml");
+    paths.add("/lotto-result/today");
+    return Array.from(paths);
+  };
 
   app.post("/api/admin/login", async (req, res) => {
     try {
@@ -217,6 +250,8 @@ export async function registerRoutes(
       }
 
       const result = await storage.createResult(parsed.data);
+      const paths = buildPurgePaths([result]);
+      void purgeCloudflareSite(paths);
       res.status(201).json(result);
     } catch (error) {
       res.status(500).json({ error: "Failed to create result" });
@@ -229,6 +264,8 @@ export async function registerRoutes(
       if (!result) {
         return res.status(404).json({ error: "Result not found" });
       }
+      const paths = buildPurgePaths([result]);
+      void purgeCloudflareSite(paths);
       res.json(result);
     } catch (error) {
       res.status(500).json({ error: "Failed to update result" });
@@ -241,6 +278,7 @@ export async function registerRoutes(
       if (!deleted) {
         return res.status(404).json({ error: "Result not found" });
       }
+      void purgeCloudflareSite();
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to delete result" });
@@ -320,6 +358,8 @@ export async function registerRoutes(
 
       const { addedCount, addedResults, skippedResults } = await processScrapedResults(scrapedResults);
       await storage.updateScraperLastRun(new Date().toISOString());
+      const paths = buildPurgePaths(scrapedResults);
+      void purgeCloudflareSite(paths);
 
       console.log(`[Scraper] Complete: scraped ${scrapedResults.length}, added ${addedCount}`);
 
@@ -558,6 +598,7 @@ export async function registerRoutes(
 
       xml += '</urlset>';
 
+      res.set('Cache-Control', 'no-store');
       res.set('Content-Type', 'application/xml');
       res.send(xml);
     } catch (error) {

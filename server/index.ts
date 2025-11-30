@@ -6,6 +6,7 @@ import { createServer } from "http";
 import { storage } from "./storage";
 import { initializeLogger, info as logInfo } from "./logger";
 import { startScraperCron } from "./scraper";
+import { purgeCloudflareEverything } from "./cloudflare";
 
 const app = express();
 const httpServer = createServer(app);
@@ -69,6 +70,25 @@ app.use((req, res, next) => {
   await storage.initializeDefaultData();
   await registerRoutes(httpServer, app);
   startScraperCron();
+
+  // Daily purge at SAST midnight to keep cached pages and sitemap fresh
+  const getSASTDateString = () => {
+    const fmt = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Africa/Johannesburg",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    return fmt.format(new Date());
+  };
+  let currentSastDay = getSASTDateString();
+  setInterval(() => {
+    const today = getSASTDateString();
+    if (today !== currentSastDay) {
+      currentSastDay = today;
+      void purgeCloudflareSite();
+    }
+  }, 60 * 1000);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
