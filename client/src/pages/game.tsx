@@ -231,7 +231,7 @@ export default function GamePage() {
       return [{ name: groupName, amount: singleResults[0].jackpotAmount }];
     }
     return [];
-  }, [hasGroup, groupedData, singleResults, groupName]);
+  }, [hasGroup, groupedData, singleResults, groupSlug, slug]);
 
   const countdown = useCountdown(nextDrawDate);
 
