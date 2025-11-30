@@ -446,7 +446,12 @@ export default function GamePage() {
                         <p className="text-xs text-muted-foreground">Most recent recorded draw</p>
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    <div
+                      className="grid gap-3"
+                      style={{
+                        gridTemplateColumns: `repeat(${Math.min(3, Math.max(1, latestJackpots.length))}, minmax(0, 1fr))`
+                      }}
+                    >
                       {latestJackpots.map((item, idx) => (
                         <div key={idx} className="rounded-lg border bg-muted/40 px-3 py-2 text-center">
                           <p className="text-sm font-semibold text-foreground mb-1">{item.name}</p>
