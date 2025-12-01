@@ -408,9 +408,17 @@ export default function GamePage() {
       {(nextDrawDate || latestJackpots.length > 0) && (
         <section className="py-6 bg-gradient-to-r from-lottery-ball-main/5 to-lottery-ball-bonus/5 border-y border-border/50">
           <div className="max-w-7xl mx-auto px-4 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div
+              className="grid gap-6"
+              style={{
+                gridTemplateColumns:
+                  nextDrawDate && !countdown.isExpired && latestJackpots.length > 0
+                    ? "1fr 1.3fr"
+                    : "1fr"
+              }}
+            >
               {nextDrawDate && !countdown.isExpired && (
-                <Card className="bg-background/80 backdrop-blur" data-testid="card-next-draw">
+                <Card className="bg-background/80 backdrop-blur min-h-[170px]" data-testid="card-next-draw">
                   <CardContent className="py-6">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="p-2 bg-lottery-ball-main/10 rounded-full">
@@ -435,7 +443,7 @@ export default function GamePage() {
               )}
 
               {latestJackpots.length > 0 && (
-                <Card className="bg-background/80 backdrop-blur" data-testid="card-latest-jackpot">
+                <Card className="bg-background/80 backdrop-blur min-h-[170px]" data-testid="card-latest-jackpot">
                   <CardContent className="py-6">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="p-2 bg-lottery-ball-bonus/10 rounded-full">
