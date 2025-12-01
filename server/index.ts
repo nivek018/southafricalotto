@@ -11,6 +11,12 @@ import { purgeCloudflareEverything } from "./cloudflare";
 const app = express();
 const httpServer = createServer(app);
 
+const ALLOWED_ORIGINS = [
+  "https://za.pwedeh.com",
+  "http://localhost:3000",
+  "http://localhost:5000"
+];
+
 declare module "http" {
   interface IncomingMessage {
     rawBody: unknown;
@@ -26,6 +32,24 @@ app.use(
 );
 
 app.use(express.urlencoded({ extended: false }));
+
+// Basic security headers and CORS
+app.use((req, res, next) => {
+  const origin = req.get("origin");
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.header("Access-Control-Allow-Origin", origin);
+    res.header("Access-Control-Allow-Credentials", "true");
+  }
+  res.header("Access-Control-Allow-Methods", "GET,POST,PATCH,DELETE,OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
+  res.header("X-Frame-Options", "DENY");
+  res.header("X-Content-Type-Options", "nosniff");
+  res.header("Referrer-Policy", "strict-origin-when-cross-origin");
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {

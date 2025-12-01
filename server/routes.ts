@@ -1,5 +1,6 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
+import crypto from "crypto";
 import path from "path";
 import fs from "fs";
 import { storage } from "./storage";
@@ -17,6 +18,82 @@ import {
 import { z } from "zod";
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
+const ADMIN_TOKEN = crypto.createHash("sha256").update(ADMIN_PASSWORD).digest("hex");
+const ADMIN_COOKIE_NAME = "admin_session";
+const ALLOWED_ORIGINS = [
+  "https://za.pwedeh.com",
+  "http://localhost:3000",
+  "http://localhost:5000"
+];
+
+const parseCookies = (req: Request): Record<string, string> => {
+  const header = req.headers.cookie;
+  if (!header) return {};
+  return header.split(";").reduce((acc, part) => {
+    const [k, v] = part.split("=").map((s) => s.trim());
+    if (k && v) acc[k] = decodeURIComponent(v);
+    return acc;
+  }, {} as Record<string, string>);
+};
+
+const setAdminCookie = (res: Response) => {
+  const tenYears = 60 * 60 * 24 * 365 * 10;
+  const cookie = [
+    `${ADMIN_COOKIE_NAME}=${ADMIN_TOKEN}`,
+    "Path=/",
+    `Max-Age=${tenYears}`,
+    "HttpOnly",
+    "SameSite=Lax",
+    process.env.NODE_ENV === "production" ? "Secure" : "",
+  ]
+    .filter(Boolean)
+    .join("; ");
+  res.setHeader("Set-Cookie", cookie);
+};
+
+const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
+  const cookies = parseCookies(req);
+  if (cookies[ADMIN_COOKIE_NAME] === ADMIN_TOKEN) {
+    return next();
+  }
+  return res.status(401).json({ error: "Unauthorized" });
+};
+
+const createRateLimiter = (max: number, windowMs: number) => {
+  const hits = new Map<string, { count: number; reset: number }>();
+  return (req: Request, res: Response, next: NextFunction) => {
+    const ip = req.ip || "unknown";
+    const now = Date.now();
+    const entry = hits.get(ip) || { count: 0, reset: now + windowMs };
+    if (now > entry.reset) {
+      entry.count = 0;
+      entry.reset = now + windowMs;
+    }
+    entry.count += 1;
+    hits.set(ip, entry);
+    if (entry.count > max) {
+      return res.status(429).json({ error: "Too many requests. Please slow down." });
+    }
+    next();
+  };
+};
+
+const loginLimiter = createRateLimiter(8, 60_000);
+const mutationLimiter = createRateLimiter(50, 60_000);
+
+const csrfGuard = (req: Request, res: Response, next: NextFunction) => {
+  const method = req.method.toUpperCase();
+  if (method === "GET" || method === "HEAD" || method === "OPTIONS") return next();
+  const origin = req.get("origin") || "";
+  const referer = req.get("referer") || "";
+  // Allow same-origin requests (browser navigations/forms) if origin+referer match our allowlist
+  if (origin && ALLOWED_ORIGINS.includes(origin) && referer.startsWith(origin)) {
+    return next();
+  }
+  const token = req.get("x-csrf-token");
+  if (token === ADMIN_TOKEN) return next();
+  return res.status(403).json({ error: "CSRF validation failed" });
+};
 
 export async function registerRoutes(
   httpServer: Server,
@@ -65,7 +142,7 @@ export async function registerRoutes(
     return Array.from(paths);
   };
 
-  app.post("/api/admin/login", async (req, res) => {
+  app.post("/api/admin/login", loginLimiter, async (req, res) => {
     try {
       const parsed = adminLoginSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -73,6 +150,7 @@ export async function registerRoutes(
       }
 
       if (parsed.data.password === ADMIN_PASSWORD) {
+        setAdminCookie(res);
         return res.json({ success: true, message: "Login successful" });
       }
 
@@ -284,7 +362,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/results", async (req, res) => {
+  app.post("/api/results", mutationLimiter, requireAdmin, csrfGuard, async (req, res) => {
     try {
       const parsed = insertLotteryResultSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -312,9 +390,13 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/results/:id", async (req, res) => {
+  app.patch("/api/results/:id", mutationLimiter, requireAdmin, csrfGuard, async (req, res) => {
     try {
-      const result = await storage.updateResult(req.params.id, req.body);
+      const parsed = insertLotteryResultSchema.partial().safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid result data", details: parsed.error });
+      }
+      const result = await storage.updateResult(req.params.id, parsed.data);
       if (!result) {
         return res.status(404).json({ error: "Result not found" });
       }
@@ -326,7 +408,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/results/:id", async (req, res) => {
+  app.delete("/api/results/:id", mutationLimiter, requireAdmin, csrfGuard, async (req, res) => {
     try {
       const deleted = await storage.deleteResult(req.params.id);
       if (!deleted) {
@@ -361,7 +443,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/news", async (req, res) => {
+  app.post("/api/news", mutationLimiter, requireAdmin, csrfGuard, async (req, res) => {
     try {
       const parsed = insertNewsArticleSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -375,8 +457,12 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/news/:id", async (req, res) => {
+  app.patch("/api/news/:id", mutationLimiter, requireAdmin, csrfGuard, async (req, res) => {
     try {
+      const parsed = insertNewsArticleSchema.partial().safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid article data", details: parsed.error });
+      }
       const existingById = await storage.getNewsById(req.params.id);
       const existingBySlug = await storage.getNewsBySlug(req.params.id);
       const existing = existingById || existingBySlug;
@@ -385,14 +471,14 @@ export async function registerRoutes(
         return res.status(404).json({ error: "Article not found" });
       }
 
-      const article = await storage.updateNews(existing.id, req.body);
+      const article = await storage.updateNews(existing.id, parsed.data);
       res.json(article);
     } catch (error) {
       res.status(500).json({ error: "Failed to update article" });
     }
   });
 
-  app.delete("/api/news/:id", async (req, res) => {
+  app.delete("/api/news/:id", mutationLimiter, requireAdmin, csrfGuard, async (req, res) => {
     try {
       const deleted = await storage.deleteNews(req.params.id);
       if (!deleted) {
@@ -404,7 +490,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/scrape", async (req, res) => {
+  app.post("/api/scrape", mutationLimiter, requireAdmin, csrfGuard, async (req, res) => {
     try {
       console.log("[Scraper] Starting scrape operation...");
       const scrapedResults = await scrapeLotteryResults();
@@ -555,12 +641,15 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/scraper-settings", async (req, res) => {
+  app.post("/api/scraper-settings", mutationLimiter, requireAdmin, csrfGuard, async (req, res) => {
     try {
       const { gameSlug, isEnabled, scheduleTime } = req.body;
 
       if (!gameSlug || typeof gameSlug !== 'string') {
         return res.status(400).json({ error: "gameSlug is required" });
+      }
+      if (scheduleTime && typeof scheduleTime !== "string") {
+        return res.status(400).json({ error: "scheduleTime must be a string or null" });
       }
 
       const setting = await storage.upsertScraperSetting({
