@@ -183,7 +183,7 @@ export default function LottoResultTodayPage() {
             </h1>
           </div>
           <p className="text-muted-foreground text-lg" data-testid="text-today-date">
-            AllAll South Africa Lotto Result Today — {formatDate(todayDate)}
+            All South Africa Lotto Result Today - {formatDate(todayDate)}
           </p>
         </div>
 
@@ -288,13 +288,13 @@ export default function LottoResultTodayPage() {
                     <CardContent className="pt-4">
                       {result ? (
                         <div className="space-y-3">
-                      <div className="flex flex-wrap items-center justify-center gap-3">
+                      <div className="flex flex-wrap items-center justify-center gap-3 lg:gap-4">
                         {sortNumbers(result.winningNumbers).map((num, idx) => (
                           <LotteryBall key={idx} number={num} size="md" />
                         ))}
                         {result.bonusNumber && (
                           <>
-                            <span className="text-lg font-bold text-muted-foreground mx-1">+</span>
+                            <span className="text-lg font-bold text-muted-foreground mx-1.5">+</span>
                             <LotteryBall number={result.bonusNumber} isBonus size="md" />
                           </>
                         )}
