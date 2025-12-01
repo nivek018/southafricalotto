@@ -285,10 +285,10 @@ export default function LottoResultTodayPage() {
                         <span>Draw at {game.drawTime} SAST</span>
                       </div>
                     </CardHeader>
-                    <CardContent className="pt-7 pb-6 space-y-5 text-center">
+                    <CardContent className="pt-8 pb-7 space-y-5 text-center flex flex-col items-center">
                       {result ? (
-                        <div className="space-y-5">
-                          <div className="flex flex-wrap items-center justify-center gap-3 lg:gap-4 mt-1.5">
+                        <div className="space-y-5 w-full flex flex-col items-center">
+                          <div className="flex flex-wrap items-center justify-center gap-3 lg:gap-4 mt-2">
                             {sortNumbers(result.winningNumbers).map((num, idx) => (
                               <LotteryBall key={idx} number={num} size="md" />
                             ))}
@@ -307,8 +307,8 @@ export default function LottoResultTodayPage() {
                           )}
                         </div>
                       ) : (
-                        <div className="text-center pt-1 pb-2 space-y-3">
-                          <div className="flex flex-wrap items-center justify-center gap-3 lg:gap-4 mb-2 mt-1.5">
+                        <div className="text-center pt-1 pb-2 space-y-4 w-full flex flex-col items-center">
+                          <div className="flex flex-wrap items-center justify-center gap-3 lg:gap-4 mt-2 mb-1">
                             {Array.from({ length: game.numberCount || 6 }).map((_, idx) => (
                               <div
                                 key={idx}
@@ -334,7 +334,7 @@ export default function LottoResultTodayPage() {
                           </p>
                         </div>
                       )}
-                      <div className="mt-6 text-center">
+                      <div className="mt-8 text-center">
                         <Link href={`/game/${game.slug}`}>
                           <Button variant="ghost" size="sm" data-testid={`link-game-${game.slug}`}>
                             View Game Details
