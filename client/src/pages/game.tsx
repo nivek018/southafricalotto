@@ -452,7 +452,7 @@ export default function GamePage() {
                 >
                   {(latestJackpots.length > 0 ? latestJackpots : [{ name: "Loading…", amount: "—" }, { name: "Loading…", amount: "—" }, { name: "Loading…", amount: "—" }]).slice(0, 3).map((item, idx) => (
                     <div key={idx} className="rounded-lg border bg-muted/40 px-3 py-2 text-center">
-                      <p className="text-sm font-semibold text-foreground mb-1">{item.name}</p>
+                      <p className="text-xs font-semibold text-foreground mb-1">{item.name}</p>
                       <p className="text-lg font-bold text-lottery-ball-bonus">{item.amount}</p>
                     </div>
                   ))}
