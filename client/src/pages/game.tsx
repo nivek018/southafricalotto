@@ -881,7 +881,7 @@ export default function GamePage() {
                         </p>
                       </div>
                     </CardHeader>
-                    <CardContent className="space-y-2">
+                    <CardContent className="space-y-2 overflow-visible">
                       {frequencyData.length === 0 ? (
                         <p className="text-sm text-muted-foreground text-center py-6">
                           Not enough data to calculate frequency for this range.
@@ -905,9 +905,9 @@ export default function GamePage() {
                                           style={{ width: `${width}%` }}
                                         />
                                       </div>
-                                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 group-hover:scale-100 transform scale-95 transition-all duration-200 pointer-events-none flex items-center overflow-visible">
+                                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none flex items-center overflow-visible">
                                         <div
-                                          className="h-14 w-14 rounded-full bg-lottery-ball-main text-white text-sm font-bold flex flex-col items-center justify-center shadow-lg ring-2 ring-white/20 z-50"
+                                          className="h-16 w-16 rounded-full bg-lottery-ball-main text-white text-sm font-bold flex flex-col items-center justify-center shadow-lg ring-2 ring-white/20 z-50"
                                           style={{
                                             left: `${width}%`,
                                             transform: "translate(-50%, -50%)",
@@ -915,8 +915,8 @@ export default function GamePage() {
                                             top: "50%",
                                           }}
                                         >
-                                          <span className="leading-none text-base">{item.number}</span>
-                                          <span className="text-[11px] leading-none">
+                                          <span className="leading-none text-lg">{item.number}</span>
+                                          <span className="text-[12px] leading-none">
                                             {item.count} times
                                           </span>
                                         </div>
