@@ -894,7 +894,7 @@ export default function GamePage() {
                               {frequencyData.map((item) => {
                                 const width = (item.count / maxCount) * 100;
                                 return (
-                                  <div key={item.number} className="flex items-center gap-3">
+                                  <div key={item.number} className="flex items-center gap-3 overflow-visible">
                                     <div className="w-10 text-right text-xs font-semibold text-muted-foreground">
                                       {item.number}
                                     </div>
@@ -905,9 +905,9 @@ export default function GamePage() {
                                           style={{ width: `${width}%` }}
                                         />
                                       </div>
-                                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none flex items-center">
+                                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 group-hover:scale-100 transform scale-95 transition-all duration-200 pointer-events-none flex items-center overflow-visible">
                                         <div
-                                          className="h-14 w-14 rounded-full bg-lottery-ball-main text-white text-sm font-bold flex flex-col items-center justify-center shadow-lg ring-2 ring-white/20 z-10"
+                                          className="h-14 w-14 rounded-full bg-lottery-ball-main text-white text-sm font-bold flex flex-col items-center justify-center shadow-lg ring-2 ring-white/20 z-50"
                                           style={{
                                             left: `${width}%`,
                                             transform: "translate(-50%, -50%)",
@@ -917,7 +917,7 @@ export default function GamePage() {
                                         >
                                           <span className="leading-none text-base">{item.number}</span>
                                           <span className="text-[11px] leading-none">
-                                            {item.count} {item.count === 1 ? "time" : "times"}
+                                            {item.count} times
                                           </span>
                                         </div>
                                       </div>
