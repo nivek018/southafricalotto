@@ -81,6 +81,16 @@ function getTodayWeekdaySAST(): string {
   return fmt.format(new Date());
 }
 
+const SCHEDULE_MAP: Record<string, string[]> = {
+  "powerball": ["tuesday", "friday"],
+  "powerball-plus": ["tuesday", "friday"],
+  "lotto": ["wednesday", "saturday"],
+  "lotto-plus-1": ["wednesday", "saturday"],
+  "lotto-plus-2": ["wednesday", "saturday"],
+  "daily-lotto": ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"],
+  "daily-lotto-plus": ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"],
+};
+
 interface TodayResultsResponse {
   date: string;
   games: {
@@ -221,15 +231,15 @@ export default function LottoResultTodayPage() {
 
             const todayKey = normalizeDay(todayWeekday);
 
-            let gamesForToday = data.games.filter(({ game }) => {
+            const gamesForToday = data.games.filter(({ game }) => {
+              const schedule = SCHEDULE_MAP[game.slug] || [];
+              const normalizedSchedule = schedule.map(normalizeDay);
+
+              if (normalizedSchedule.includes(todayKey)) return true;
+
               const days = parseDrawDays(game).map((d) => normalizeDay(d));
               return days.includes(todayKey);
             });
-
-            // Fallback: if no matches (e.g., unexpected drawDays formatting), show all games
-            if (gamesForToday.length === 0) {
-              gamesForToday = data.games;
-            }
 
             if (gamesForToday.length === 0) {
               return (
