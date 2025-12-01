@@ -131,7 +131,7 @@ export default function LottoResultTodayPage() {
   const todayGames = useMemo(() => {
     if (!data) return [];
     return data.games.map(({ game, result }) => {
-      const isTodayResult = result?.drawDate === todayDate;
+      const isTodayResult = result?.drawDate?.startsWith(todayDate);
       return {
         game,
         result: isTodayResult ? result : null
