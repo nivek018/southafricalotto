@@ -119,7 +119,7 @@ export function RecentResultsSection() {
                             <Link
                               key={gl.href}
                               href={gl.href}
-                              className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15 transition-colors"
                             >
                               {gl.name}
                               <ArrowRight className="w-4 h-4" />
@@ -128,7 +128,7 @@ export function RecentResultsSection() {
                           {primaryHref && gameLinks.length === 0 && (
                             <Link
                               href={primaryHref}
-                              className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15 transition-colors"
                             >
                               View full results
                               <ArrowRight className="w-4 h-4" />
