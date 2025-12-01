@@ -103,7 +103,7 @@ export default function LottoResultYesterdayPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 lg:px-8 py-8">
+      <div className="max-w-6xl lg:max-w-7xl xl:max-w-7xl 2xl:max-w-[1400px] mx-auto px-4 lg:px-8 py-8">
         <Link href="/">
           <Button variant="ghost" size="sm" className="mb-6" data-testid="button-back-home">
             <ChevronLeft className="h-4 w-4 mr-2" />
