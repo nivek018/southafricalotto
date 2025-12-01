@@ -94,7 +94,7 @@ export default function PrivacyPolicyPage() {
 
           <p>
             <strong>Email:</strong> kevs022@gmail.com<br />
-            <strong>Address:</strong> Johannesburg, South Africa
+            <strong>Address:</strong> We do not collect physical address information.
           </p>
 
           <h2>Changes to This Privacy Policy</h2>

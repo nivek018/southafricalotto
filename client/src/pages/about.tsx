@@ -25,12 +25,11 @@ export default function AboutPage() {
           <h1>About SA Lotto Results</h1>
           
           <p className="lead">
-            SA Lotto Results is your trusted source for South African lottery results and news. We provide real-time updates on Powerball, Lotto, Daily Lotto, and all major lottery games.
-            We are part of the pwedeh.com family of sites{" "}
+            SA Lotto Results is your trusted source for South African lottery results and news. We provide real-time updates on Powerball, Lotto, Daily Lotto, and all major lottery games. We are part of the{" "}
             <a href="https://pwedeh.com" target="_blank" rel="noopener noreferrer" className="text-lottery-ball-main hover:underline">
-              (pwedeh.com)
+              pwedeh.com
             </a>{" "}
-            focused on reliable, fast results without gimmicks.
+            family of sites focused on reliable, fast results without gimmicks.
           </p>
 
           <h2>Our Mission</h2>
@@ -49,9 +48,9 @@ export default function AboutPage() {
             </div>
             <div className="bg-card p-6 rounded-lg">
               <Target className="h-8 w-8 text-lottery-ball-bonus mb-4" />
-              <h3>Complete History</h3>
+              <h3>Trusted Sources</h3>
               <p className="text-sm text-muted-foreground">
-                Access draw history and statistics for all games
+                We verify numbers against official draw data before publishing
               </p>
             </div>
             <div className="bg-card p-6 rounded-lg">

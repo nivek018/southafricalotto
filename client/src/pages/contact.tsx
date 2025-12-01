@@ -38,8 +38,9 @@ export default function ContactPage() {
             </div>
           </div>
           <p className="text-muted-foreground leading-relaxed">
-            For any questions about SA lottery results, website feedback, or partnership inquiries,
-            please reach out via email. We typically respond within one business day.
+            For questions about SA lottery results, website feedback, corrections, or partnership inquiries,
+            please reach out via email. We typically respond within one business day on weekdays and aim to keep
+            replies concise and actionable.
           </p>
         </div>
       </div>
