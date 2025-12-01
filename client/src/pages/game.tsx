@@ -534,7 +534,7 @@ export default function GamePage() {
                     if (!latestResult) {
                       return (
                         <div key={variantSlug} className="mb-8">
-                          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2" data-testid={`heading-variant-${variantSlug}`}>
+                          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 flex-wrap" data-testid={`heading-variant-${variantSlug}`}>
                             <CircleDot className="h-6 w-6 text-lottery-ball-main" />
                             {variantName}
                           </h2>
@@ -549,7 +549,7 @@ export default function GamePage() {
 
                     return (
                       <div key={variantSlug} className="mb-8">
-                        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2" data-testid={`heading-variant-${variantSlug}`}>
+                        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 flex-wrap" data-testid={`heading-variant-${variantSlug}`}>
                           <CircleDot className="h-6 w-6 text-lottery-ball-main" />
                           {variantName}
                         </h2>
@@ -811,51 +811,49 @@ export default function GamePage() {
                   <Card>
                     <CardHeader className="pb-4">
                       <div className="flex flex-col gap-3">
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                          <CardTitle className="text-lg flex items-center gap-2">
-                            <BarChart2 className="w-4 h-4 text-primary" />
-                            Frequency Analysis of All Drawn Numbers
-                          </CardTitle>
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                            <div className="flex flex-wrap items-center gap-2">
-                              {groupedData.group.variants.map((v) => (
-                                <Button
-                                  key={v}
-                                  variant={freqVariant === v ? "default" : "outline"}
-                                  size="sm"
-                                  onClick={() => setFreqVariant(v)}
-                                  data-testid={`freq-variant-${v}`}
-                                >
-                                  {getVariantDisplayName(v)}
-                                </Button>
-                              ))}
-                            </div>
-                            <div className="flex flex-wrap items-center gap-1">
+                        <div className="flex items-center gap-2">
+                          <BarChart2 className="w-4 h-4 text-primary" />
+                          <CardTitle className="text-lg">Frequency Analysis of All Drawn Numbers</CardTitle>
+                        </div>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {groupedData.group.variants.map((v) => (
                               <Button
-                                variant={freqRange === "3m" ? "default" : "outline"}
+                                key={v}
+                                variant={freqVariant === v ? "default" : "outline"}
                                 size="sm"
-                                onClick={() => setFreqRange("3m")}
-                                data-testid="freq-range-3m"
+                                onClick={() => setFreqVariant(v)}
+                                data-testid={`freq-variant-${v}`}
                               >
-                                3 Months
+                                {getVariantDisplayName(v)}
                               </Button>
-                              <Button
-                                variant={freqRange === "6m" ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => setFreqRange("6m")}
-                                data-testid="freq-range-6m"
-                              >
-                                6 Months
-                              </Button>
-                              <Button
-                                variant={freqRange === "1y" ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => setFreqRange("1y")}
-                                data-testid="freq-range-1y"
-                              >
-                                1 Year
-                              </Button>
-                            </div>
+                            ))}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-1">
+                            <Button
+                              variant={freqRange === "3m" ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setFreqRange("3m")}
+                              data-testid="freq-range-3m"
+                            >
+                              3 Months
+                            </Button>
+                            <Button
+                              variant={freqRange === "6m" ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setFreqRange("6m")}
+                              data-testid="freq-range-6m"
+                            >
+                              6 Months
+                            </Button>
+                            <Button
+                              variant={freqRange === "1y" ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setFreqRange("1y")}
+                              data-testid="freq-range-1y"
+                            >
+                              1 Year
+                            </Button>
                           </div>
                         </div>
                         <p className="text-xs text-muted-foreground">

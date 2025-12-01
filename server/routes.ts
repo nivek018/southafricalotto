@@ -589,6 +589,7 @@ export async function registerRoutes(
         { url: "/powerball-result/yesterday", priority: "0.9", changefreq: "daily" },
         { url: "/daily-lotto-result/yesterday", priority: "0.9", changefreq: "daily" },
         { url: "/sa-lotto-result/yesterday", priority: "0.9", changefreq: "daily" },
+        { url: "/game/jackpot", priority: "0.8", changefreq: "daily" },
         { url: "/news", priority: "0.8", changefreq: "daily" },
         { url: "/about", priority: "0.5", changefreq: "monthly" },
         { url: "/contact", priority: "0.5", changefreq: "monthly" },
