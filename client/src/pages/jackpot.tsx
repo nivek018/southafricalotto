@@ -71,7 +71,7 @@ export default function JackpotPage() {
             <CircleDot className="h-8 w-8 text-lottery-ball-main" />
             <CircleDot className="h-6 w-6 text-lottery-ball-bonus -ml-2" />
           </div>
-          <h1 className="text-3xl lg:text-4xl font-bold">South Africa Lotto Jackpots</h1>
+          <h1 className="text-3xl lg:text-5xl font-bold mb-2">Lotto Jackpot Prize</h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Latest jackpot totals and recent prize history for Powerball, Lotto, and Daily Lotto.
           </p>
