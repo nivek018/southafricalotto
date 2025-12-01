@@ -205,10 +205,31 @@ export default function LottoResultTodayPage() {
               return [];
             };
 
-            const gamesForToday = data.games.filter(({ game }) => {
-              const days = parseDrawDays(game).map((d) => d.toLowerCase());
-              return days.includes(todayWeekday.toLowerCase());
+            const normalizeDay = (day: string) => {
+              const key = day.trim().toLowerCase();
+              const map: Record<string, string> = {
+                sun: "sunday", sunday: "sunday",
+                mon: "monday", monday: "monday",
+                tue: "tuesday", tues: "tuesday", tuesday: "tuesday",
+                wed: "wednesday", weds: "wednesday", wednesday: "wednesday",
+                thu: "thursday", thur: "thursday", thurs: "thursday", thursday: "thursday",
+                fri: "friday", friday: "friday",
+                sat: "saturday", saturday: "saturday",
+              };
+              return map[key] || key;
+            };
+
+            const todayKey = normalizeDay(todayWeekday);
+
+            let gamesForToday = data.games.filter(({ game }) => {
+              const days = parseDrawDays(game).map((d) => normalizeDay(d));
+              return days.includes(todayKey);
             });
+
+            // Fallback: if no matches (e.g., unexpected drawDays formatting), show all games
+            if (gamesForToday.length === 0) {
+              gamesForToday = data.games;
+            }
 
             if (gamesForToday.length === 0) {
               return (
