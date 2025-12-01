@@ -61,7 +61,7 @@ export function LotteryResultCard({ result }: LotteryResultCardProps) {
           )}
         </div>
 
-        <div className="space-y-5">
+        <div className="flex flex-col items-center gap-3 mt-2">
           {result.jackpotAmount && (
             <div className="inline-flex items-center gap-2 rounded-md bg-muted/50 px-4 py-2 text-sm font-semibold mt-1">
               <Trophy className="w-4 h-4 text-lottery-ball-bonus" />
@@ -73,7 +73,7 @@ export function LotteryResultCard({ result }: LotteryResultCardProps) {
           <Link href={`/game/${result.gameSlug}`}>
             <Button
               variant="ghost"
-              className="w-full group px-3 py-2"
+              className="group px-4 py-2"
               data-testid={`button-view-${result.gameSlug}`}
             >
               <span className="inline-flex items-center gap-2">
