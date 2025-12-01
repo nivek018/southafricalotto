@@ -376,18 +376,6 @@ export default function GamePage() {
     }
   }, [hasGroup, groupedData]);
 
-  if (isLoading) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 lg:px-8 py-12">
-        <GameDetailSkeleton />
-      </div>
-    );
-  }
-
-  const hasResults = hasGroup
-    ? groupedData && Object.keys(groupedData.latestResults).length > 0
-    : singleResults && singleResults.length > 0;
-
   const frequencyData = useMemo(() => {
     if (!showFrequencySection || !groupedData || !freqVariant) return [];
     const variants = groupedData.group.variants;
@@ -429,6 +417,18 @@ export default function GamePage() {
     }
     return allNumbers;
   }, [showFrequencySection, groupedData, freqVariant, freqRange, gameData]);
+
+  if (isLoading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 lg:px-8 py-12">
+        <GameDetailSkeleton />
+      </div>
+    );
+  }
+
+  const hasResults = hasGroup
+    ? groupedData && Object.keys(groupedData.latestResults).length > 0
+    : singleResults && singleResults.length > 0;
 
   return (
     <div className="min-h-screen">
