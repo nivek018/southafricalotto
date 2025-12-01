@@ -285,20 +285,20 @@ export default function LottoResultTodayPage() {
                         <span>Draw at {game.drawTime} SAST</span>
                       </div>
                     </CardHeader>
-                    <CardContent className="pt-4">
+                    <CardContent className="pt-5 space-y-4 text-center">
                       {result ? (
-                        <div className="space-y-3">
-                      <div className="flex flex-wrap items-center justify-center gap-3 lg:gap-4">
-                        {sortNumbers(result.winningNumbers).map((num, idx) => (
-                          <LotteryBall key={idx} number={num} size="md" />
-                        ))}
-                        {result.bonusNumber && (
-                          <>
-                            <span className="text-lg font-bold text-muted-foreground mx-1.5">+</span>
-                            <LotteryBall number={result.bonusNumber} isBonus size="md" />
-                          </>
-                        )}
-                      </div>
+                        <div className="space-y-4">
+                          <div className="flex flex-wrap items-center justify-center gap-3 lg:gap-4 mt-1 mb-1">
+                            {sortNumbers(result.winningNumbers).map((num, idx) => (
+                              <LotteryBall key={idx} number={num} size="md" />
+                            ))}
+                            {result.bonusNumber && (
+                              <>
+                                <span className="text-lg font-bold text-muted-foreground mx-1.5">+</span>
+                                <LotteryBall number={result.bonusNumber} isBonus size="md" />
+                              </>
+                            )}
+                          </div>
                           {result.jackpotAmount && (
                             <div className="text-center">
                               <p className="text-xs text-muted-foreground">Jackpot</p>
@@ -307,29 +307,29 @@ export default function LottoResultTodayPage() {
                           )}
                         </div>
                       ) : (
-                    <div className="text-center py-4">
-                      <div className="flex flex-wrap items-center justify-center gap-3 mb-3">
-                        {Array.from({ length: game.numberCount || 6 }).map((_, idx) => (
-                          <div
-                            key={idx}
-                            className="w-12 h-12 rounded-full bg-muted flex items-center justify-center"
-                          >
-                            <span className="text-base font-semibold text-muted-foreground">?</span>
-                          </div>
-                        ))}
-                        {game.hasBonusBall && (
-                          <>
-                            <span className="text-lg font-bold text-muted-foreground mx-1">+</span>
-                            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                              <span className="text-base font-semibold text-muted-foreground">?</span>
-                            </div>
-                          </>
-                        )}
+                        <div className="text-center py-4 space-y-3">
+                          <div className="flex flex-wrap items-center justify-center gap-3 lg:gap-4 mb-2">
+                            {Array.from({ length: game.numberCount || 6 }).map((_, idx) => (
+                              <div
+                                key={idx}
+                                className="w-12 h-12 rounded-full bg-muted flex items-center justify-center"
+                              >
+                                <span className="text-base font-semibold text-muted-foreground">?</span>
+                              </div>
+                            ))}
+                            {game.hasBonusBall && (
+                              <>
+                                <span className="text-lg font-bold text-muted-foreground mx-1.5">+</span>
+                                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                                  <span className="text-base font-semibold text-muted-foreground">?</span>
+                                </div>
+                              </>
+                            )}
                           </div>
                           <Badge variant="outline" className="text-amber-600 border-amber-600">
                             TBA
                           </Badge>
-                          <p className="text-xs text-muted-foreground mt-2">
+                          <p className="text-xs text-muted-foreground">
                             Results will be available after the draw
                           </p>
                         </div>

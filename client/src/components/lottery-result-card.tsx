@@ -48,8 +48,8 @@ export function LotteryResultCard({ result }: LotteryResultCardProps) {
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-6 text-center">
-        <div className="flex flex-wrap items-center justify-center gap-3 lg:gap-4 mt-2">
+      <CardContent className="space-y-5 text-center pt-4">
+        <div className="flex flex-wrap items-center justify-center gap-3 lg:gap-4 mt-3 mb-1">
           {sortedNumbers.map((num, idx) => (
             <LotteryBall key={idx} number={num} size="md" />
           ))}
@@ -61,9 +61,9 @@ export function LotteryResultCard({ result }: LotteryResultCardProps) {
           )}
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           {result.jackpotAmount && (
-            <div className="inline-flex items-center gap-2 rounded-md bg-muted/50 px-4 py-2 text-sm font-semibold">
+            <div className="inline-flex items-center gap-2 rounded-md bg-muted/50 px-4 py-2 text-sm font-semibold mt-1">
               <Trophy className="w-4 h-4 text-lottery-ball-bonus" />
               <span className="text-muted-foreground">Jackpot:</span>
               <span className="text-foreground">{result.jackpotAmount}</span>
