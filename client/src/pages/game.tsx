@@ -30,6 +30,7 @@ import { getGroupForSlug } from "@shared/schema";
 import { useEffect, useMemo, useState } from "react";
 import { useCountdown, getNextDrawDate } from "@/hooks/use-countdown";
 import { PrizeHistoryChart } from "@/components/prize-history-chart";
+import { AdSlot } from "@/components/ad-slot";
 
 interface GroupedResultsResponse {
   group: {
@@ -727,6 +728,11 @@ export default function GamePage() {
                     View Complete Draw History
                   </Button>
                 </Link>
+              </div>
+
+              <div className="max-w-3xl mx-auto w-full mt-6 space-y-4">
+                <AdSlot slot="5683668562" className="hidden md:block" />
+                <AdSlot slot="3057505225" className="block md:hidden" />
               </div>
 
               {showHotColdSection && statistics && (statistics.hotNumbers.length > 0 || statistics.coldNumbers.length > 0) && (

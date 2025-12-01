@@ -37,7 +37,7 @@ export default function HomePage() {
             South Africa Lotto Results
           </h1>
           <p className="text-muted-foreground text-lg lg:text-xl max-w-2xl mx-auto">
-            View the latest PowerBall, Lotto, and Daily Lotto results, updated right after each draw.
+            View the latest PowerBall, Powerball Plus, Lotto, Lotto Plus, Daily Lotto, and Daily Lotto Plus results, updated after each draw.
           </p>
         </div>
       </section>

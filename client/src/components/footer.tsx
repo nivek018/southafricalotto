@@ -73,13 +73,20 @@ export function Footer() {
           </div>
         </div>
         
-        <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
+        <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground space-y-2">
           <p>
-            SA Lotto Results is not affiliated with the National Lottery. 
-            Always verify results with official sources.
+            SA Lotto Results is not affiliated with the National Lottery. Always verify results with official sources:
+            <a
+              href="https://www.nationallottery.co.za/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline ml-1"
+            >
+              nationallottery.co.za
+            </a>
           </p>
-          <p className="mt-2">
-            National Lottery: 14A Charles Crescent, Eastgate Ext. 4, Sandton, 2148
+          <p>
+            All trademarks referenced are property of their respective owners and used for informational purposes only.
           </p>
         </div>
       </div>

@@ -5,10 +5,10 @@ import { useEffect } from "react";
 
 export default function PrivacyPolicyPage() {
   useEffect(() => {
-    document.title = "Privacy Policy - African Lottery Results | Data Protection";
+    document.title = "Privacy Policy - SA Lotto Results | Data Protection";
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
-      metaDesc.setAttribute("content", "Read African Lottery's privacy policy. Learn how we collect, use, and protect your personal information when you use our South African lottery results website.");
+      metaDesc.setAttribute("content", "Read SA Lotto Results' privacy policy. Learn how we collect, use, and protect your personal information when you use our South African lottery results website.");
     }
   }, []);
   return (
@@ -30,7 +30,7 @@ export default function PrivacyPolicyPage() {
 
           <h2>Introduction</h2>
           <p>
-            African Lottery ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website.
+            SA Lotto Results ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website.
           </p>
 
           <h2>Information We Collect</h2>
@@ -78,7 +78,7 @@ export default function PrivacyPolicyPage() {
               <strong>Third-Party Service Providers:</strong> We may share your information with third parties that perform services for us.
             </li>
             <li>
-              <strong>Business Transfer:</strong> If African Lottery is involved in a merger or acquisition, your information may be transferred as part of that transaction.
+              <strong>Business Transfer:</strong> If SA Lotto Results is involved in a merger or acquisition, your information may be transferred as part of that transaction.
             </li>
           </ul>
 
@@ -93,7 +93,7 @@ export default function PrivacyPolicyPage() {
           </p>
 
           <p>
-            <strong>Email:</strong> privacy@africanlottery.co.za<br />
+            <strong>Email:</strong> kevs022@gmail.com<br />
             <strong>Address:</strong> Johannesburg, South Africa
           </p>
 

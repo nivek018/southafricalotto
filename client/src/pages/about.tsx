@@ -5,10 +5,10 @@ import { useEffect } from "react";
 
 export default function AboutPage() {
   useEffect(() => {
-    document.title = "About Us - African Lottery Results | South African National Lottery";
+    document.title = "About Us - SA Lotto Results | South African National Lottery";
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
-      metaDesc.setAttribute("content", "Learn about African Lottery - your trusted source for South African lottery results including Powerball, Lotto, and Daily Lotto. Real-time results and complete draw history.");
+      metaDesc.setAttribute("content", "Learn about SA Lotto Results - your trusted source for South African lottery results including Powerball, Lotto, and Daily Lotto. Real-time results and complete draw history.");
     }
   }, []);
   return (
@@ -22,10 +22,15 @@ export default function AboutPage() {
         </Link>
 
         <article className="prose dark:prose-invert max-w-none">
-          <h1>About African Lottery</h1>
+          <h1>About SA Lotto Results</h1>
           
           <p className="lead">
-            African Lottery is your trusted source for South African lottery results and news. We provide real-time updates on Powerball, Lotto, Daily Lotto, and all major lottery games.
+            SA Lotto Results is your trusted source for South African lottery results and news. We provide real-time updates on Powerball, Lotto, Daily Lotto, and all major lottery games.
+            We are part of the pwedeh.com family of sites{" "}
+            <a href="https://pwedeh.com" target="_blank" rel="noopener noreferrer" className="text-lottery-ball-main hover:underline">
+              (pwedeh.com)
+            </a>{" "}
+            focused on reliable, fast results without gimmicks.
           </p>
 
           <h2>Our Mission</h2>
@@ -58,24 +63,10 @@ export default function AboutPage() {
             </div>
           </div>
 
-          <h2>Supported Games</h2>
-          <ul>
-            <li>Powerball</li>
-            <li>Powerball Plus</li>
-            <li>Lotto</li>
-            <li>Lotto Plus 1</li>
-            <li>Lotto Plus 2</li>
-            <li>Daily Lotto</li>
-            <li>Daily Lotto Plus</li>
-          </ul>
-
-          <h2>How to Use</h2>
-          <ol>
-            <li>Browse the latest results on the homepage</li>
-            <li>Click on any game to view its complete draw history</li>
-            <li>Check yesterday's results for a date-specific view</li>
-            <li>Read the latest lottery news in our news section</li>
-          </ol>
+          <h2>How We Work</h2>
+          <p>
+            We collect official draw data, verify it, and publish results in a clean, ad-light layout. Our focus is speed and accuracy so you can quickly confirm numbers after each draw, whether on desktop or mobile.
+          </p>
 
           <h2>Data Accuracy</h2>
           <p>
