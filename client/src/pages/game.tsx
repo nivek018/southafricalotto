@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+﻿import { useQuery } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -335,11 +335,11 @@ export default function GamePage() {
     let title = `${groupName} Results - Latest Winning Numbers | SA Lotto Results`;
 
     if (groupSlug === "powerball" && formattedDate) {
-      title = `Powerball Results — ${formattedDate} | Powerball & Powerball Plus`;
+      title = `Powerball Results â€” ${formattedDate} | Powerball & Powerball Plus`;
     } else if (groupSlug === "lotto" && formattedDate) {
-      title = `Lotto Results — ${formattedDate} | Lotto, Lotto Plus 1 & Plus 2`;
+      title = `Lotto Results â€” ${formattedDate} | Lotto, Lotto Plus 1 & Plus 2`;
     } else if (groupSlug === "daily-lotto" && formattedDate) {
-      title = `Daily Lotto Results — ${formattedDate} | Daily Lotto & Daily Lotto Plus`;
+      title = `Daily Lotto Results â€” ${formattedDate} | Daily Lotto & Daily Lotto Plus`;
     }
 
     document.title = title;
@@ -447,13 +447,13 @@ export default function GamePage() {
                 <div
                   className="grid gap-3"
                   style={{
-                    gridTemplateColumns: `repeat(${Math.min(3, Math.max(1, latestJackpots.length || 3))}, minmax(0, 1fr))`
+                    gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))"
                   }}
                 >
                   {(latestJackpots.length > 0 ? latestJackpots : [{ name: "Loading…", amount: "—" }, { name: "Loading…", amount: "—" }, { name: "Loading…", amount: "—" }]).slice(0, 3).map((item, idx) => (
                     <div key={idx} className="rounded-lg border bg-muted/40 px-3 py-2 text-center">
-                      <p className="text-xs font-semibold text-foreground mb-1">{item.name}</p>
-                      <p className="text-lg font-bold text-lottery-ball-bonus">{item.amount}</p>
+                      <p className="text-sm font-semibold text-foreground mb-1 break-words leading-tight">{item.name}</p>
+                      <p className="text-lg font-bold text-lottery-ball-bonus break-words leading-tight">{item.amount}</p>
                     </div>
                   ))}
                 </div>
@@ -794,7 +794,7 @@ export default function GamePage() {
                     <ul className="space-y-2">
                       {GAME_HOW_TO_PLAY[groupSlug || slug].tips.map((tip, idx) => (
                         <li key={idx} className="flex gap-3 text-muted-foreground">
-                          <span className="flex-shrink-0 text-primary">•</span>
+                          <span className="flex-shrink-0 text-primary">â€¢</span>
                           <span>{tip}</span>
                         </li>
                       ))}
@@ -879,3 +879,11 @@ export default function GamePage() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
