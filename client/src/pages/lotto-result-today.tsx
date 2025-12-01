@@ -285,10 +285,10 @@ export default function LottoResultTodayPage() {
                         <span>Draw at {game.drawTime} SAST</span>
                       </div>
                     </CardHeader>
-                    <CardContent className="pt-8 pb-7 space-y-5 text-center flex flex-col items-center">
+                    <CardContent className="pt-8 pb-8 text-center flex flex-col items-center gap-6">
                       {result ? (
-                        <div className="space-y-5 w-full flex flex-col items-center">
-                          <div className="flex flex-wrap items-center justify-center gap-3 lg:gap-4 mt-2">
+                        <div className="w-full flex flex-col items-center gap-5">
+                          <div className="flex flex-wrap items-center justify-center gap-3 lg:gap-4 mt-1.5">
                             {sortNumbers(result.winningNumbers).map((num, idx) => (
                               <LotteryBall key={idx} number={num} size="md" />
                             ))}
@@ -299,16 +299,18 @@ export default function LottoResultTodayPage() {
                               </>
                             )}
                           </div>
-                          {result.jackpotAmount && (
-                            <div className="text-center mt-1">
-                              <p className="text-xs text-muted-foreground">Jackpot</p>
-                              <p className="font-bold text-lottery-ball-bonus">{result.jackpotAmount}</p>
-                            </div>
-                          )}
+                          <div className="text-center min-h-[44px] flex flex-col items-center justify-center">
+                            {result.jackpotAmount ? (
+                              <>
+                                <p className="text-xs text-muted-foreground">Jackpot</p>
+                                <p className="font-bold text-lottery-ball-bonus">{result.jackpotAmount}</p>
+                              </>
+                            ) : null}
+                          </div>
                         </div>
                       ) : (
-                        <div className="text-center pt-1 pb-2 space-y-4 w-full flex flex-col items-center">
-                          <div className="flex flex-wrap items-center justify-center gap-3 lg:gap-4 mt-2 mb-1">
+                        <div className="text-center pt-1 pb-1 w-full flex flex-col items-center gap-5">
+                          <div className="flex flex-wrap items-center justify-center gap-3 lg:gap-4 mt-1.5">
                             {Array.from({ length: game.numberCount || 6 }).map((_, idx) => (
                               <div
                                 key={idx}
@@ -326,15 +328,17 @@ export default function LottoResultTodayPage() {
                               </>
                             )}
                           </div>
-                          <Badge variant="outline" className="text-amber-600 border-amber-600">
-                            TBA
-                          </Badge>
-                          <p className="text-xs text-muted-foreground">
-                            Results will be available after the draw
-                          </p>
+                          <div className="text-center min-h-[44px] flex flex-col items-center justify-center">
+                            <Badge variant="outline" className="text-amber-600 border-amber-600">
+                              TBA
+                            </Badge>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Results will be available after the draw
+                            </p>
+                          </div>
                         </div>
                       )}
-                      <div className="mt-8 text-center">
+                      <div className="mt-2 text-center">
                         <Link href={`/game/${game.slug}`}>
                           <Button variant="ghost" size="sm" data-testid={`link-game-${game.slug}`}>
                             View Game Details
