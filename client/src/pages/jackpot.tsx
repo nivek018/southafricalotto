@@ -73,7 +73,7 @@ export default function JackpotPage() {
           </div>
           <h1 className="text-3xl lg:text-5xl font-bold mb-2">Lotto Jackpot Prize</h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Latest jackpot totals and recent prize history for Powerball, Lotto, and Daily Lotto.
+            See the Latest Jackpot Prize History for Powerball, Lotto, and Daily Lotto and Stay Updated on the Most Recent Winning Amounts.
           </p>
         </div>
       </section>
