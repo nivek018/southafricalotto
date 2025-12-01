@@ -49,14 +49,14 @@ export function LotteryResultCard({ result }: LotteryResultCardProps) {
         </div>
       </CardHeader>
       <CardContent className="space-y-6 text-center">
-        <div className="flex flex-wrap md:flex-nowrap items-center justify-center gap-3 mt-2">
+        <div className="flex flex-wrap md:flex-nowrap items-center justify-center gap-2 md:gap-2.5 lg:gap-3 mt-2">
           {sortedNumbers.map((num, idx) => (
-            <LotteryBall key={idx} number={num} size="md" />
+            <LotteryBall key={idx} number={num} size="md" className="md:scale-[0.92] lg:scale-100" />
           ))}
           {result.bonusNumber && (
             <>
-              <span className="text-xl font-bold text-muted-foreground mx-1">+</span>
-              <LotteryBall number={result.bonusNumber} isBonus size="md" />
+              <span className="text-lg md:text-xl font-bold text-muted-foreground mx-1">+</span>
+              <LotteryBall number={result.bonusNumber} isBonus size="md" className="md:scale-[0.92] lg:scale-100" />
             </>
           )}
         </div>
