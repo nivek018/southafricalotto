@@ -898,11 +898,24 @@ export default function GamePage() {
                                     <div className="w-10 text-right text-xs font-semibold text-muted-foreground">
                                       {item.number}
                                     </div>
-                                    <div className="flex-1 h-4 bg-muted rounded-full overflow-hidden">
+                                    <div className="flex-1 relative">
+                                      <div className="h-4 bg-muted rounded-full overflow-hidden">
+                                        <div
+                                          className="h-full bg-primary/70"
+                                          style={{ width: `${width}%` }}
+                                        />
+                                      </div>
                                       <div
-                                        className="h-full bg-primary/70"
-                                        style={{ width: `${width}%` }}
-                                      />
+                                        className="absolute inset-0 flex items-center"
+                                        style={{ pointerEvents: "none" }}
+                                      >
+                                        <div
+                                          className="ml-2 h-6 w-6 rounded-full bg-lottery-ball-main text-white text-xs font-bold flex items-center justify-center shadow-sm"
+                                          style={{ transform: `translateX(${Math.max(width - 6, 0)}%)` }}
+                                        >
+                                          {item.count}x
+                                        </div>
+                                      </div>
                                     </div>
                                     <div className="w-12 text-xs font-semibold text-foreground text-right">
                                       {item.count}x
