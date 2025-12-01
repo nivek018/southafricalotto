@@ -22,7 +22,8 @@ import {
   Flame,
   Snowflake,
   HelpCircle,
-  BookOpen
+  BookOpen,
+  BarChart2
 } from "lucide-react";
 import type { LotteryResult, LotteryGame } from "@shared/schema";
 import { getGroupForSlug } from "@shared/schema";
@@ -403,7 +404,11 @@ export default function GamePage() {
       }
     };
 
-    const maxNumber = gameData?.maxNumber || 60;
+    const derivedMax = results.reduce((acc, res) => {
+      const nums = parseNumbers(res.winningNumbers as any);
+      return Math.max(acc, ...nums);
+    }, 0);
+    const maxNumber = gameData?.maxNumber || derivedMax || 60;
     const freqMap: Record<number, number> = {};
     filtered.forEach((res) => {
       parseNumbers(res.winningNumbers as any).forEach((n) => {
@@ -805,53 +810,58 @@ export default function GamePage() {
                 <section className="mt-10" data-testid="section-frequency-analysis">
                   <Card>
                     <CardHeader className="pb-4">
-                      <div className="flex flex-wrap items-center justify-between gap-4">
-                        <CardTitle className="text-lg">Frequency Analysis of All Drawn Numbers</CardTitle>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <div className="flex items-center gap-1">
-                            {groupedData.group.variants.map((v) => (
+                      <div className="flex flex-col gap-3">
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            <BarChart2 className="w-4 h-4 text-primary" />
+                            Frequency Analysis of All Drawn Numbers
+                          </CardTitle>
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              {groupedData.group.variants.map((v) => (
+                                <Button
+                                  key={v}
+                                  variant={freqVariant === v ? "default" : "outline"}
+                                  size="sm"
+                                  onClick={() => setFreqVariant(v)}
+                                  data-testid={`freq-variant-${v}`}
+                                >
+                                  {getVariantDisplayName(v)}
+                                </Button>
+                              ))}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-1">
                               <Button
-                                key={v}
-                                variant={freqVariant === v ? "default" : "outline"}
+                                variant={freqRange === "3m" ? "default" : "outline"}
                                 size="sm"
-                                onClick={() => setFreqVariant(v)}
-                                data-testid={`freq-variant-${v}`}
+                                onClick={() => setFreqRange("3m")}
+                                data-testid="freq-range-3m"
                               >
-                                {getVariantDisplayName(v)}
+                                3 Months
                               </Button>
-                            ))}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Button
-                              variant={freqRange === "3m" ? "default" : "outline"}
-                              size="sm"
-                              onClick={() => setFreqRange("3m")}
-                              data-testid="freq-range-3m"
-                            >
-                              3 Months
-                            </Button>
-                            <Button
-                              variant={freqRange === "6m" ? "default" : "outline"}
-                              size="sm"
-                              onClick={() => setFreqRange("6m")}
-                              data-testid="freq-range-6m"
-                            >
-                              6 Months
-                            </Button>
-                            <Button
-                              variant={freqRange === "1y" ? "default" : "outline"}
-                              size="sm"
-                              onClick={() => setFreqRange("1y")}
-                              data-testid="freq-range-1y"
-                            >
-                              1 Year
-                            </Button>
+                              <Button
+                                variant={freqRange === "6m" ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => setFreqRange("6m")}
+                                data-testid="freq-range-6m"
+                              >
+                                6 Months
+                              </Button>
+                              <Button
+                                variant={freqRange === "1y" ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => setFreqRange("1y")}
+                                data-testid="freq-range-1y"
+                              >
+                                1 Year
+                              </Button>
+                            </div>
                           </div>
                         </div>
+                        <p className="text-xs text-muted-foreground">
+                          Counts show how many times each number appeared in the selected period.
+                        </p>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Counts show how many times each number appeared in the selected period.
-                      </p>
                     </CardHeader>
                     <CardContent className="space-y-2">
                       {frequencyData.length === 0 ? (
