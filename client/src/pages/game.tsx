@@ -898,7 +898,7 @@ export default function GamePage() {
                                     <div className="w-10 text-right text-xs font-semibold text-muted-foreground">
                                       {item.number}
                                     </div>
-                                    <div className="flex-1 relative group">
+                                    <div className="flex-1 relative group overflow-visible">
                                       <div className="h-4 bg-muted rounded-full overflow-hidden">
                                         <div
                                           className="h-full bg-primary/70"
@@ -907,8 +907,13 @@ export default function GamePage() {
                                       </div>
                                       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none flex items-center">
                                         <div
-                                          className="ml-2 h-12 w-12 rounded-full bg-lottery-ball-main text-white text-sm font-bold flex flex-col items-center justify-center shadow-lg ring-2 ring-white/20"
-                                          style={{ transform: `translateX(calc(${Math.max(width - 12, 0)}%))` }}
+                                          className="h-14 w-14 rounded-full bg-lottery-ball-main text-white text-sm font-bold flex flex-col items-center justify-center shadow-lg ring-2 ring-white/20"
+                                          style={{
+                                            left: `${width}%`,
+                                            transform: "translate(-50%, -40%)",
+                                            position: "absolute",
+                                            top: "50%",
+                                          }}
                                         >
                                           <span className="leading-none text-base">{item.number}</span>
                                           <span className="text-[11px] leading-none">{item.count}x</span>
