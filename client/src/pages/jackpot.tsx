@@ -54,11 +54,11 @@ export default function JackpotPage() {
 
   useEffect(() => {
     document.title = "South Africa Lotto Jackpots | SA Lotto Results";
-    const metaDesc = document.querySelector('meta[name=\"description\"]');
+    const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
       metaDesc.setAttribute(
-        \"content\",
-        \"Browse current South Africa Powerball, Lotto, and Daily Lotto jackpots plus recent prize history.\"
+        "content",
+        "Browse current South Africa Powerball, Lotto, and Daily Lotto jackpots plus recent prize history."
       );
     }
   }, []);
