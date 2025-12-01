@@ -765,7 +765,7 @@ export default function GamePage() {
         </div>
       </section>
 
-      <section className="py-8 lg:py-12 bg-card" data-testid="section-how-to-play">
+      <section className="py-8 lg:py-12" data-testid="section-how-to-play">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">
           <Card>
             <CardHeader>
