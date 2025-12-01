@@ -82,14 +82,10 @@ export function RecentResultsSection() {
           <div className="grid gap-4 md:grid-cols-2">
             {entries.map((entry) => {
               const { day, month } = formatBadge(entry.date);
-              const gameNames = entry.games.map((g) => g.gameName).join(", ");
-              const gameLinks = entry.games.map((g) => {
-                const group = g.groupSlug || g.gameSlug;
-                return {
-                  name: g.gameName,
-                  href: `/${group}-result/${entry.date}`
-                };
-              });
+              const gameLinks = entry.games.map((g) => ({
+                name: g.gameName,
+                href: `/${(g.groupSlug || g.gameSlug)}-result/${entry.date}`
+              }));
 
               const primarySlug =
                 priorityOrder.find((slug) => entry.games.some((g) => g.groupSlug === slug)) ||
@@ -112,29 +108,28 @@ export function RecentResultsSection() {
                           <p className="font-semibold leading-tight">Lotto Results {formatLongDate(entry.date)}</p>
                         </div>
                         <p className="text-sm text-muted-foreground leading-snug">
-                          Results for {gameNames} drawn on {formatLongDate(entry.date)}.
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {gameLinks.map((gl) => (
+                          Results for{" "}
+                          {gameLinks.map((gl, idx) => (
                             <Link
                               key={gl.href}
                               href={gl.href}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15 transition-colors"
+                              className="text-primary hover:underline font-semibold"
                             >
                               {gl.name}
-                              <ArrowRight className="w-4 h-4" />
+                              {idx < gameLinks.length - 1 ? ", " : ""}
                             </Link>
-                          ))}
-                          {primaryHref && gameLinks.length === 0 && (
-                            <Link
-                              href={primaryHref}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15 transition-colors"
-                            >
-                              View full results
-                              <ArrowRight className="w-4 h-4" />
-                            </Link>
-                          )}
-                        </div>
+                          ))}{" "}
+                          drawn on {formatLongDate(entry.date)}.
+                        </p>
+                        {!gameLinks.length && primaryHref && (
+                          <Link
+                            href={primaryHref}
+                            className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+                          >
+                            View full results
+                            <ArrowRight className="w-4 h-4" />
+                          </Link>
+                        )}
                       </div>
                     </div>
                   </CardContent>
