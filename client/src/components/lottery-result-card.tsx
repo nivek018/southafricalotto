@@ -48,8 +48,8 @@ export function LotteryResultCard({ result }: LotteryResultCardProps) {
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-5 text-center">
-        <div className="flex flex-wrap items-center justify-center gap-2 mt-3">
+      <CardContent className="space-y-6 text-center">
+        <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
           {sortedNumbers.map((num, idx) => (
             <LotteryBall key={idx} number={num} size="md" />
           ))}
