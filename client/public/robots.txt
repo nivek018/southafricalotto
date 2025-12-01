@@ -1,0 +1,64 @@
+User-agent: *
+Disallow: /data/
+Disallow: /?s=
+Disallow: /*?*
+Disallow: /search/
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+
+User-agent: SEOkicks-Robot
+Disallow: /
+
+User-agent: UptimeRobot
+Disallow: /
+
+User-agent: Barkrowler
+Disallow: /
+
+User-agent: PetalBot
+Disallow: /
+
+User-agent: AspiegelBot
+Disallow: /
+
+User-agent: MauiBot
+Disallow: /
+
+User-agent: Zoominfobot
+Disallow: /
+
+User-agent: SerpstatBot
+Disallow: /
+
+User-agent: Sogou
+Disallow: /
+
+User-agent: MojeekBot
+Disallow: /
+
+User-agent: SeekportBot
+Disallow: /
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: Amazonbot
+Disallow: /
+
+Sitemap: https://lottopcso.io/sitemap.xml

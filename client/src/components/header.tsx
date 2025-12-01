@@ -24,7 +24,12 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="max-w-7xl mx-auto px-4 lg:px-8">
         <div className="flex h-16 lg:h-20 items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-2" data-testid="link-home">
+          <Link
+            href="/"
+            className="flex items-center gap-2"
+            data-testid="link-home"
+            aria-label="SA Lotto Results Home"
+          >
             <div className="flex items-center gap-1">
               <CircleDot className="h-7 w-7 text-lottery-ball-main" />
               <CircleDot className="h-6 w-6 text-lottery-ball-bonus -ml-2" />
@@ -52,7 +57,13 @@ export function Header() {
             <ThemeToggle />
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger asChild className="md:hidden">
-                <Button variant="ghost" size="icon" data-testid="button-mobile-menu">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={open ? "Close navigation menu" : "Open navigation menu"}
+                  aria-expanded={open}
+                  data-testid="button-mobile-menu"
+                >
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
