@@ -104,52 +104,53 @@ export function PrizeHistoryChart({ groupSlug, variants }: PrizeHistoryChartProp
   return (
     <Card className="mt-8" data-testid="card-prize-history-chart">
       <CardHeader className="pb-4">
-        <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-lottery-ball-main" />
             <CardTitle className="text-lg">Prize History</CardTitle>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant={timeRange === "3m" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setTimeRange("3m")}
-              data-testid="button-range-3m"
-            >
-              3 Months
-            </Button>
-            <Button
-              variant={timeRange === "6m" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setTimeRange("6m")}
-              data-testid="button-range-6m"
-            >
-              6 Months
-            </Button>
-            <Button
-              variant={timeRange === "1y" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setTimeRange("1y")}
-              data-testid="button-range-1y"
-            >
-              1 Year
-            </Button>
-          </div>
-          {variants.length > 1 && (
-            <div className="flex items-center gap-2 flex-wrap">
-              {variants.map((variant) => (
-                <Button
-                  key={variant}
-                  variant={selectedVariant === variant ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedVariant(variant)}
-                  data-testid={`button-variant-${variant}`}
-                >
-                  {getVariantDisplayName(variant)}
-                </Button>
-              ))}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              {variants.length > 1 &&
+                variants.map((variant) => (
+                  <Button
+                    key={variant}
+                    variant={selectedVariant === variant ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedVariant(variant)}
+                    data-testid={`button-variant-${variant}`}
+                  >
+                    {getVariantDisplayName(variant)}
+                  </Button>
+                ))}
             </div>
-          )}
+            <div className="flex flex-wrap items-center gap-1">
+              <Button
+                variant={timeRange === "3m" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setTimeRange("3m")}
+                data-testid="button-range-3m"
+              >
+                3 Months
+              </Button>
+              <Button
+                variant={timeRange === "6m" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setTimeRange("6m")}
+                data-testid="button-range-6m"
+              >
+                6 Months
+              </Button>
+              <Button
+                variant={timeRange === "1y" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setTimeRange("1y")}
+                data-testid="button-range-1y"
+              >
+                1 Year
+              </Button>
+            </div>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
