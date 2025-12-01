@@ -611,7 +611,7 @@ export default function GamePage() {
                                 <Card key={result.id} data-testid={`card-history-${result.id}`}>
                                   <CardContent className="py-3">
                                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                                      <Badge variant="outline">
+                                      <Badge variant="outline" className="inline-flex w-fit">
                                         <Calendar className="w-3 h-3 mr-1" />
                                         {formatShortDate(result.drawDate)}
                                       </Badge>
@@ -688,7 +688,7 @@ export default function GamePage() {
                               <Card key={result.id} data-testid={`card-history-${result.id}`}>
                                 <CardContent className="py-4">
                                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                    <Badge variant="outline">
+                                    <Badge variant="outline" className="inline-flex w-fit">
                                       <Calendar className="w-3 h-3 mr-1" />
                                       {formatShortDate(result.drawDate)}
                                     </Badge>
