@@ -45,7 +45,7 @@ export function RecentResultsSection() {
   const skeletonItems = Array.from({ length: 6 });
 
   return (
-    <section className="bg-muted/20 border-t border-border/60 py-10 lg:py-14">
+    <section className="py-10 lg:py-14">
       <div className="max-w-7xl mx-auto px-4 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
           <div>
