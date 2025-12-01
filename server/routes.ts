@@ -1,5 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import path from "path";
+import fs from "fs";
 import { storage } from "./storage";
 import { scrapeLotteryResults, processScrapedResults } from "./scraper";
 import { purgeCloudflareSite } from "./cloudflare";
@@ -20,6 +22,16 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  // Serve ads.txt from project root
+  app.get("/ads.txt", (_req, res) => {
+    const adsPath = path.resolve(process.cwd(), "ads.txt");
+    if (fs.existsSync(adsPath)) {
+      res.sendFile(adsPath);
+    } else {
+      res.status(404).send("ads.txt not found");
+    }
+  });
+
   const buildPurgePaths = (results: any[]): string[] => {
     const paths = new Set<string>();
     results.forEach((r) => {
