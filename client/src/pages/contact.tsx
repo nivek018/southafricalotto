@@ -38,9 +38,12 @@ export default function ContactPage() {
             </div>
           </div>
           <p className="text-muted-foreground leading-relaxed">
-            For questions about SA lottery results, website feedback, corrections, or partnership inquiries,
-            please reach out via email. We typically respond within one business day on weekdays and aim to keep
-            replies concise and actionable.
+            If you have any questions regarding the SA Lottery results, feedback or suggestions about our website, 
+            need to report any corrections, or are interested in exploring partnership opportunities, 
+            we encourage you to reach out to us via email. Our team is committed to providing timely and helpful responses, 
+            typically within one business day during weekdays. We strive to keep our replies clear, concise, and actionable, 
+            ensuring that we address your inquiry efficiently and effectively. We value your input and are dedicated to 
+            providing the best possible experience for all of our users. Thank you for reaching out, and we look forward to assisting you!
           </p>
         </div>
       </div>

@@ -119,6 +119,7 @@ export async function registerRoutes(
       paths.add(`/draw-history/${r.gameSlug}`);
       paths.add(`/draw-history/${groupSlug}`);
       paths.add(`/${groupSlug}-result/${r.drawDate}`);
+      paths.add("/game/jackpot");
       if (groupSlug === "powerball") {
         paths.add("/game/powerball");
         paths.add("/game/powerball-plus");

@@ -110,7 +110,7 @@ app.use((req, res, next) => {
     const today = getSASTDateString();
     if (today !== currentSastDay) {
       currentSastDay = today;
-      void purgeCloudflareSite();
+      void purgeCloudflareSite(["/game/jackpot", "/sitemap.xml", "/"]);
     }
   }, 60 * 1000);
 
