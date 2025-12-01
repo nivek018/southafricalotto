@@ -169,6 +169,15 @@ const GAME_FAQS: Record<string, { question: string; answer: string }[]> = {
 };
 
 const HOT_COLD_GAMES = ["powerball", "lotto", "daily-lotto"];
+const MAX_NUMBERS: Record<string, number> = {
+  "powerball": 50,
+  "powerball-plus": 50,
+  "lotto": 58,
+  "lotto-plus-1": 58,
+  "lotto-plus-2": 58,
+  "daily-lotto": 36,
+  "daily-lotto-plus": 36
+};
 
 export default function GamePage() {
   const [, params] = useRoute("/game/:slug");
@@ -408,7 +417,8 @@ export default function GamePage() {
       const nums = parseNumbers(res.winningNumbers as any);
       return Math.max(acc, ...nums);
     }, 0);
-    const maxNumber = gameData?.maxNumber || derivedMax || 60;
+    const maxFromMap = MAX_NUMBERS[freqVariant] || MAX_NUMBERS[groupSlug || ""] || 0;
+    const maxNumber = maxFromMap || gameData?.maxNumber || derivedMax || 60;
     const freqMap: Record<number, number> = {};
     filtered.forEach((res) => {
       parseNumbers(res.winningNumbers as any).forEach((n) => {
