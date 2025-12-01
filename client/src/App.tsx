@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
+import { RecentResultsSection } from "@/components/recent-results";
 import HomePage from "@/pages/home";
 import GamePage from "@/pages/game";
 import NewsPage from "@/pages/news";
@@ -52,6 +53,7 @@ function Router() {
 function AppLayout() {
   const [location] = useLocation();
   const isAdminRoute = location.startsWith("/encode");
+  const isHome = location === "/";
 
   if (isAdminRoute) {
     return <Router />;
@@ -63,6 +65,7 @@ function AppLayout() {
       <main className="flex-1">
         <Router />
       </main>
+      {!isHome && <RecentResultsSection />}
       <Footer />
     </div>
   );

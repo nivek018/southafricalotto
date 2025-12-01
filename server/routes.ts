@@ -131,6 +131,48 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/results/recent-dates", async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 10;
+      const results = await storage.getResults();
+      const grouped: Record<string, typeof results> = {};
+
+      results.forEach((result) => {
+        if (!grouped[result.drawDate]) {
+          grouped[result.drawDate] = [];
+        }
+        grouped[result.drawDate].push(result);
+      });
+
+      const sortedDates = Object.keys(grouped).sort((a, b) => b.localeCompare(a)).slice(0, limit);
+
+      const payload = sortedDates.map((date) => {
+        const dateResults = grouped[date].sort((a, b) => a.gameName.localeCompare(b.gameName));
+        const games = dateResults.map((r) => ({
+          gameSlug: r.gameSlug,
+          gameName: r.gameName,
+          jackpotAmount: r.jackpotAmount,
+          groupSlug: getGroupForSlug(r.gameSlug)?.groupSlug || r.gameSlug,
+        }));
+
+        const primaryGroupSlug =
+          ["lotto", "powerball", "daily-lotto"].find((slug) => games.some((g) => g.groupSlug === slug)) ||
+          games[0]?.groupSlug ||
+          null;
+
+        return {
+          date,
+          games,
+          primaryGroupSlug,
+        };
+      });
+
+      res.json({ dates: payload });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch recent results" });
+    }
+  });
+
   app.get("/api/results/game/:slug", async (req, res) => {
     try {
       const results = await storage.getResultsByGameSlug(req.params.slug);

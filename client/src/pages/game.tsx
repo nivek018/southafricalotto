@@ -1,4 +1,4 @@
-﻿import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -335,11 +335,11 @@ export default function GamePage() {
     let title = `${groupName} Results - Latest Winning Numbers | SA Lotto Results`;
 
     if (groupSlug === "powerball" && formattedDate) {
-      title = `Powerball Results — ${formattedDate} | Powerball & Powerball Plus`;
+      title = `Powerball Results \u2014 ${formattedDate} | Powerball & Powerball Plus`;
     } else if (groupSlug === "lotto" && formattedDate) {
-      title = `Lotto Results — ${formattedDate} | Lotto, Lotto Plus 1 & Plus 2`;
+      title = `Lotto Results \u2014 ${formattedDate} | Lotto, Lotto Plus 1 & Plus 2`;
     } else if (groupSlug === "daily-lotto" && formattedDate) {
-      title = `Daily Lotto Results — ${formattedDate} | Daily Lotto & Daily Lotto Plus`;
+      title = `Daily Lotto Results \u2014 ${formattedDate} | Daily Lotto & Daily Lotto Plus`;
     }
 
     document.title = title;
@@ -423,7 +423,7 @@ export default function GamePage() {
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Clock className="h-4 w-4" />
-                  <span>{nextDrawDate && !countdown.isExpired ? `${countdown.formattedTime} remaining` : "Loading…"}</span>
+                  <span>{nextDrawDate && !countdown.isExpired ? `${countdown.formattedTime} remaining` : "Loading..."}</span>
                 </div>
                 {gameData?.drawDays && (
                   <p className="text-xs text-muted-foreground mt-2">
@@ -450,7 +450,7 @@ export default function GamePage() {
                     gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))"
                   }}
                 >
-                  {(latestJackpots.length > 0 ? latestJackpots : [{ name: "Loading…", amount: "—" }, { name: "Loading…", amount: "—" }, { name: "Loading…", amount: "—" }]).slice(0, 3).map((item, idx) => (
+                  {(latestJackpots.length > 0 ? latestJackpots : [{ name: "Loading...", amount: "-" }, { name: "Loading...", amount: "-" }, { name: "Loading...", amount: "-" }]).slice(0, 3).map((item, idx) => (
                     <div key={idx} className="rounded-lg border bg-muted/40 px-3 py-2 text-center">
                       <p className="text-sm font-semibold text-foreground mb-1 break-words leading-tight">{item.name}</p>
                       <p className="text-base sm:text-lg font-bold text-lottery-ball-bonus break-words leading-tight">{item.amount}</p>
@@ -795,7 +795,7 @@ export default function GamePage() {
                     <ul className="space-y-2">
                       {GAME_HOW_TO_PLAY[groupSlug || slug].tips.map((tip, idx) => (
                         <li key={idx} className="flex gap-3 text-muted-foreground">
-                          <span className="flex-shrink-0 text-primary">•</span>
+                          <span className="flex-shrink-0 text-primary">{"\u2022"}</span>
                           <span>{tip}</span>
                         </li>
                       ))}
@@ -880,6 +880,7 @@ export default function GamePage() {
     </div>
   );
 }
+
 
 
 
