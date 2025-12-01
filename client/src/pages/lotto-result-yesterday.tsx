@@ -103,7 +103,7 @@ export default function LottoResultYesterdayPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="max-w-6xl lg:max-w-7xl xl:max-w-7xl 2xl:max-w-[1400px] mx-auto px-4 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 lg:px-8 py-8">
         <Link href="/">
           <Button variant="ghost" size="sm" className="mb-6" data-testid="button-back-home">
             <ChevronLeft className="h-4 w-4 mr-2" />
@@ -147,13 +147,13 @@ export default function LottoResultYesterdayPage() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[...Array(6)].map((_, i) => (
               <ResultCardSkeleton key={i} />
             ))}
           </div>
         ) : results && results.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {results.map((result) => (
               <LotteryResultCard key={result.id} result={result} />
             ))}

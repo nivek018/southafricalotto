@@ -27,7 +27,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       <section className="bg-gradient-to-b from-card to-background py-12 lg:py-16">
-      <div className="max-w-6xl lg:max-w-7xl xl:max-w-7xl 2xl:max-w-[1400px] mx-auto px-4 lg:px-8 text-center">
+      <div className="max-w-7xl mx-auto px-4 lg:px-8 text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
             <CircleDot className="h-8 w-8 text-lottery-ball-main" />
             <CircleDot className="h-7 w-7 text-lottery-ball-bonus -ml-3" />
@@ -43,19 +43,19 @@ export default function HomePage() {
       </section>
 
       <section className="py-12 lg:py-16">
-      <div className="max-w-6xl lg:max-w-7xl xl:max-w-7xl 2xl:max-w-[1400px] mx-auto px-4 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 lg:px-8">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl lg:text-3xl font-semibold">Latest Results</h2>
           </div>
           
           {resultsLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[...Array(6)].map((_, i) => (
                 <ResultCardSkeleton key={i} />
               ))}
             </div>
           ) : results && results.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[...results].sort((a, b) => {
                 const order: Record<string, number> = {
                   'lotto': 1,
@@ -84,7 +84,7 @@ export default function HomePage() {
       </section>
 
       <section className="py-12 lg:py-16 bg-card">
-      <div className="max-w-6xl lg:max-w-7xl xl:max-w-7xl 2xl:max-w-[1400px] mx-auto px-4 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 lg:px-8">
           <div className="flex items-center justify-between mb-8 gap-4 flex-wrap">
             <div className="flex items-center gap-3">
               <Newspaper className="h-6 w-6 text-muted-foreground" />
@@ -123,7 +123,7 @@ export default function HomePage() {
       </section>
 
       <section className="py-12 lg:py-16">
-      <div className="max-w-6xl lg:max-w-7xl xl:max-w-7xl 2xl:max-w-[1400px] mx-auto px-4 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 lg:px-8">
           <div className="bg-card rounded-lg p-8 lg:p-12">
             <h2 className="text-2xl lg:text-3xl font-semibold mb-6">
               About South African Lottery
