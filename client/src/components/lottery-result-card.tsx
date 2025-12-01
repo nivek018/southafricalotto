@@ -61,7 +61,7 @@ export function LotteryResultCard({ result }: LotteryResultCardProps) {
           )}
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           {result.jackpotAmount && (
             <div className="inline-flex items-center gap-2 rounded-md bg-muted/50 px-4 py-2 text-sm font-semibold mt-1">
               <Trophy className="w-4 h-4 text-lottery-ball-bonus" />
@@ -71,9 +71,15 @@ export function LotteryResultCard({ result }: LotteryResultCardProps) {
           )}
 
           <Link href={`/game/${result.gameSlug}`}>
-            <Button variant="ghost" className="w-full group" data-testid={`button-view-${result.gameSlug}`}>
-              View Draw Summary
-              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            <Button
+              variant="ghost"
+              className="w-full group px-3 py-2"
+              data-testid={`button-view-${result.gameSlug}`}
+            >
+              <span className="inline-flex items-center gap-2">
+                View Draw Summary
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </span>
             </Button>
           </Link>
         </div>
