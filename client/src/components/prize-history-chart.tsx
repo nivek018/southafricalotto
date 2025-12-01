@@ -73,7 +73,7 @@ export function PrizeHistoryChart({ groupSlug, variants }: PrizeHistoryChartProp
       .reverse();
 
     return data;
-  }, [groupedData, variants, timeRange]);
+  }, [groupedData, variants, timeRange, selectedVariant]);
 
   const formatYAxis = (value: number): string => {
     if (value >= 1000000) {
