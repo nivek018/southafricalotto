@@ -73,6 +73,14 @@ function getTodayDateSAST(): string {
   return fmt.format(base);
 }
 
+function getTodayWeekdaySAST(): string {
+  const fmt = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Africa/Johannesburg",
+    weekday: "long",
+  });
+  return fmt.format(new Date());
+}
+
 interface TodayResultsResponse {
   date: string;
   games: {
@@ -87,6 +95,7 @@ export default function LottoResultTodayPage() {
   });
 
   const todayDate = getTodayDateSAST();
+  const todayWeekday = getTodayWeekdaySAST();
 
   useEffect(() => {
     const formattedDate = new Date(todayDate).toLocaleDateString("en-ZA", {
@@ -182,86 +191,120 @@ export default function LottoResultTodayPage() {
             ))}
           </div>
         ) : data ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {data.games.map(({ game, result }) => (
-              <Card key={game.slug} className="overflow-hidden" data-testid={`card-game-${game.slug}`}>
-                <CardHeader className="pb-3 bg-gradient-to-r from-lottery-ball-main/10 to-lottery-ball-bonus/10">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <CircleDot className="h-5 w-5 text-lottery-ball-main" />
-                      <CardTitle className="text-lg">{game.name}</CardTitle>
-                    </div>
-                    {result ? (
-                      <Badge variant="default" className="bg-green-600">Live</Badge>
-                    ) : (
-                      <Badge variant="secondary">Pending</Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                    <Clock className="h-3 w-3" />
-                    <span>Draw at {game.drawTime} SAST</span>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-4">
-                  {result ? (
-                    <div className="space-y-3">
-                      <div className="flex flex-wrap items-center justify-center gap-2">
-                        {sortNumbers(result.winningNumbers).map((num, idx) => (
-                          <LotteryBall key={idx} number={num} size="md" />
-                        ))}
-                        {result.bonusNumber && (
-                          <>
-                            <span className="text-lg font-bold text-muted-foreground">+</span>
-                            <LotteryBall number={result.bonusNumber} isBonus size="md" />
-                          </>
+          (() => {
+            const parseDrawDays = (game: LotteryGame): string[] => {
+              if (Array.isArray(game.drawDays)) return game.drawDays;
+              if (typeof game.drawDays === "string") {
+                try {
+                  const parsed = JSON.parse(game.drawDays);
+                  if (Array.isArray(parsed)) return parsed;
+                } catch {
+                  /* ignore invalid drawDays */
+                }
+              }
+              return [];
+            };
+
+            const gamesForToday = data.games.filter(({ game }) => {
+              const days = parseDrawDays(game).map((d) => d.toLowerCase());
+              return days.includes(todayWeekday.toLowerCase());
+            });
+
+            if (gamesForToday.length === 0) {
+              return (
+                <div className="text-center py-16 bg-card rounded-lg" data-testid="text-no-scheduled-games">
+                  <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">No scheduled draws today</h3>
+                  <p className="text-muted-foreground">
+                    There are no lottery games scheduled to draw today.
+                  </p>
+                </div>
+              );
+            }
+
+            return (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {gamesForToday.map(({ game, result }) => (
+                  <Card key={game.slug} className="overflow-hidden" data-testid={`card-game-${game.slug}`}>
+                    <CardHeader className="pb-3 bg-gradient-to-r from-lottery-ball-main/10 to-lottery-ball-bonus/10">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <CircleDot className="h-5 w-5 text-lottery-ball-main" />
+                          <CardTitle className="text-lg">{game.name}</CardTitle>
+                        </div>
+                        {result ? (
+                          <Badge variant="default" className="bg-green-600">Live</Badge>
+                        ) : (
+                          <Badge variant="secondary">Pending</Badge>
                         )}
                       </div>
-                      {result.jackpotAmount && (
-                        <div className="text-center">
-                          <p className="text-xs text-muted-foreground">Jackpot</p>
-                          <p className="font-bold text-lottery-ball-bonus">{result.jackpotAmount}</p>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                        <Clock className="h-3 w-3" />
+                        <span>Draw at {game.drawTime} SAST</span>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      {result ? (
+                        <div className="space-y-3">
+                          <div className="flex flex-wrap items-center justify-center gap-2">
+                            {sortNumbers(result.winningNumbers).map((num, idx) => (
+                              <LotteryBall key={idx} number={num} size="md" />
+                            ))}
+                            {result.bonusNumber && (
+                              <>
+                                <span className="text-lg font-bold text-muted-foreground">+</span>
+                                <LotteryBall number={result.bonusNumber} isBonus size="md" />
+                              </>
+                            )}
+                          </div>
+                          {result.jackpotAmount && (
+                            <div className="text-center">
+                              <p className="text-xs text-muted-foreground">Jackpot</p>
+                              <p className="font-bold text-lottery-ball-bonus">{result.jackpotAmount}</p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-center py-4">
+                          <div className="flex flex-wrap items-center justify-center gap-2 mb-3">
+                            {Array.from({ length: game.numberCount || 6 }).map((_, idx) => (
+                              <div
+                                key={idx}
+                                className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"
+                              >
+                                <span className="text-sm font-medium text-muted-foreground">?</span>
+                              </div>
+                            ))}
+                            {game.hasBonusBall && (
+                              <>
+                                <span className="text-lg font-bold text-muted-foreground">+</span>
+                                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                                  <span className="text-sm font-medium text-muted-foreground">?</span>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                          <Badge variant="outline" className="text-amber-600 border-amber-600">
+                            TBA
+                          </Badge>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            Results will be available after the draw
+                          </p>
                         </div>
                       )}
-                    </div>
-                  ) : (
-                    <div className="text-center py-4">
-                      <div className="flex flex-wrap items-center justify-center gap-2 mb-3">
-                        {Array.from({ length: game.numberCount || 6 }).map((_, idx) => (
-                          <div
-                            key={idx}
-                            className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"
-                          >
-                            <span className="text-sm font-medium text-muted-foreground">?</span>
-                          </div>
-                        ))}
-                        {game.hasBonusBall && (
-                          <>
-                            <span className="text-lg font-bold text-muted-foreground">+</span>
-                            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                              <span className="text-sm font-medium text-muted-foreground">?</span>
-                            </div>
-                          </>
-                        )}
+                      <div className="mt-4 text-center">
+                        <Link href={`/game/${game.slug}`}>
+                          <Button variant="ghost" size="sm" data-testid={`link-game-${game.slug}`}>
+                            View Game Details
+                          </Button>
+                        </Link>
                       </div>
-                      <Badge variant="outline" className="text-amber-600 border-amber-600">
-                        TBA
-                      </Badge>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Results will be available after the draw
-                      </p>
-                    </div>
-                  )}
-                  <div className="mt-4 text-center">
-                    <Link href={`/game/${game.slug}`}>
-                      <Button variant="ghost" size="sm" data-testid={`link-game-${game.slug}`}>
-                        View Game Details
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            );
+          })()
         ) : (
           <div className="text-center py-16 bg-card rounded-lg" data-testid="text-no-data">
             <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
