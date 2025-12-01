@@ -12,6 +12,7 @@ const navLinks = [
   { href: "/game/powerball", label: "Powerball" },
   { href: "/game/lotto", label: "Lotto" },
   { href: "/game/daily-lotto", label: "Daily Lotto" },
+  { href: "/game/jackpot", label: "Jackpots" },
   { href: "/news", label: "News" },
 ];
 

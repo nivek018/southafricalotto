@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,13 @@ type TimeRange = "3m" | "6m" | "1y";
 
 export function PrizeHistoryChart({ groupSlug, variants }: PrizeHistoryChartProps) {
   const [timeRange, setTimeRange] = useState<TimeRange>("3m");
+  const [selectedVariant, setSelectedVariant] = useState<string>(variants[0]);
+
+  useEffect(() => {
+    if (variants.length > 0) {
+      setSelectedVariant((prev) => (variants.includes(prev) ? prev : variants[0]));
+    }
+  }, [variants]);
 
   const { data: groupedData } = useQuery<{
     allResults: Record<string, LotteryResult[]>;
@@ -29,7 +36,6 @@ export function PrizeHistoryChart({ groupSlug, variants }: PrizeHistoryChartProp
 
     const now = new Date();
     let cutoffDate: Date;
-    
     switch (timeRange) {
       case "3m":
         cutoffDate = subMonths(now, 3);
@@ -38,12 +44,12 @@ export function PrizeHistoryChart({ groupSlug, variants }: PrizeHistoryChartProp
         cutoffDate = subMonths(now, 6);
         break;
       case "1y":
+      default:
         cutoffDate = subMonths(now, 12);
         break;
     }
 
-    const mainVariant = variants[0];
-    const results = groupedData.allResults[mainVariant] || [];
+    const results = groupedData.allResults[selectedVariant] || [];
 
     const filteredResults = results.filter(r => {
       const resultDate = parseISO(r.drawDate);
@@ -82,6 +88,19 @@ export function PrizeHistoryChart({ groupSlug, variants }: PrizeHistoryChartProp
     return null;
   }
 
+  const getVariantDisplayName = (variantSlug: string): string => {
+    const nameMap: Record<string, string> = {
+      "powerball": "Powerball",
+      "powerball-plus": "Powerball Plus",
+      "lotto": "Lotto",
+      "lotto-plus-1": "Lotto Plus 1",
+      "lotto-plus-2": "Lotto Plus 2",
+      "daily-lotto": "Daily Lotto",
+      "daily-lotto-plus": "Daily Lotto Plus"
+    };
+    return nameMap[variantSlug] || variantSlug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+  };
+
   return (
     <Card className="mt-8" data-testid="card-prize-history-chart">
       <CardHeader className="pb-4">
@@ -116,6 +135,21 @@ export function PrizeHistoryChart({ groupSlug, variants }: PrizeHistoryChartProp
               1 Year
             </Button>
           </div>
+          {variants.length > 1 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {variants.map((variant) => (
+                <Button
+                  key={variant}
+                  variant={selectedVariant === variant ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedVariant(variant)}
+                  data-testid={`button-variant-${variant}`}
+                >
+                  {getVariantDisplayName(variant)}
+                </Button>
+              ))}
+            </div>
+          )}
         </div>
       </CardHeader>
       <CardContent>
