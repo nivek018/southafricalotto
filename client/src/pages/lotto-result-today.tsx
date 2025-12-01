@@ -183,7 +183,7 @@ export default function LottoResultTodayPage() {
             </h1>
           </div>
           <p className="text-muted-foreground text-lg" data-testid="text-today-date">
-            All South African lottery draws for {formatDate(todayDate)}
+            AllAll South Africa Lotto Result Today — {formatDate(todayDate)}
           </p>
         </div>
 
@@ -307,24 +307,24 @@ export default function LottoResultTodayPage() {
                           )}
                         </div>
                       ) : (
-                        <div className="text-center py-4">
-                          <div className="flex flex-wrap items-center justify-center gap-2 mb-3">
-                            {Array.from({ length: game.numberCount || 6 }).map((_, idx) => (
-                              <div
-                                key={idx}
-                                className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"
-                              >
-                                <span className="text-sm font-medium text-muted-foreground">?</span>
-                              </div>
-                            ))}
-                            {game.hasBonusBall && (
-                              <>
-                                <span className="text-lg font-bold text-muted-foreground">+</span>
-                                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                                  <span className="text-sm font-medium text-muted-foreground">?</span>
-                                </div>
-                              </>
-                            )}
+                    <div className="text-center py-4">
+                      <div className="flex flex-wrap items-center justify-center gap-3 mb-3">
+                        {Array.from({ length: game.numberCount || 6 }).map((_, idx) => (
+                          <div
+                            key={idx}
+                            className="w-12 h-12 rounded-full bg-muted flex items-center justify-center"
+                          >
+                            <span className="text-base font-semibold text-muted-foreground">?</span>
+                          </div>
+                        ))}
+                        {game.hasBonusBall && (
+                          <>
+                            <span className="text-lg font-bold text-muted-foreground mx-1">+</span>
+                            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                              <span className="text-base font-semibold text-muted-foreground">?</span>
+                            </div>
+                          </>
+                        )}
                           </div>
                           <Badge variant="outline" className="text-amber-600 border-amber-600">
                             TBA
