@@ -53,7 +53,7 @@ export default function JackpotPage() {
   const isLoading = queries.some((q) => q.isLoading);
 
   useEffect(() => {
-    document.title = "South Africa Lotto Jackpots | SA Lotto Results";
+    document.title = "Lotto, Daily Lotto, & Powerball Jackpot Prize and History | SA Lotto Results";
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
       metaDesc.setAttribute(
