@@ -405,76 +405,63 @@ export default function GamePage() {
         </div>
       </section>
 
-      {(nextDrawDate || latestJackpots.length > 0) && (
-        <section className="py-6 bg-gradient-to-r from-lottery-ball-main/5 to-lottery-ball-bonus/5 border-y border-border/50">
-          <div className="max-w-7xl mx-auto px-4 lg:px-8">
-            <div
-              className="grid gap-6"
-              style={{
-                gridTemplateColumns:
-                  nextDrawDate && !countdown.isExpired && latestJackpots.length > 0
-                    ? "1fr 1.3fr"
-                    : "1fr"
-              }}
-            >
-              {nextDrawDate && !countdown.isExpired && (
-                <Card className="bg-background/80 backdrop-blur min-h-[170px]" data-testid="card-next-draw">
-                  <CardContent className="py-6">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="p-2 bg-lottery-ball-main/10 rounded-full">
-                        <Timer className="h-5 w-5 text-lottery-ball-main" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-sm text-muted-foreground">Next Draw</h3>
-                        <p className="text-lg font-bold" data-testid="text-countdown">{countdown.relativeTime}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Clock className="h-4 w-4" />
-                      <span>{countdown.formattedTime} remaining</span>
-                    </div>
-                    {gameData?.drawDays && (
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Draws: {parsedDrawDays.join(", ")} at {gameData.drawTime} SAST
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
+      <section className="py-6 bg-gradient-to-r from-lottery-ball-main/5 to-lottery-ball-bonus/5 border-y border-border/50">
+        <div className="max-w-7xl mx-auto px-4 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <Card className="bg-background/80 backdrop-blur min-h-[170px] lg:col-span-2" data-testid="card-next-draw">
+              <CardContent className="py-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 bg-lottery-ball-main/10 rounded-full">
+                    <Timer className="h-5 w-5 text-lottery-ball-main" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-sm text-muted-foreground">Next Draw</h3>
+                    <p className="text-lg font-bold" data-testid="text-countdown">
+                      {nextDrawDate && !countdown.isExpired ? countdown.relativeTime : "Calculating..."}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Clock className="h-4 w-4" />
+                  <span>{nextDrawDate && !countdown.isExpired ? `${countdown.formattedTime} remaining` : "Loading…"}</span>
+                </div>
+                {gameData?.drawDays && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Draws: {parsedDrawDays.join(", ")} at {gameData.drawTime} SAST
+                  </p>
+                )}
+              </CardContent>
+            </Card>
 
-              {latestJackpots.length > 0 && (
-                <Card className="bg-background/80 backdrop-blur min-h-[170px]" data-testid="card-latest-jackpot">
-                  <CardContent className="py-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="p-2 bg-lottery-ball-bonus/10 rounded-full">
-                        <Trophy className="h-5 w-5 text-lottery-ball-bonus" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-sm text-muted-foreground">Latest Jackpots</h3>
-                        <p className="text-xs text-muted-foreground">Most recent recorded draw</p>
-                      </div>
+            <Card className="bg-background/80 backdrop-blur min-h-[170px] lg:col-span-3" data-testid="card-latest-jackpot">
+              <CardContent className="py-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-lottery-ball-bonus/10 rounded-full">
+                    <Trophy className="h-5 w-5 text-lottery-ball-bonus" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-sm text-muted-foreground">Latest Jackpots</h3>
+                    <p className="text-xs text-muted-foreground">Most recent recorded draw</p>
+                  </div>
+                </div>
+                <div
+                  className="grid gap-3"
+                  style={{
+                    gridTemplateColumns: `repeat(${Math.min(3, Math.max(1, latestJackpots.length || 3))}, minmax(0, 1fr))`
+                  }}
+                >
+                  {(latestJackpots.length > 0 ? latestJackpots : [{ name: "Loading…", amount: "—" }, { name: "Loading…", amount: "—" }, { name: "Loading…", amount: "—" }]).slice(0, 3).map((item, idx) => (
+                    <div key={idx} className="rounded-lg border bg-muted/40 px-3 py-2 text-center">
+                      <p className="text-sm font-semibold text-foreground mb-1">{item.name}</p>
+                      <p className="text-lg font-bold text-lottery-ball-bonus">{item.amount}</p>
                     </div>
-                    <div
-                      className="grid gap-3"
-                      style={{
-                        gridTemplateColumns: `repeat(${Math.min(3, Math.max(1, latestJackpots.length))}, minmax(0, 1fr))`
-                      }}
-                    >
-                      {latestJackpots.map((item, idx) => (
-                        <div key={idx} className="rounded-lg border bg-muted/40 px-3 py-2 text-center">
-                          <p className="text-sm font-semibold text-foreground mb-1">{item.name}</p>
-                          <p className="text-lg font-bold text-lottery-ball-bonus">{item.amount}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-            </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
       <section className="py-8 lg:py-12">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">
