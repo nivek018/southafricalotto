@@ -905,13 +905,13 @@ export default function GamePage() {
                                           style={{ width: `${width}%` }}
                                         />
                                       </div>
-                                      <div className="absolute inset-0 hidden group-hover:flex items-center pointer-events-none">
+                                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none flex items-center">
                                         <div
-                                          className="ml-2 h-8 w-8 rounded-full bg-lottery-ball-main text-white text-sm font-bold flex flex-col items-center justify-center shadow-sm"
-                                          style={{ transform: `translateX(${Math.max(width - 8, 0)}%)` }}
+                                          className="ml-2 h-12 w-12 rounded-full bg-lottery-ball-main text-white text-sm font-bold flex flex-col items-center justify-center shadow-lg ring-2 ring-white/20"
+                                          style={{ transform: `translateX(calc(${Math.max(width - 12, 0)}%))` }}
                                         >
-                                          <span className="leading-none">{item.number}</span>
-                                          <span className="text-[10px] leading-none">{item.count}x</span>
+                                          <span className="leading-none text-base">{item.number}</span>
+                                          <span className="text-[11px] leading-none">{item.count}x</span>
                                         </div>
                                       </div>
                                     </div>
