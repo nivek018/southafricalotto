@@ -23,7 +23,8 @@ import {
   Snowflake,
   HelpCircle,
   BookOpen,
-  BarChart2
+  BarChart2,
+  Activity
 } from "lucide-react";
 import type { LotteryResult, LotteryGame } from "@shared/schema";
 import { getGroupForSlug } from "@shared/schema";
@@ -738,12 +739,15 @@ export default function GamePage() {
               {showHotColdSection && statistics && (statistics.hotNumbers.length > 0 || statistics.coldNumbers.length > 0) && (
                 <section className="mt-12" data-testid="section-hot-cold-numbers">
                   <div className="bg-card/60 border rounded-xl p-6 lg:p-8 shadow-sm">
-                    <div className="text-center mb-8">
-                      <h2 className="text-3xl font-bold mb-1">Hot & Cold Numbers</h2>
-                      <p className="text-muted-foreground">
+                    <div className="mb-6 flex flex-col gap-1">
+                      <div className="flex items-center gap-2">
+                        <Activity className="h-5 w-5 text-primary" />
+                        <h2 className="text-2xl font-bold">Hot & Cold Numbers</h2>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
                         Analysis based on the last {statistics.totalDraws} draws
                         {statistics.dateRange.from && statistics.dateRange.to && (
-                          <span className="block text-sm mt-1">
+                          <span className="block">
                             From {new Date(statistics.dateRange.from).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })} to {new Date(statistics.dateRange.to).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}
                           </span>
                         )}
@@ -829,7 +833,7 @@ export default function GamePage() {
                       <div className="flex flex-col gap-3">
                         <div className="flex items-center gap-2">
                           <BarChart2 className="w-4 h-4 text-primary" />
-                          <CardTitle className="text-lg">Frequency Analysis of All Drawn Numbers</CardTitle>
+                          <CardTitle className="text-2xl">Frequency Analysis of All Drawn Numbers</CardTitle>
                         </div>
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                           <div className="flex flex-wrap items-center gap-2">

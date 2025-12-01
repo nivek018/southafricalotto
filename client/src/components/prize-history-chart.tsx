@@ -107,7 +107,7 @@ export function PrizeHistoryChart({ groupSlug, variants }: PrizeHistoryChartProp
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-lottery-ball-main" />
-            <CardTitle className="text-lg">Prize History</CardTitle>
+            <CardTitle className="text-2xl">Prize History</CardTitle>
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
