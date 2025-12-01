@@ -248,6 +248,8 @@ export default function GamePage() {
   }, [hasGroup, groupedData, singleResults, slug]);
 
   const countdown = useCountdown(nextDrawDate);
+  const [freqRange, setFreqRange] = useState<"3m" | "6m" | "1y">("3m");
+  const [freqVariant, setFreqVariant] = useState<string | null>(null);
 
   const parsedDrawDays = useMemo(() => {
     if (!gameData?.drawDays) return [];
@@ -303,6 +305,7 @@ export default function GamePage() {
     : null;
 
   const showHotColdSection = HOT_COLD_GAMES.includes(groupSlug || slug);
+  const showFrequencySection = showHotColdSection && hasGroup;
 
   const getLatestDrawDate = () => {
     if (hasGroup && groupedData) {
@@ -367,6 +370,12 @@ export default function GamePage() {
     return () => clearInterval(interval);
   }, [refetchGame, refetchGrouped, refetchSingle, refetchStats]);
 
+  useEffect(() => {
+    if (hasGroup && groupedData?.group?.variants?.length) {
+      setFreqVariant((prev) => prev && groupedData.group.variants.includes(prev) ? prev : groupedData.group.variants[0]);
+    }
+  }, [hasGroup, groupedData]);
+
   if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto px-4 lg:px-8 py-12">
@@ -378,6 +387,48 @@ export default function GamePage() {
   const hasResults = hasGroup
     ? groupedData && Object.keys(groupedData.latestResults).length > 0
     : singleResults && singleResults.length > 0;
+
+  const frequencyData = useMemo(() => {
+    if (!showFrequencySection || !groupedData || !freqVariant) return [];
+    const variants = groupedData.group.variants;
+    if (!variants.includes(freqVariant)) return [];
+
+    const results = groupedData.allResults[freqVariant] || [];
+
+    const cutoff = new Date();
+    if (freqRange === "3m") cutoff.setMonth(cutoff.getMonth() - 3);
+    if (freqRange === "6m") cutoff.setMonth(cutoff.getMonth() - 6);
+    if (freqRange === "1y") cutoff.setMonth(cutoff.getMonth() - 12);
+
+    const filtered = results.filter((r) => {
+      const d = new Date(r.drawDate);
+      return d >= cutoff;
+    });
+
+    const parseNumbers = (nums: number[] | string) => {
+      if (Array.isArray(nums)) return nums;
+      try {
+        const parsed = JSON.parse(nums);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    };
+
+    const maxNumber = gameData?.maxNumber || 60;
+    const freqMap: Record<number, number> = {};
+    filtered.forEach((res) => {
+      parseNumbers(res.winningNumbers as any).forEach((n) => {
+        freqMap[n] = (freqMap[n] || 0) + 1;
+      });
+    });
+
+    const allNumbers: { number: number; count: number }[] = [];
+    for (let i = 1; i <= maxNumber; i++) {
+      allNumbers.push({ number: i, count: freqMap[i] || 0 });
+    }
+    return allNumbers;
+  }, [showFrequencySection, groupedData, freqVariant, freqRange, gameData]);
 
   return (
     <div className="min-h-screen">
@@ -748,6 +799,96 @@ export default function GamePage() {
                   groupSlug={groupSlug || ""}
                   variants={groupedData.group.variants}
                 />
+              )}
+
+              {showFrequencySection && groupedData && freqVariant && (
+                <section className="mt-10" data-testid="section-frequency-analysis">
+                  <Card>
+                    <CardHeader className="pb-4">
+                      <div className="flex flex-wrap items-center justify-between gap-4">
+                        <CardTitle className="text-lg">Frequency Analysis of All Drawn Numbers</CardTitle>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <div className="flex items-center gap-1">
+                            {groupedData.group.variants.map((v) => (
+                              <Button
+                                key={v}
+                                variant={freqVariant === v ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => setFreqVariant(v)}
+                                data-testid={`freq-variant-${v}`}
+                              >
+                                {getVariantDisplayName(v)}
+                              </Button>
+                            ))}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant={freqRange === "3m" ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setFreqRange("3m")}
+                              data-testid="freq-range-3m"
+                            >
+                              3 Months
+                            </Button>
+                            <Button
+                              variant={freqRange === "6m" ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setFreqRange("6m")}
+                              data-testid="freq-range-6m"
+                            >
+                              6 Months
+                            </Button>
+                            <Button
+                              variant={freqRange === "1y" ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setFreqRange("1y")}
+                              data-testid="freq-range-1y"
+                            >
+                              1 Year
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Counts show how many times each number appeared in the selected period.
+                      </p>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      {frequencyData.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-6">
+                          Not enough data to calculate frequency for this range.
+                        </p>
+                      ) : (
+                        (() => {
+                          const maxCount = Math.max(...frequencyData.map((f) => f.count), 1);
+                          return (
+                            <div className="space-y-2">
+                              {frequencyData.map((item) => {
+                                const width = (item.count / maxCount) * 100;
+                                return (
+                                  <div key={item.number} className="flex items-center gap-3">
+                                    <div className="w-10 text-right text-xs font-semibold text-muted-foreground">
+                                      {item.number}
+                                    </div>
+                                    <div className="flex-1 h-4 bg-muted rounded-full overflow-hidden">
+                                      <div
+                                        className="h-full bg-primary/70"
+                                        style={{ width: `${width}%` }}
+                                      />
+                                    </div>
+                                    <div className="w-12 text-xs font-semibold text-foreground text-right">
+                                      {item.count}x
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          );
+                        })()
+                      )}
+                    </CardContent>
+                  </Card>
+                </section>
               )}
             </>
           ) : (
