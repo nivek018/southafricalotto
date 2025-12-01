@@ -206,7 +206,7 @@ export default function LottoResultTodayPage() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[...Array(7)].map((_, i) => (
               <ResultCardSkeleton key={i} />
             ))}
@@ -265,7 +265,7 @@ export default function LottoResultTodayPage() {
             }
 
             return (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {gamesForToday.map(({ game, result }) => (
                   <Card key={game.slug} className="overflow-hidden" data-testid={`card-game-${game.slug}`}>
                     <CardHeader className="pb-3 bg-gradient-to-r from-lottery-ball-main/10 to-lottery-ball-bonus/10">
@@ -288,17 +288,17 @@ export default function LottoResultTodayPage() {
                     <CardContent className="pt-4">
                       {result ? (
                         <div className="space-y-3">
-                          <div className="flex flex-wrap items-center justify-center gap-2">
-                            {sortNumbers(result.winningNumbers).map((num, idx) => (
-                              <LotteryBall key={idx} number={num} size="md" />
-                            ))}
-                            {result.bonusNumber && (
-                              <>
-                                <span className="text-lg font-bold text-muted-foreground">+</span>
-                                <LotteryBall number={result.bonusNumber} isBonus size="md" />
-                              </>
-                            )}
-                          </div>
+                      <div className="flex flex-wrap items-center justify-center gap-3">
+                        {sortNumbers(result.winningNumbers).map((num, idx) => (
+                          <LotteryBall key={idx} number={num} size="md" />
+                        ))}
+                        {result.bonusNumber && (
+                          <>
+                            <span className="text-lg font-bold text-muted-foreground mx-1">+</span>
+                            <LotteryBall number={result.bonusNumber} isBonus size="md" />
+                          </>
+                        )}
+                      </div>
                           {result.jackpotAmount && (
                             <div className="text-center">
                               <p className="text-xs text-muted-foreground">Jackpot</p>
