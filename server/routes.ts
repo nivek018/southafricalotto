@@ -229,17 +229,21 @@ export async function registerRoutes(
     }
   });
 
+  const getSastDateString = (offsetDays = 0): string => {
+    const now = new Date();
+    const sastOffset = 2 * 60; // SAST is UTC+2
+    const localOffset = now.getTimezoneOffset(); // minutes to UTC (negative for UTC+)
+    const sastTime = new Date(now.getTime() + (sastOffset - localOffset) * 60000);
+    sastTime.setUTCDate(sastTime.getUTCDate() + offsetDays);
+    return sastTime.toISOString().split("T")[0];
+  };
+
   app.get("/api/results/yesterday", async (req, res) => {
     try {
-      const now = new Date();
-      const sastOffset = 2 * 60;
-      const localOffset = now.getTimezoneOffset();
-      const sastTime = new Date(now.getTime() + (sastOffset + localOffset) * 60000);
-      sastTime.setDate(sastTime.getDate() - 1);
-      const yesterdayDate = sastTime.toISOString().split("T")[0];
+      const yesterdayDate = getSastDateString(-1);
 
       const allResults = await storage.getResults();
-      const yesterdayResults = allResults.filter(r => r.drawDate === yesterdayDate);
+      const yesterdayResults = allResults.filter(r => (r.drawDate || "").startsWith(yesterdayDate));
       res.json(yesterdayResults);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch yesterday's results" });
@@ -248,11 +252,7 @@ export async function registerRoutes(
 
   app.get("/api/results/today", async (req, res) => {
     try {
-      const now = new Date();
-      const sastOffset = 2 * 60;
-      const localOffset = now.getTimezoneOffset();
-      const sastTime = new Date(now.getTime() + (sastOffset + localOffset) * 60000);
-      const todayDate = sastTime.toISOString().split("T")[0];
+      const todayDate = getSastDateString(0);
 
       const games = await storage.getGames();
       const allResults = await storage.getResults();
