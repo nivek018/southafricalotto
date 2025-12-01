@@ -256,7 +256,7 @@ export async function registerRoutes(
 
       const games = await storage.getGames();
       const allResults = await storage.getResults();
-      const todayResults = allResults.filter(r => r.drawDate === todayDate);
+      const todayResults = allResults.filter(r => (r.drawDate || "").startsWith(todayDate));
 
       const gamesWithResults = games.map(game => {
         const result = todayResults.find(r => r.gameSlug === game.slug) || null;
