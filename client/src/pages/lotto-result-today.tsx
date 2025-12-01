@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/accordion";
 import { ChevronLeft, Calendar, Clock, CircleDot, Bell, HelpCircle, AlertCircle } from "lucide-react";
 import type { LotteryResult, LotteryGame } from "@shared/schema";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 const REMINDERS = [
   {
@@ -114,7 +114,7 @@ export default function LottoResultTodayPage() {
       month: "long",
       year: "numeric",
     });
-    document.title = `Lotto Result Today — ${formattedDate} | Official Results`;
+    document.title = `Lotto Result Today \u2014 ${formattedDate} | Official Results`;
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
       metaDesc.setAttribute("content", "Check today's South African lottery results including Powerball, Lotto, Lotto Plus, and Daily Lotto. Live updates with winning numbers and jackpot amounts.");
@@ -127,6 +127,17 @@ export default function LottoResultTodayPage() {
       document.head.appendChild(meta);
     }
   }, []);
+
+  const todayGames = useMemo(() => {
+    if (!data) return [];
+    return data.games.map(({ game, result }) => {
+      const isTodayResult = result?.drawDate === todayDate;
+      return {
+        game,
+        result: isTodayResult ? result : null
+      };
+    });
+  }, [data, todayDate]);
 
   const sortNumbers = (nums: number[] | string | undefined) => {
     if (!nums) return [];
@@ -231,7 +242,7 @@ export default function LottoResultTodayPage() {
 
             const todayKey = normalizeDay(todayWeekday);
 
-            const gamesForToday = data.games.filter(({ game }) => {
+            const gamesForToday = todayGames.filter(({ game }) => {
               const schedule = SCHEDULE_MAP[game.slug] || [];
               const normalizedSchedule = schedule.map(normalizeDay);
 
