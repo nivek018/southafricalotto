@@ -905,7 +905,7 @@ export default function GamePage() {
                                           style={{ width: `${width}%` }}
                                         />
                                       </div>
-                                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none flex items-center">
+                                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none flex items-center">
                                         <div
                                           className="h-14 w-14 rounded-full bg-lottery-ball-main text-white text-sm font-bold flex flex-col items-center justify-center shadow-lg ring-2 ring-white/20 z-10"
                                           style={{
@@ -916,7 +916,9 @@ export default function GamePage() {
                                           }}
                                         >
                                           <span className="leading-none text-base">{item.number}</span>
-                                          <span className="text-[11px] leading-none">{item.count}x</span>
+                                          <span className="text-[11px] leading-none">
+                                            {item.count} {item.count === 1 ? "time" : "times"}
+                                          </span>
                                         </div>
                                       </div>
                                     </div>
