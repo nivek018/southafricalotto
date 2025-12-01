@@ -907,10 +907,11 @@ export default function GamePage() {
                                       </div>
                                       <div className="absolute inset-0 hidden group-hover:flex items-center pointer-events-none">
                                         <div
-                                          className="ml-2 h-6 w-6 rounded-full bg-lottery-ball-main text-white text-xs font-bold flex items-center justify-center shadow-sm"
-                                          style={{ transform: `translateX(${Math.max(width - 6, 0)}%)` }}
+                                          className="ml-2 h-8 w-8 rounded-full bg-lottery-ball-main text-white text-sm font-bold flex flex-col items-center justify-center shadow-sm"
+                                          style={{ transform: `translateX(${Math.max(width - 8, 0)}%)` }}
                                         >
-                                          {item.count}x
+                                          <span className="leading-none">{item.number}</span>
+                                          <span className="text-[10px] leading-none">{item.count}x</span>
                                         </div>
                                       </div>
                                     </div>
