@@ -8,6 +8,7 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { RecentResultsSection } from "@/components/recent-results";
 import HomePage from "@/pages/home";
+import JackpotPage from "@/pages/jackpot";
 import GamePage from "@/pages/game";
 import NewsPage from "@/pages/news";
 import NewsArticlePage from "@/pages/news-article";
@@ -29,6 +30,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={HomePage} />
+      <Route path="/game/jackpot" component={JackpotPage} />
       <Route path="/game/:slug" component={GamePage} />
       <Route path="/draw-history/:slug" component={DrawHistoryPage} />
       <Route path="/lotto-result/today" component={LottoResultTodayPage} />
