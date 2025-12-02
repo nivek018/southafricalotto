@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { AdSlot } from "@/components/ad-slot";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, Link, useLocation } from "wouter";
 import { LotteryBall } from "@/components/lottery-ball";

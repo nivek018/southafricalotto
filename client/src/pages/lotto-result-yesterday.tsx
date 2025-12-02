@@ -13,6 +13,7 @@ import {
 import { ChevronLeft, Calendar, Bell, HelpCircle, AlertCircle } from "lucide-react";
 import type { LotteryResult } from "@shared/schema";
 import { useEffect } from "react";
+import { AdSlot } from "@/components/ad-slot";
 
 const REMINDERS = [
   {

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, CircleDot } from "lucide-react";
 import type { LotteryResult } from "@shared/schema";
 import { useEffect } from "react";
+import { AdSlot } from "@/components/ad-slot";
 
 function getYesterdayDateSAST(): string {
   const now = new Date();

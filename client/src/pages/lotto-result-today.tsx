@@ -14,6 +14,7 @@ import {
 import { ChevronLeft, Calendar, Clock, CircleDot, Bell, HelpCircle, AlertCircle } from "lucide-react";
 import type { LotteryResult, LotteryGame } from "@shared/schema";
 import { useEffect, useMemo } from "react";
+import { AdSlot } from "@/components/ad-slot";
 
 const REMINDERS = [
   {
