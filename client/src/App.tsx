@@ -73,16 +73,6 @@ function AppLayout() {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <div className="max-w-7xl mx-auto px-4 lg:px-8 w-full space-y-4 mt-4">
-        <AdSlot
-          slot="5683668562"
-          className="hidden md:block"
-        />
-        <AdSlot
-          slot="3057505225"
-          className="block md:hidden"
-        />
-      </div>
       <main className="flex-1">
         <Router />
       </main>
