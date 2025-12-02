@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueries } from "@tanstack/react-query";
 import { LOTTERY_GROUPS } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,6 +51,8 @@ export default function JackpotPage() {
   });
 
   const isLoading = queries.some((q) => q.isLoading);
+  const chartRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [chartVisible, setChartVisible] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     document.title = "Lotto, Daily Lotto, & Powerball Jackpot Prize and History | SA Lotto Results";
@@ -62,6 +64,22 @@ export default function JackpotPage() {
       );
     }
   }, []);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.target instanceof HTMLElement) {
+            const key = entry.dataset.group || "";
+            setChartVisible((prev) => ({ ...prev, [key]: true }));
+          }
+        });
+      },
+      { rootMargin: "150px 0px 150px 0px" }
+    );
+    chartRefs.current.forEach((el) => el && observer.observe(el));
+    return () => observer.disconnect();
+  }, [queries]);
 
   return (
     <div className="min-h-screen">
@@ -160,7 +178,10 @@ export default function JackpotPage() {
                 </CardContent>
               </Card>
 
-              <PrizeHistoryChart groupSlug={groupSlug} variants={data.group.variants} />
+              <div ref={(el) => (chartRefs.current[idx] = el)} data-group={groupSlug} />
+              {chartVisible[groupSlug] && (
+                <PrizeHistoryChart groupSlug={groupSlug} variants={data.group.variants} />
+              )}
             </div>
           );
         })}

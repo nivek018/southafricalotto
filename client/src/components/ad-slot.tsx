@@ -18,10 +18,23 @@ export function AdSlot({ slot, className = "", format = "auto" }: AdSlotProps) {
   const adRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    try {
-      if (window.adsbygoogle && adRef.current) {
-        (window.adsbygoogle as unknown[]).push({});
+    const tryPush = () => {
+      try {
+        if (window.adsbygoogle && adRef.current) {
+          (window.adsbygoogle as unknown[]).push({});
+        }
+      } catch {
+        // ignore ad load errors
       }
+    };
+
+    try {
+      tryPush();
+      const handler = () => tryPush();
+      window.addEventListener("adsbygoogle-loaded", handler);
+      return () => {
+        window.removeEventListener("adsbygoogle-loaded", handler);
+      };
     } catch {
       // ignore ad load errors
     }

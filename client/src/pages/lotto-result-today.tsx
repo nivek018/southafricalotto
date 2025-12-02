@@ -168,13 +168,6 @@ export default function LottoResultTodayPage() {
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 lg:px-8 py-8">
-        <Link href="/">
-          <Button variant="ghost" size="sm" className="mb-6" data-testid="button-back-home">
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            Back to Home
-          </Button>
-        </Link>
-
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <Calendar className="h-8 w-8 text-primary" />
@@ -364,7 +357,7 @@ export default function LottoResultTodayPage() {
         <div className="mt-12 bg-card rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">About Today's Lottery Results</h2>
           <p className="text-muted-foreground mb-4">
-            This page displays all South African lottery results for today. Results are updated live
+            This page displays all South Africa lotto results for today. Results are updated live
             as draws take place throughout the day. Games marked as "TBA" (To Be Announced) will be
             updated once the official draw has been completed.
           </p>

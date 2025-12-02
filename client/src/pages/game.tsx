@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import type { LotteryResult, LotteryGame } from "@shared/schema";
 import { getGroupForSlug } from "@shared/schema";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useCountdown, getNextDrawDate } from "@/hooks/use-countdown";
 import { PrizeHistoryChart } from "@/components/prize-history-chart";
 import { AdSlot } from "@/components/ad-slot";
@@ -318,6 +318,10 @@ export default function GamePage() {
 
   const showHotColdSection = HOT_COLD_GAMES.includes(groupSlug || slug);
   const showFrequencySection = showHotColdSection && hasGroup;
+  const prizeHistoryRef = useRef<HTMLDivElement | null>(null);
+  const freqRef = useRef<HTMLDivElement | null>(null);
+  const [prizeHistoryVisible, setPrizeHistoryVisible] = useState(false);
+  const [freqVisible, setFreqVisible] = useState(false);
 
   const getLatestDrawDate = () => {
     if (hasGroup && groupedData) {
@@ -350,11 +354,11 @@ export default function GamePage() {
     let title = `${groupName} Results - Latest Winning Numbers | SA Lotto Results`;
 
     if (groupSlug === "powerball" && formattedDate) {
-      title = `Powerball Results \u2014 ${formattedDate} | Powerball & Powerball Plus`;
+      title = `Powerball Results - ${formattedDate} | Powerball & Powerball Plus`;
     } else if (groupSlug === "lotto" && formattedDate) {
-      title = `Lotto Results \u2014 ${formattedDate} | Lotto, Lotto Plus 1 & Plus 2`;
+      title = `Lotto Results - ${formattedDate} | Lotto, Lotto Plus 1 & Plus 2`;
     } else if (groupSlug === "daily-lotto" && formattedDate) {
-      title = `Daily Lotto Results \u2014 ${formattedDate} | Daily Lotto & Daily Lotto Plus`;
+      title = `Daily Lotto Results - ${formattedDate} | Daily Lotto & Daily Lotto Plus`;
     }
 
     document.title = title;
@@ -387,6 +391,23 @@ export default function GamePage() {
       setFreqVariant((prev) => prev && groupedData.group.variants.includes(prev) ? prev : groupedData.group.variants[0]);
     }
   }, [hasGroup, groupedData]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            if (entry.target === prizeHistoryRef.current) setPrizeHistoryVisible(true);
+            if (entry.target === freqRef.current) setFreqVisible(true);
+          }
+        });
+      },
+      { rootMargin: "150px 0px 150px 0px" }
+    );
+    if (prizeHistoryRef.current) observer.observe(prizeHistoryRef.current);
+    if (freqRef.current) observer.observe(freqRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   const frequencyData = useMemo(() => {
     if (!showFrequencySection || !groupedData || !freqVariant) return [];
@@ -451,13 +472,6 @@ export default function GamePage() {
     <div className="min-h-screen">
       <section className="bg-gradient-to-b from-card to-background py-8 lg:py-12">
         <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <Link href="/">
-            <Button variant="ghost" className="mb-6" data-testid="button-back-home">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Results
-            </Button>
-          </Link>
-
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 mb-4">
               <CircleDot className="h-8 w-8 text-lottery-ball-main" />
@@ -819,14 +833,16 @@ export default function GamePage() {
                 </section>
               )}
 
-              {hasGroup && groupedData && (
+              <div ref={prizeHistoryRef} />
+              {prizeHistoryVisible && hasGroup && groupedData && (
                 <PrizeHistoryChart
                   groupSlug={groupSlug || ""}
                   variants={groupedData.group.variants}
                 />
               )}
 
-              {showFrequencySection && groupedData && freqVariant && (
+              <div ref={freqRef} />
+              {freqVisible && showFrequencySection && groupedData && freqVariant && (
                 <section className="mt-10" data-testid="section-frequency-analysis">
                   <Card>
                     <CardHeader className="pb-4">

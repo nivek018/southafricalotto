@@ -8,6 +8,8 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { RecentResultsSection } from "@/components/recent-results";
 import { AdSlot } from "@/components/ad-slot";
+import { useEffect } from "react";
+import { initDeferredScripts } from "@/lib/deferred-scripts";
 import HomePage from "@/pages/home";
 import JackpotPage from "@/pages/jackpot";
 import GamePage from "@/pages/game";
@@ -111,6 +113,10 @@ function AppLayout() {
 }
 
 function App() {
+  useEffect(() => {
+    initDeferredScripts();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
