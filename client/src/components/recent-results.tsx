@@ -44,7 +44,7 @@ export function RecentResultsSection() {
 
   const skeletonItems = Array.from({ length: 6 });
   // Reserve space and hint intrinsic size to avoid CLS when content streams in
-  const reservedHeight = 800;
+  const reservedHeight = 720;
 
   return (
     <section
@@ -70,8 +70,8 @@ export function RecentResultsSection() {
             {isLoading ? (
               <div className="grid gap-4 md:grid-cols-2">
                 {skeletonItems.map((_, idx) => (
-                  <Card key={idx} className="bg-card/50 border-dashed min-h-[150px]">
-                    <CardContent className="p-4">
+                  <Card key={idx} className="bg-card/50 border-dashed h-[190px]">
+                    <CardContent className="p-4 h-full flex flex-col justify-center">
                       <div className="flex gap-4 items-center">
                         <div className="w-14 h-14 rounded-lg bg-muted animate-pulse" />
                         <div className="flex-1 space-y-2">
@@ -106,8 +106,8 @@ export function RecentResultsSection() {
                   const primaryHref = primarySlug ? `/${primarySlug}-result/${entry.date}` : null;
 
                   return (
-                    <Card key={entry.date} className="bg-card/70 min-h-[150px]">
-                      <CardContent className="p-4">
+                    <Card key={entry.date} className="bg-card/70 h-[190px]">
+                      <CardContent className="p-4 h-full flex flex-col justify-center">
                         <div className="flex gap-4">
                           <div className="w-14 h-14 rounded-lg bg-gradient-to-b from-primary/15 to-primary/10 border flex flex-col items-center justify-center">
                             <span className="text-xl font-bold leading-tight">{day}</span>
@@ -118,7 +118,15 @@ export function RecentResultsSection() {
                               <Calendar className="w-4 h-4 text-primary" />
                               <p className="font-semibold leading-tight">Lotto Results {formatLongDate(entry.date)}</p>
                             </div>
-                            <p className="text-sm text-muted-foreground leading-snug">
+                            <p
+                              className="text-sm text-muted-foreground leading-snug"
+                              style={{
+                                display: "-webkit-box",
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: "vertical",
+                                overflow: "hidden"
+                              }}
+                            >
                               Results for{" "}
                               {gameLinks.map((gl, idx) => (
                                 <Link
