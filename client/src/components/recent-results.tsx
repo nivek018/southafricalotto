@@ -43,13 +43,17 @@ export function RecentResultsSection() {
   const entries = data?.dates || [];
 
   const skeletonItems = Array.from({ length: 6 });
-  // Reserve generous space up front so loaded content doesn't expand the layout and trigger CLS
-  const reservedHeight = 1100;
+  // Reserve space and hint intrinsic size to avoid CLS when content streams in
+  const reservedHeight = 800;
 
   return (
     <section
       className="py-10 lg:py-14"
-      style={{ minHeight: reservedHeight }}
+      style={{
+        minHeight: reservedHeight,
+        contentVisibility: "auto",
+        containIntrinsicSize: "1000px"
+      }}
     >
       <div className="max-w-7xl mx-auto px-4 lg:px-8">
         <Card>
