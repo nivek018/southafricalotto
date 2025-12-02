@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, History, Calendar, CircleDot, Trophy } from "lucide-react";
 import { format } from "date-fns";
 import type { LotteryResult } from "@shared/schema";
-import { getGroupForSlug, LOTTERY_GROUPS } from "@shared/schema";
+import { getGroupForSlug, LOTTERY_GROUPS, canonicalSlug } from "@shared/schema";
 
 interface GroupedResultsResponse {
   group: {
@@ -26,27 +26,34 @@ interface GroupedResultsResponse {
 export default function DrawHistoryPage() {
   const { slug } = useParams<{ slug: string }>();
   const [, setLocation] = useLocation();
+  const canonical = canonicalSlug(slug || "");
   const [showAll, setShowAll] = useState(false);
 
-  const groupInfo = useMemo(() => getGroupForSlug(slug || ""), [slug]);
+  useEffect(() => {
+    if (canonical && canonical !== slug) {
+      setLocation(`/draw-history/${canonical}`);
+    }
+  }, [canonical, slug, setLocation]);
+
+  const groupInfo = useMemo(() => getGroupForSlug(canonical || ""), [canonical]);
   const groupSlug = groupInfo?.groupSlug || null;
   const hasGroup = !!groupInfo;
 
   const { data: groupedData, isLoading: groupLoading } = useQuery<GroupedResultsResponse>({
     queryKey: ["/api/results/group", groupSlug],
-    enabled: !!slug && hasGroup && !!groupSlug,
+    enabled: !!canonical && hasGroup && !!groupSlug,
   });
 
   const { data: singleResults, isLoading: singleLoading } = useQuery<LotteryResult[]>({
-    queryKey: ["/api/results/game", slug],
-    enabled: !!slug && !hasGroup,
+    queryKey: ["/api/results/game", canonical],
+    enabled: !!canonical && !hasGroup,
   });
 
   const isLoading = hasGroup ? groupLoading : singleLoading;
 
   const groupName = hasGroup 
-    ? groupedData?.group?.name || groupInfo?.group?.name || slug
-    : singleResults?.[0]?.gameName || slug?.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") || "Lottery";
+    ? groupedData?.group?.name || groupInfo?.group?.name || canonical
+    : singleResults?.[0]?.gameName || canonical?.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") || "Lottery";
 
   const getVariantDisplayName = (variantSlug: string): string => {
     const nameMap: Record<string, string> = {
@@ -184,7 +191,7 @@ export default function DrawHistoryPage() {
             <div className="space-y-6">
               {displayDates.map((date) => {
                 const resultsForDate = getResultsForDate(date);
-                const variants = hasGroup && groupedData ? groupedData.group.variants : [slug || ""];
+                const variants = hasGroup && groupedData ? groupedData.group.variants : [canonical || ""];
                 
                 return (
                   <Card key={date} className="overflow-hidden" data-testid={`card-date-${date}`}>

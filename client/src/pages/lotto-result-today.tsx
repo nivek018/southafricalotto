@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/accordion";
 import { ChevronLeft, Calendar, Clock, CircleDot, Bell, HelpCircle, AlertCircle } from "lucide-react";
 import type { LotteryResult, LotteryGame } from "@shared/schema";
+import { canonicalSlug } from "@shared/schema";
 import { useEffect, useMemo } from "react";
 import { AdSlot } from "@/components/ad-slot";
 
@@ -337,7 +338,7 @@ export default function LottoResultTodayPage() {
                         </div>
                       )}
                       <div className="mt-2 text-center">
-                        <Link href={`/game/${game.slug}`}>
+                        <Link href={`/game/${canonicalSlug(game.slug)}`}>
                           <Button variant="ghost" size="sm" data-testid={`link-game-${game.slug}`}>
                             View Game Details
                           </Button>

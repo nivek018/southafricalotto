@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, Calendar, CircleDot, Trophy, History } from "lucide-react";
 import { format, addDays, subDays, parseISO } from "date-fns";
 import type { LotteryResult } from "@shared/schema";
-import { LOTTERY_GROUPS } from "@shared/schema";
+import { LOTTERY_GROUPS, canonicalSlug } from "@shared/schema";
 
 interface DateResultsResponse {
   date: string;

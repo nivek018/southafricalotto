@@ -13,7 +13,8 @@ import {
   insertScraperSettingSchema,
   updateDrawDaysSchema,
   LOTTERY_GROUPS,
-  getGroupForSlug
+  getGroupForSlug,
+  canonicalSlug
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -113,27 +114,20 @@ export async function registerRoutes(
     const paths = new Set<string>();
     results.forEach((r) => {
       if (!r) return;
-      const groupInfo = getGroupForSlug(r.gameSlug);
-      const groupSlug = groupInfo?.groupSlug || r.gameSlug;
-      paths.add(`/game/${r.gameSlug}`);
-      paths.add(`/draw-history/${r.gameSlug}`);
+      const canonical = canonicalSlug(r.gameSlug);
+      const groupInfo = getGroupForSlug(canonical);
+      const groupSlug = groupInfo?.groupSlug || canonical;
+      paths.add(`/game/${canonical}`);
       paths.add(`/draw-history/${groupSlug}`);
       paths.add(`/${groupSlug}-result/${r.drawDate}`);
       paths.add("/game/jackpot");
       if (groupSlug === "powerball") {
-        paths.add("/game/powerball");
-        paths.add("/game/powerball-plus");
         paths.add("/powerball-result/yesterday");
       }
       if (groupSlug === "lotto") {
-        paths.add("/game/lotto");
-        paths.add("/game/lotto-plus-1");
-        paths.add("/game/lotto-plus-2");
         paths.add("/lotto-result/yesterday");
       }
       if (groupSlug === "daily-lotto") {
-        paths.add("/game/daily-lotto");
-        paths.add("/game/daily-lotto-plus");
         paths.add("/daily-lotto-result/yesterday");
       }
     });
@@ -698,13 +692,15 @@ export async function registerRoutes(
       });
 
       games.forEach(game => {
+        const canonical = canonicalSlug(game.slug);
+        if (canonical !== game.slug) return;
         xml += `  <url>\n`;
-        xml += `    <loc>${baseUrl}/game/${game.slug}</loc>\n`;
+        xml += `    <loc>${baseUrl}/game/${canonical}</loc>\n`;
         xml += `    <changefreq>daily</changefreq>\n`;
         xml += `    <priority>0.8</priority>\n`;
         xml += `  </url>\n`;
         xml += `  <url>\n`;
-        xml += `    <loc>${baseUrl}/draw-history/${game.slug}</loc>\n`;
+        xml += `    <loc>${baseUrl}/draw-history/${canonical}</loc>\n`;
         xml += `    <changefreq>daily</changefreq>\n`;
         xml += `    <priority>0.7</priority>\n`;
         xml += `  </url>\n`;

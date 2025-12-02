@@ -161,6 +161,17 @@ export const LOTTERY_GROUPS: Record<string, { name: string; slugs: string[]; des
   }
 };
 
+const CANONICAL_SLUG_MAP: Record<string, string> = {
+  "powerball-plus": "powerball",
+  "lotto-plus-1": "lotto",
+  "lotto-plus-2": "lotto",
+  "daily-lotto-plus": "daily-lotto",
+};
+
+export function canonicalSlug(slug: string): string {
+  return CANONICAL_SLUG_MAP[slug] || slug;
+}
+
 export function getGroupForSlug(slug: string): { groupSlug: string; group: typeof LOTTERY_GROUPS[string] } | null {
   for (const [groupSlug, group] of Object.entries(LOTTERY_GROUPS)) {
     if (group.slugs.includes(slug)) {

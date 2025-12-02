@@ -1,7 +1,7 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 import type { InsertLotteryResult } from "@shared/schema";
-import { getGroupForSlug } from "@shared/schema";
+import { getGroupForSlug, canonicalSlug } from "@shared/schema";
 import { scrape as logScrape, error as logError, info as logInfo } from "./logger";
 import { storage } from "./storage";
 import { purgeCloudflareSite } from "./cloudflare";
@@ -369,26 +369,19 @@ function parseScheduleTime(timeStr: string | null | undefined): { hours: number;
 function buildPurgePaths(results: InsertLotteryResult[]): string[] {
   const paths = new Set<string>();
   results.forEach((r) => {
-    const groupInfo = getGroupForSlug(r.gameSlug);
-    const groupSlug = groupInfo?.groupSlug || r.gameSlug;
-    paths.add(`/game/${r.gameSlug}`);
-    paths.add(`/draw-history/${r.gameSlug}`);
+    const canonical = canonicalSlug(r.gameSlug);
+    const groupInfo = getGroupForSlug(canonical);
+    const groupSlug = groupInfo?.groupSlug || canonical;
+    paths.add(`/game/${canonical}`);
     paths.add(`/draw-history/${groupSlug}`);
     paths.add(`/${groupSlug}-result/${r.drawDate}`);
     if (groupSlug === "powerball") {
-      paths.add("/game/powerball");
-      paths.add("/game/powerball-plus");
       paths.add("/powerball-result/yesterday");
     }
     if (groupSlug === "lotto") {
-      paths.add("/game/lotto");
-      paths.add("/game/lotto-plus-1");
-      paths.add("/game/lotto-plus-2");
       paths.add("/lotto-result/yesterday");
     }
     if (groupSlug === "daily-lotto") {
-      paths.add("/game/daily-lotto");
-      paths.add("/game/daily-lotto-plus");
       paths.add("/daily-lotto-result/yesterday");
     }
   });

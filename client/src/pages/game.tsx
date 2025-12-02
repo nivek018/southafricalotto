@@ -27,10 +27,11 @@ import {
   Activity
 } from "lucide-react";
 import type { LotteryResult, LotteryGame } from "@shared/schema";
-import { getGroupForSlug } from "@shared/schema";
+import { getGroupForSlug, canonicalSlug } from "@shared/schema";
 import { useEffect, useMemo, useState, useRef, lazy, Suspense } from "react";
 import { useCountdown, getNextDrawDate } from "@/hooks/use-countdown";
 import { AdSlot } from "@/components/ad-slot";
+import { useLocation } from "wouter";
 const PrizeHistoryChart = lazy(async () => {
   const mod = await import("@/components/prize-history-chart");
   return { default: mod.PrizeHistoryChart };
@@ -187,6 +188,14 @@ const MAX_NUMBERS: Record<string, number> = {
 export default function GamePage() {
   const [, params] = useRoute("/game/:slug");
   const slug = params?.slug || "";
+  const [, navigate] = useLocation();
+  const canonical = canonicalSlug(slug);
+
+  useEffect(() => {
+    if (canonical !== slug) {
+      navigate(`/game/${canonical}`);
+    }
+  }, [canonical, slug, navigate]);
 
   const getSASTDateString = () => {
     const fmt = new Intl.DateTimeFormat("en-CA", {
@@ -199,11 +208,11 @@ export default function GamePage() {
   };
   const [sastDay, setSastDay] = useState(getSASTDateString());
 
-  const groupInfo = useMemo(() => getGroupForSlug(slug), [slug]);
+  const groupInfo = useMemo(() => getGroupForSlug(canonical), [canonical]);
   const groupSlug = groupInfo?.groupSlug || null;
   const hasGroup = !!groupInfo;
 
-  const mainGameSlug = hasGroup ? (groupInfo?.group?.slugs?.[0] || slug) : slug;
+  const mainGameSlug = hasGroup ? (groupInfo?.group?.slugs?.[0] || canonical) : canonical;
 
   const { data: gameData, refetch: refetchGame } = useQuery<LotteryGame>({
     queryKey: ["/api/games", mainGameSlug],
@@ -212,12 +221,12 @@ export default function GamePage() {
 
   const { data: groupedData, isLoading: groupLoading, refetch: refetchGrouped } = useQuery<GroupedResultsResponse>({
     queryKey: ["/api/results/group", groupSlug],
-    enabled: !!slug && hasGroup && !!groupSlug,
+    enabled: !!canonical && hasGroup && !!groupSlug,
   });
 
   const { data: singleResults, isLoading: singleLoading, refetch: refetchSingle } = useQuery<LotteryResult[]>({
-    queryKey: ["/api/results/game", slug],
-    enabled: !!slug && !hasGroup,
+    queryKey: ["/api/results/game", canonical],
+    enabled: !!canonical && !hasGroup,
   });
 
   const { data: statistics, refetch: refetchStats } = useQuery<StatisticsResponse>({
@@ -256,11 +265,11 @@ export default function GamePage() {
         .filter(Boolean) as { name: string; amount: string }[];
     }
     if (singleResults && singleResults[0]?.jackpotAmount) {
-      const displayName = singleResults[0].gameName || slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+      const displayName = singleResults[0].gameName || canonical.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
       return [{ name: displayName, amount: singleResults[0].jackpotAmount }];
     }
     return [];
-  }, [hasGroup, groupedData, singleResults, slug]);
+  }, [hasGroup, groupedData, singleResults, canonical]);
 
   const countdown = useCountdown(nextDrawDate);
   const [freqRange, setFreqRange] = useState<"3m" | "6m" | "1y">("3m");
@@ -312,14 +321,14 @@ export default function GamePage() {
   };
 
   const groupName = hasGroup
-    ? groupedData?.group?.name || groupInfo?.group?.name || slug
-    : singleResults?.[0]?.gameName || slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+    ? groupedData?.group?.name || groupInfo?.group?.name || canonical
+    : singleResults?.[0]?.gameName || canonical.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 
   const groupDescription = hasGroup
     ? groupedData?.group?.description || groupInfo?.group?.description
     : null;
 
-  const showHotColdSection = HOT_COLD_GAMES.includes(groupSlug || slug);
+  const showHotColdSection = HOT_COLD_GAMES.includes(groupSlug || canonical);
   const showFrequencySection = showHotColdSection && hasGroup;
   const prizeHistoryRef = useRef<HTMLDivElement | null>(null);
   const freqRef = useRef<HTMLDivElement | null>(null);
@@ -648,7 +657,7 @@ export default function GamePage() {
                             </div>
                             {allVariantResults.length > 4 && (
                               <div className="mt-3 text-center">
-                                <Link href={`/draw-history/${variantSlug}`}>
+                                <Link href={`/draw-history/${canonicalSlug(variantSlug)}`}>
                                   <Button variant="outline" size="sm" data-testid={`button-history-${variantSlug}`}>
                                     View All {variantName} History
                                   </Button>
@@ -734,7 +743,7 @@ export default function GamePage() {
               )}
 
               <div className="mt-8 text-center">
-                <Link href={`/draw-history/${slug}`}>
+                <Link href={`/draw-history/${canonical}`}>
                   <Button variant="outline" data-testid="button-view-draw-history">
                     View Complete Draw History
                   </Button>
@@ -978,12 +987,12 @@ export default function GamePage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              {GAME_HOW_TO_PLAY[groupSlug || slug] ? (
+              {GAME_HOW_TO_PLAY[groupSlug || canonical] ? (
                 <>
                   <div>
                     <h3 className="font-semibold mb-3">Steps to Play</h3>
                     <ol className="space-y-2">
-                      {GAME_HOW_TO_PLAY[groupSlug || slug].steps.map((step, idx) => (
+                      {GAME_HOW_TO_PLAY[groupSlug || canonical].steps.map((step, idx) => (
                         <li key={idx} className="flex gap-3 text-muted-foreground">
                           <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-sm font-medium flex items-center justify-center">
                             {idx + 1}
@@ -996,7 +1005,7 @@ export default function GamePage() {
                   <div>
                     <h3 className="font-semibold mb-3">Tips & Information</h3>
                     <ul className="space-y-2">
-                      {GAME_HOW_TO_PLAY[groupSlug || slug].tips.map((tip, idx) => (
+                      {GAME_HOW_TO_PLAY[groupSlug || canonical].tips.map((tip, idx) => (
                         <li key={idx} className="flex gap-3 text-muted-foreground">
                           <span className="flex-shrink-0 text-primary">{"\u2022"}</span>
                           <span>{tip}</span>
@@ -1063,7 +1072,7 @@ export default function GamePage() {
                 </CardHeader>
                 <CardContent>
                   <Accordion type="single" collapsible className="w-full">
-                    {GAME_FAQS[groupSlug || slug].map((faq, idx) => (
+                    {GAME_FAQS[groupSlug || canonical].map((faq, idx) => (
                       <AccordionItem key={idx} value={`faq-${idx}`} data-testid={`faq-item-${idx}`}>
                         <AccordionTrigger className="text-left">
                           {faq.question}

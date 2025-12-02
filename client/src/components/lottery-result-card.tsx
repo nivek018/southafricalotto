@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { LotteryBall } from "@/components/lottery-ball";
 import { Calendar, ArrowRight, Trophy } from "lucide-react";
 import type { LotteryResult } from "@shared/schema";
+import { canonicalSlug } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 
 interface LotteryResultCardProps {
@@ -70,7 +71,7 @@ export function LotteryResultCard({ result }: LotteryResultCardProps) {
             </div>
           )}
 
-          <Link href={`/game/${result.gameSlug}`}>
+          <Link href={`/game/${canonicalSlug(result.gameSlug)}`}>
             <Button
               variant="ghost"
               className="group px-4 py-2"
