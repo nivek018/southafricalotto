@@ -54,9 +54,15 @@ export default function AdminDashboard() {
     queryKey: ["/api/scraper-settings"],
   });
 
+  const [scrapeStart, setScrapeStart] = useState(() => new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Johannesburg" }).format(new Date()));
+  const [scrapeEnd, setScrapeEnd] = useState(() => new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Johannesburg" }).format(new Date()));
+
   const scrapeMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/scrape");
+      const res = await apiRequest("POST", "/api/scrape/date-range", {
+        startDate: scrapeStart,
+        endDate: scrapeEnd,
+      });
       return res.json();
     },
     onSuccess: (data: any) => {
@@ -248,15 +254,32 @@ export default function AdminDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Button
-                onClick={() => scrapeMutation.mutate()}
-                disabled={scrapeMutation.isPending}
-                className="w-full"
-                data-testid="button-scrape"
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${scrapeMutation.isPending ? "animate-spin" : ""}`} />
-                {scrapeMutation.isPending ? "Scraping..." : "Fetch Latest Results"}
-              </Button>
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="date"
+                    value={scrapeStart}
+                    onChange={(e) => setScrapeStart(e.target.value)}
+                    className="flex-1"
+                  />
+                  <span className="text-muted-foreground">to</span>
+                  <Input
+                    type="date"
+                    value={scrapeEnd}
+                    onChange={(e) => setScrapeEnd(e.target.value)}
+                    className="flex-1"
+                  />
+                </div>
+                <Button
+                  onClick={() => scrapeMutation.mutate()}
+                  disabled={scrapeMutation.isPending}
+                  className="w-full"
+                  data-testid="button-scrape"
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${scrapeMutation.isPending ? "animate-spin" : ""}`} />
+                  {scrapeMutation.isPending ? "Scraping..." : "Fetch Results"}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>

@@ -75,7 +75,7 @@ const formatDateForUrl = (dateIso: string): string => {
   const date = new Date(dateIso + "T00:00:00Z");
   const fmt = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Africa/Johannesburg",
-    day: "2-digit",
+    day: "numeric", // no leading zero
     month: "short",
     year: "numeric",
   });
@@ -368,6 +368,8 @@ export function startScraperCron(): void {
       if (setting.isEnabled === false) continue;
       const game = games.find(g => g.slug === setting.gameSlug);
       if (!game) continue;
+      const canonical = canonicalSlug(game.slug);
+      if (canonical !== game.slug) continue;
 
       const drawDays = Array.isArray(game.drawDays)
         ? game.drawDays
