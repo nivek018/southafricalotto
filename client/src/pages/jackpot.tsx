@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { PrizeHistoryChart } from "@/components/prize-history-chart";
 import { Calendar, Trophy, CircleDot } from "lucide-react";
 import type { LotteryResult } from "@shared/schema";
+import { AdSlot } from "@/components/ad-slot";
 
 type GroupedResultsResponse = {
   group: {
