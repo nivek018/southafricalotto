@@ -8,7 +8,6 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { RecentResultsSection } from "@/components/recent-results";
 import { AdSlot } from "@/components/ad-slot";
-import { useEffect } from "react";
 import { initDeferredScripts } from "@/lib/deferred-scripts";
 import HomePage from "@/pages/home";
 import JackpotPage from "@/pages/jackpot";
