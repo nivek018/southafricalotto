@@ -61,13 +61,14 @@ export function RecentResultsSection() {
             {isLoading ? (
               <div className="grid gap-4 md:grid-cols-2">
                 {skeletonItems.map((_, idx) => (
-                  <Card key={idx} className="bg-card/50 border-dashed">
+                  <Card key={idx} className="bg-card/50 border-dashed min-h-[140px]">
                     <CardContent className="p-4">
-                      <div className="flex gap-4 items-center">
-                        <div className="w-14 h-14 rounded-lg bg-muted animate-pulse" />
-                        <div className="flex-1 space-y-2">
-                          <div className="h-3 w-3/4 bg-muted animate-pulse rounded" />
+                      <div className="flex gap-4 items-start">
+                        <div className="w-14 h-14 rounded-lg bg-muted animate-pulse shrink-0" />
+                        <div className="flex-1 space-y-2.5">
+                          <div className="h-4 w-3/4 bg-muted animate-pulse rounded" />
                           <div className="h-3 w-full bg-muted animate-pulse rounded" />
+                          <div className="h-3 w-2/3 bg-muted animate-pulse rounded" />
                         </div>
                       </div>
                     </CardContent>
@@ -97,16 +98,16 @@ export function RecentResultsSection() {
                   const primaryHref = primarySlug ? `/${primarySlug}-result/${entry.date}` : null;
 
                   return (
-                    <Card key={entry.date} className="bg-card/70">
+                    <Card key={entry.date} className="bg-card/70 min-h-[140px]">
                       <CardContent className="p-4">
-                        <div className="flex gap-4">
-                          <div className="w-14 h-14 rounded-lg bg-gradient-to-b from-primary/15 to-primary/10 border flex flex-col items-center justify-center">
+                        <div className="flex gap-4 items-start">
+                          <div className="w-14 h-14 rounded-lg bg-gradient-to-b from-primary/15 to-primary/10 border flex flex-col items-center justify-center shrink-0">
                             <span className="text-xl font-bold leading-tight">{day}</span>
                             <span className="text-[11px] font-semibold text-muted-foreground">{month}</span>
                           </div>
                           <div className="flex-1 space-y-2">
                             <div className="flex items-center gap-2">
-                              <Calendar className="w-4 h-4 text-primary" />
+                              <Calendar className="w-4 h-4 text-primary shrink-0" />
                               <p className="font-semibold leading-tight">Lotto Results {formatLongDate(entry.date)}</p>
                             </div>
                             <p className="text-sm text-muted-foreground leading-snug">
