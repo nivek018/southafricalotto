@@ -1,6 +1,7 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 import type { InsertLotteryResult } from "@shared/schema";
+import { getGroupForSlug } from "@shared/schema";
 import { scrape as logScrape, error as logError, info as logInfo } from "./logger";
 import { storage } from "./storage";
 import { purgeCloudflareSite } from "./cloudflare";
@@ -365,6 +366,39 @@ function parseScheduleTime(timeStr: string | null | undefined): { hours: number;
   return { hours: h, minutes: m };
 }
 
+function buildPurgePaths(results: InsertLotteryResult[]): string[] {
+  const paths = new Set<string>();
+  results.forEach((r) => {
+    const groupInfo = getGroupForSlug(r.gameSlug);
+    const groupSlug = groupInfo?.groupSlug || r.gameSlug;
+    paths.add(`/game/${r.gameSlug}`);
+    paths.add(`/draw-history/${r.gameSlug}`);
+    paths.add(`/draw-history/${groupSlug}`);
+    paths.add(`/${groupSlug}-result/${r.drawDate}`);
+    if (groupSlug === "powerball") {
+      paths.add("/game/powerball");
+      paths.add("/game/powerball-plus");
+      paths.add("/powerball-result/yesterday");
+    }
+    if (groupSlug === "lotto") {
+      paths.add("/game/lotto");
+      paths.add("/game/lotto-plus-1");
+      paths.add("/game/lotto-plus-2");
+      paths.add("/lotto-result/yesterday");
+    }
+    if (groupSlug === "daily-lotto") {
+      paths.add("/game/daily-lotto");
+      paths.add("/game/daily-lotto-plus");
+      paths.add("/daily-lotto-result/yesterday");
+    }
+  });
+  paths.add("/");
+  paths.add("/game/jackpot");
+  paths.add("/sitemap.xml");
+  paths.add("/lotto-result/today");
+  return Array.from(paths);
+}
+
 export function startScraperCron(): void {
   if (cronTimer) return;
 
@@ -381,7 +415,8 @@ export function startScraperCron(): void {
       const scrapedResults = await scrapeLotteryResults(1, 0);
       const { addedCount } = await processScrapedResults(scrapedResults);
       if (addedCount > 0) {
-        void purgeCloudflareSite();
+        const paths = buildPurgePaths(scrapedResults);
+        void purgeCloudflareSite(paths);
       }
       const timestamp = new Date().toISOString();
       await storage.updateScraperLastRun(timestamp);

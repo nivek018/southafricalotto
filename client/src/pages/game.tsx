@@ -746,11 +746,6 @@ export default function GamePage() {
                 <AdSlot slot="3057505225" className="block md:hidden" />
               </div>
 
-              <div className="max-w-5xl mx-auto w-full mt-6 space-y-4">
-                <AdSlot slot="5683668562" className="hidden md:block" />
-                <AdSlot slot="3057505225" className="block md:hidden" />
-              </div>
-
               {showHotColdSection && statistics && (statistics.hotNumbers.length > 0 || statistics.coldNumbers.length > 0) && (
                 <section className="mt-12" data-testid="section-hot-cold-numbers">
                   <div className="bg-card/60 border rounded-xl p-6 lg:p-8 shadow-sm">
