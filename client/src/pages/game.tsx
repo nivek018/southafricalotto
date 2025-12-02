@@ -31,7 +31,10 @@ import { getGroupForSlug } from "@shared/schema";
 import { useEffect, useMemo, useState, useRef, lazy, Suspense } from "react";
 import { useCountdown, getNextDrawDate } from "@/hooks/use-countdown";
 import { AdSlot } from "@/components/ad-slot";
-const PrizeHistoryChart = lazy(() => import("@/components/prize-history-chart"));
+const PrizeHistoryChart = lazy(async () => {
+  const mod = await import("@/components/prize-history-chart");
+  return { default: mod.PrizeHistoryChart };
+});
 
 interface GroupedResultsResponse {
   group: {

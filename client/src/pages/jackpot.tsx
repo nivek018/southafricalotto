@@ -4,7 +4,10 @@ import { LOTTERY_GROUPS } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { lazy, Suspense } from "react";
-const PrizeHistoryChart = lazy(() => import("@/components/prize-history-chart"));
+const PrizeHistoryChart = lazy(async () => {
+  const mod = await import("@/components/prize-history-chart");
+  return { default: mod.PrizeHistoryChart };
+});
 import { Calendar, Trophy, CircleDot } from "lucide-react";
 import type { LotteryResult } from "@shared/schema";
 import { AdSlot } from "@/components/ad-slot";
