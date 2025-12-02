@@ -7,6 +7,7 @@ import { Link } from "wouter";
 import { ArrowRight, CircleDot, Newspaper } from "lucide-react";
 import type { LotteryResult, NewsArticle } from "@shared/schema";
 import { useEffect } from "react";
+import { AdSlot } from "@/components/ad-slot";
 
 export default function HomePage() {
   useEffect(() => {
