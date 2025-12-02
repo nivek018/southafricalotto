@@ -61,7 +61,7 @@ export function RecentResultsSection() {
             {isLoading ? (
               <div className="grid gap-4 md:grid-cols-2">
                 {skeletonItems.map((_, idx) => (
-                  <Card key={idx} className="bg-card/50 border-dashed">
+                  <Card key={idx} className="bg-card/50 border-dashed min-h-[90px]">
                     <CardContent className="p-4">
                       <div className="flex gap-4 items-start">
                         {/* Badge Placeholder */}
@@ -80,9 +80,6 @@ export function RecentResultsSection() {
                             <div className="h-4 w-full bg-muted animate-pulse rounded" />
                             <div className="h-4 w-5/6 bg-muted animate-pulse rounded" />
                           </div>
-
-                          {/* Link Placeholder */}
-                          <div className="h-4 w-32 bg-muted animate-pulse rounded pt-1" />
                         </div>
                       </div>
                     </CardContent>
@@ -112,7 +109,7 @@ export function RecentResultsSection() {
                   const primaryHref = primarySlug ? `/${primarySlug}-result/${entry.date}` : null;
 
                   return (
-                    <Card key={entry.date} className="bg-card/70">
+                    <Card key={entry.date} className="bg-card/70 min-h-[90px]">
                       <CardContent className="p-4">
                         <div className="flex gap-4 items-start">
                           <div className="w-14 h-14 rounded-lg bg-gradient-to-b from-primary/15 to-primary/10 border flex flex-col items-center justify-center shrink-0">
