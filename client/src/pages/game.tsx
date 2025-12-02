@@ -833,12 +833,14 @@ export default function GamePage() {
 
               <div ref={prizeHistoryRef} className="h-1" />
               {prizeHistoryVisible && hasGroup && groupedData && (
-                <Suspense fallback={<div className="text-center text-muted-foreground py-4">Loading chart...</div>}>
-                  <PrizeHistoryChart
-                    groupSlug={groupSlug || ""}
-                    variants={groupedData.group.variants}
-                  />
-                </Suspense>
+                <div className="min-h-[320px]">
+                  <Suspense fallback={<div className="text-center text-muted-foreground py-4">Loading chart...</div>}>
+                    <PrizeHistoryChart
+                      groupSlug={groupSlug || ""}
+                      variants={groupedData.group.variants}
+                    />
+                  </Suspense>
+                </div>
               )}
 
               <div ref={freqRef} className="h-1" />
