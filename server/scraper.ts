@@ -226,9 +226,13 @@ export async function scrapeLotteryResults(
 
 export async function scrapeDateRange(startDate: string, endDate: string, gameSlugs?: string[]): Promise<InsertLotteryResult[]> {
   const results: InsertLotteryResult[] = [];
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+  const parseYmd = (s: string) => {
+    const [y, m, d] = s.split("-").map((n) => parseInt(n, 10));
+    return new Date(Date.UTC(y, (m || 1) - 1, d || 1));
+  };
+  const start = parseYmd(startDate);
+  const end = parseYmd(endDate);
+  for (let d = new Date(start); d.getTime() <= end.getTime(); d.setUTCDate(d.getUTCDate() + 1)) {
     const iso = formatSastDateString(new Date(d));
     const dayResults = await scrapeLotteryResults(1, 0, { targetDate: iso, gameSlugs });
     results.push(...dayResults);

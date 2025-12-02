@@ -383,6 +383,12 @@ export default function AdminDashboard() {
                               type="time"
                               value={scheduleTime}
                               onChange={(e) => handleScheduleUpdate(game.slug, e.target.value)}
+                              onBlur={(e) => handleScheduleUpdate(game.slug, e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  handleScheduleUpdate(game.slug, (e.target as HTMLInputElement).value);
+                                }
+                              }}
                               className="w-28 text-sm"
                               disabled={!isEnabled || settingsMutation.isPending}
                               data-testid={`input-schedule-${game.slug}`}
@@ -430,18 +436,8 @@ export default function AdminDashboard() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Button
-                    onClick={() => scrapeMutation.mutate()}
-                    disabled={scrapeMutation.isPending}
-                    className="w-full md:w-auto"
-                    data-testid="button-manual-scrape"
-                  >
-                    <RefreshCw className={`h-4 w-4 mr-2 ${scrapeMutation.isPending ? "animate-spin" : ""}`} />
-                    {scrapeMutation.isPending ? "Scraping..." : "Run Scraper Now"}
-                  </Button>
                   <p className="text-sm text-muted-foreground">
-                    The scraper will fetch the latest results from the National Lottery website.
-                    Results are sorted from lowest to highest (excluding bonus balls).
+                    The scraper will fetch the latest results from AfricanLottery.net. Use the date range above to control what days you fetch.
                   </p>
                 </CardContent>
               </Card>
