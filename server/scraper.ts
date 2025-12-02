@@ -93,10 +93,15 @@ const DRAW_DAYS: Record<string, Set<number>> = {
 };
 
 const isDrawDayForDate = (slug: string, targetIso: string): boolean => {
-  const target = new Date(targetIso + "T00:00:00Z");
-  const day = target.getUTCDay(); // day of week; SAST=UTC+2 but day won't change for 00:00Z baseline
   const set = DRAW_DAYS[slug];
-  return set ? set.has(day) : true;
+  if (!set) return true;
+  const weekday = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Africa/Johannesburg",
+    weekday: "short",
+  }).format(new Date(targetIso + "T00:00:00Z"));
+  const map: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+  const dayNum = map[weekday] ?? 0;
+  return set.has(dayNum);
 };
 
 const parseWinningNumbers = ($: cheerio.CheerioAPI, config: GameConfig): { main: number[]; bonus: number | null } | null => {
@@ -129,15 +134,12 @@ const parseJackpotAndWinners = ($: cheerio.CheerioAPI, config: GameConfig): { ja
     const payoutText = $(tds[2]).text().trim();
     const winnersNum = parseInt(winnersText, 10);
     winner = Number.isNaN(winnersNum) ? null : winnersNum;
-    jackpot = payoutText || jackpot;
+    jackpot = /rollover/i.test(payoutText) ? null : (payoutText || jackpot);
   });
 
-  const isRollover = jackpot && /rollover/i.test(jackpot);
-  if (!jackpot || isRollover) {
-    const rolloverLi = $('ul li:contains("Rollover Value")').first().text().match(/Rollover Value:\s*(.+)/i);
-    const nextJackpotLi = $('ul li:contains("Next Jackpot")').first().text().match(/Next Jackpot:\s*(.+)/i);
-    jackpot = rolloverLi?.[1]?.trim() || nextJackpotLi?.[1]?.trim() || jackpot || null;
-  }
+  const rolloverLi = $('ul li:contains("Rollover Value")').first().text().match(/Rollover Value:\s*(.+)/i);
+  const nextJackpotLi = $('ul li:contains("Next Jackpot")').first().text().match(/Next Jackpot:\s*(.+)/i);
+  jackpot = jackpot || rolloverLi?.[1]?.trim() || nextJackpotLi?.[1]?.trim() || null;
 
   return { jackpot, winner };
 };
@@ -391,8 +393,6 @@ export function startScraperCron(): void {
       if (setting.isEnabled === false) continue;
       const game = games.find(g => g.slug === setting.gameSlug);
       if (!game) continue;
-      const canonical = canonicalSlug(game.slug);
-      if (canonical !== game.slug) continue;
 
       const drawDays = Array.isArray(game.drawDays)
         ? game.drawDays
