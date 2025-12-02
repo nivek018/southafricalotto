@@ -129,17 +129,24 @@ export default function LottoResultTodayPage() {
     }
   }, []);
 
+  const normalizeDateStr = (str: string | null | undefined): string | null => {
+    if (!str) return null;
+    const match = str.match(/\d{4}-\d{2}-\d{2}/);
+    return match ? match[0] : str.slice(0, 10);
+  };
+  const serverToday = data?.date || todayDate;
+
   const todayGames = useMemo(() => {
     if (!data) return [];
     return data.games.map(({ game, result }) => {
-      const drawDateNormalized = result?.drawDate ? (result.drawDate as string).slice(0, 10) : null;
-      const isTodayResult = drawDateNormalized === todayDate;
+      const drawDateNormalized = normalizeDateStr(result?.drawDate);
+      const isTodayResult = drawDateNormalized === serverToday;
       return {
         game,
         result: isTodayResult ? result : null
       };
     });
-  }, [data, todayDate]);
+  }, [data, serverToday]);
 
   const sortNumbers = (nums: number[] | string | undefined) => {
     if (!nums) return [];
