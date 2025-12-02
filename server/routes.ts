@@ -4,7 +4,7 @@ import crypto from "crypto";
 import path from "path";
 import fs from "fs";
 import { storage } from "./storage";
-import { scrapeLotteryResults, processScrapedResults } from "./scraper";
+import { scrapeLotteryResults, processScrapedResults, scrapeDateRange } from "./scraper";
 import { purgeCloudflareSite } from "./cloudflare";
 import {
   insertLotteryResultSchema,
@@ -517,6 +517,41 @@ export async function registerRoutes(
       console.error("[Scraper] Error:", error);
       res.status(500).json({
         error: "Failed to scrape results",
+        message: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.post("/api/scrape/date-range", mutationLimiter, requireAdmin, csrfGuard, async (req, res) => {
+    try {
+      const { startDate, endDate, gameSlugs } = req.body || {};
+      if (!startDate || !endDate) {
+        return res.status(400).json({ error: "startDate and endDate are required (YYYY-MM-DD)" });
+      }
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start > end) {
+        return res.status(400).json({ error: "Invalid date range" });
+      }
+
+      console.log(`[Scraper] Manual date range scrape from ${startDate} to ${endDate}...`);
+      const scrapedResults = await scrapeDateRange(startDate, endDate, Array.isArray(gameSlugs) ? gameSlugs : undefined);
+      const { addedCount, addedResults, skippedResults } = await processScrapedResults(scrapedResults);
+      const paths = buildPurgePaths(scrapedResults);
+      void purgeCloudflareSite(paths);
+
+      res.json({
+        success: true,
+        message: `Scraped ${scrapedResults.length} results, added ${addedCount}`,
+        scraped: scrapedResults.length,
+        added: addedCount,
+        addedResults,
+        skippedResults
+      });
+    } catch (error) {
+      console.error("[Scraper] Date range error:", error);
+      res.status(500).json({
+        error: "Failed to scrape date range",
         message: error instanceof Error ? error.message : "Unknown error"
       });
     }

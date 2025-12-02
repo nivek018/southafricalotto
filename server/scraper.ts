@@ -6,14 +6,28 @@ import { scrape as logScrape, error as logError, info as logInfo } from "./logge
 import { storage } from "./storage";
 import { purgeCloudflareSite } from "./cloudflare";
 
-interface ScrapedResult {
-  gameName: string;
-  gameSlug: string;
-  winningNumbers: number[];
-  bonusNumber: number | null;
-  drawDate: string;
-  nextJackpot: string | null;
+interface GameConfig {
+  slug: string;
+  name: string;
+  numberCount: number;
+  hasBonus: boolean;
+  path: string;
+  topPrizeLabel: RegExp;
 }
+
+interface ScrapedResult extends InsertLotteryResult {
+  winner?: number | null;
+}
+
+const GAME_CONFIGS: GameConfig[] = [
+  { slug: "powerball", name: "Powerball", numberCount: 5, hasBonus: true, path: "powerball", topPrizeLabel: /5\s*correct\s*\+\s*PB/i },
+  { slug: "powerball-plus", name: "Powerball Plus", numberCount: 5, hasBonus: true, path: "powerball-plus", topPrizeLabel: /5\s*correct\s*\+\s*PB/i },
+  { slug: "lotto", name: "Lotto", numberCount: 6, hasBonus: true, path: "lotto", topPrizeLabel: /6\s*correct/i },
+  { slug: "lotto-plus-1", name: "Lotto Plus 1", numberCount: 6, hasBonus: true, path: "lotto-plus", topPrizeLabel: /6\s*correct/i },
+  { slug: "lotto-plus-2", name: "Lotto Plus 2", numberCount: 6, hasBonus: true, path: "lotto-plus-2", topPrizeLabel: /6\s*correct/i },
+  { slug: "daily-lotto", name: "Daily Lotto", numberCount: 5, hasBonus: false, path: "daily-lotto", topPrizeLabel: /5\s*correct/i },
+  { slug: "daily-lotto-plus", name: "Daily Lotto Plus", numberCount: 5, hasBonus: false, path: "daily-lotto-plus", topPrizeLabel: /5\s*correct/i },
+];
 
 const USER_AGENTS = [
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -29,268 +43,179 @@ const ACCEPT_LANGUAGES = [
   "en-ZA,en;q=0.9,en-GB;q=0.8,en-US;q=0.7",
 ];
 
-function getRandomItem<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
+const politeDelay = (minMs: number, maxMs: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, Math.floor(minMs + Math.random() * (maxMs - minMs))));
 
-function getRandomHeaders(): Record<string, string> {
-  return {
-    "User-Agent": getRandomItem(USER_AGENTS),
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-    "Accept-Language": getRandomItem(ACCEPT_LANGUAGES),
-    "Accept-Encoding": "gzip, deflate, br",
-    "DNT": "1",
-    "Connection": "keep-alive",
-    "Upgrade-Insecure-Requests": "1",
-    "Cache-Control": "max-age=0",
-  };
-}
+const getRandomItem = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
-function sortNumbers(numbers: number[]): number[] {
-  return [...numbers].sort((a, b) => a - b);
-}
+const getRandomHeaders = (): Record<string, string> => ({
+  "User-Agent": getRandomItem(USER_AGENTS),
+  "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+  "Accept-Language": getRandomItem(ACCEPT_LANGUAGES),
+  "Accept-Encoding": "gzip, deflate, br",
+  "DNT": "1",
+  "Connection": "keep-alive",
+  "Upgrade-Insecure-Requests": "1",
+  "Cache-Control": "max-age=0",
+});
 
-function splitConcatenatedNumbers(numString: string, count: number): number[] {
-  const numbers: number[] = [];
-  const cleanString = numString.replace(/\D/g, '');
+const sortNumbers = (numbers: number[]): number[] => [...numbers].sort((a, b) => a - b);
 
-  for (let i = 0; i < cleanString.length && numbers.length < count; i += 2) {
-    const num = parseInt(cleanString.substring(i, i + 2), 10);
-    if (!isNaN(num) && num > 0) {
-      numbers.push(num);
-    }
-  }
+const formatSastDateString = (base?: Date): string => {
+  const fmt = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Johannesburg",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  return fmt.format(base ?? new Date());
+};
 
-  return numbers;
-}
+const formatDateForUrl = (dateIso: string): string => {
+  const date = new Date(dateIso + "T00:00:00Z");
+  const fmt = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Africa/Johannesburg",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+  return fmt.format(date).replace(/ /g, "-").toLowerCase();
+};
 
-interface GameConfig {
-  slug: string;
-  name: string;
-  numberCount: number;
-  hasBonus: boolean;
-  headingPattern: RegExp;
-}
+const parseWinningNumbers = ($: cheerio.CheerioAPI, config: GameConfig): { main: number[]; bonus: number | null } | null => {
+  const mainNums: number[] = [];
+  $("div.results span.ball, div.results span.ballr, div.results span.ball2").each((_i, el) => {
+    const num = parseInt($(el).text().trim(), 10);
+    if (!Number.isNaN(num)) mainNums.push(num);
+  });
+  const bonusEl = $("div.results span.bonusball, div.results span.bonusball2").first();
+  const bonus = bonusEl.length ? parseInt(bonusEl.text().trim(), 10) : null;
 
-const GAME_CONFIGS: GameConfig[] = [
-  { slug: "powerball", name: "Powerball", numberCount: 5, hasBonus: true, headingPattern: /Powerball results/i },
-  { slug: "powerball-plus", name: "Powerball Plus", numberCount: 5, hasBonus: true, headingPattern: /Powerball Plus results/i },
-  { slug: "lotto", name: "Lotto", numberCount: 6, hasBonus: true, headingPattern: /^Lotto results/i },
-  { slug: "lotto-plus-1", name: "Lotto Plus 1", numberCount: 6, hasBonus: true, headingPattern: /Lotto Plus 1 results/i },
-  { slug: "lotto-plus-2", name: "Lotto Plus 2", numberCount: 6, hasBonus: true, headingPattern: /Lotto Plus 2 results/i },
-  { slug: "daily-lotto", name: "Daily Lotto", numberCount: 5, hasBonus: false, headingPattern: /^Daily Lotto results/i },
-  { slug: "daily-lotto-plus", name: "Daily Lotto Plus", numberCount: 5, hasBonus: false, headingPattern: /Daily Lotto Plus results/i },
-];
-
-function parseGameSection(sectionText: string, config: GameConfig): ScrapedResult | null {
-  logScrape(`Parsing section for ${config.name}...`);
-  logScrape(`Section text preview: ${sectionText.substring(0, 200)}...`);
-
-  const lines = sectionText.split('\n').map(l => l.trim()).filter(l => l);
-
-  const winningNumbers: number[] = [];
-  let bonusNumber: number | null = null;
-  let drawDate = '';
-  let nextJackpot: string | null = null;
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-
-    const singleNumberMatch = line.match(/^(\d{2})$/);
-    if (singleNumberMatch && winningNumbers.length < config.numberCount) {
-      const num = parseInt(singleNumberMatch[1], 10);
-      if (num > 0) {
-        winningNumbers.push(num);
-        logScrape(`Found number ${winningNumbers.length}: ${num}`);
-      }
-      continue;
-    }
-
-    const bonusMatch = line.match(/^\+\s*(\d{1,2})$/);
-    if (bonusMatch) {
-      bonusNumber = parseInt(bonusMatch[1], 10);
-      logScrape(`Found bonus number: ${bonusNumber}`);
-      continue;
-    }
-
-    const backslashBonusMatch = line.match(/^\\?\+\s*(\d{1,2})$/);
-    if (backslashBonusMatch) {
-      bonusNumber = parseInt(backslashBonusMatch[1], 10);
-      logScrape(`Found bonus number (backslash format): ${bonusNumber}`);
-      continue;
-    }
-
-    const dateMatch = line.match(/^(\d{4}-\d{2}-\d{2})/);
-    if (dateMatch) {
-      drawDate = dateMatch[1];
-      logScrape(`Found draw date: ${drawDate}`);
-      continue;
-    }
-
-    const jackpotMatch = line.match(/Estimated Jackpot[^:]*:\s*(R[\d,]+)/i);
-    if (jackpotMatch) {
-      nextJackpot = jackpotMatch[1];
-      logScrape(`Found jackpot: ${nextJackpot}`);
-      continue;
-    }
-
-    const nextDrawJackpotMatch = line.match(/next draw:\s*(R[\d,]+)/i);
-    if (nextDrawJackpotMatch) {
-      nextJackpot = nextDrawJackpotMatch[1];
-      logScrape(`Found next draw jackpot: ${nextJackpot}`);
-      continue;
-    }
-  }
-
-  if (winningNumbers.length !== config.numberCount) {
-    logScrape(`Expected ${config.numberCount} numbers for ${config.name}, got ${winningNumbers.length}: [${winningNumbers.join(', ')}]`);
+  if (mainNums.length !== config.numberCount) {
+    logScrape(`[Scrape] ${config.name}: expected ${config.numberCount} numbers, got ${mainNums.length}`);
     return null;
   }
+  return { main: sortNumbers(mainNums), bonus: config.hasBonus ? bonus : null };
+};
 
-  if (!drawDate) {
-    drawDate = new Date().toISOString().split('T')[0];
-    logScrape(`No date found, using today: ${drawDate}`);
+const parseJackpotAndWinners = ($: cheerio.CheerioAPI, config: GameConfig): { jackpot: string | null; winner: number | null } => {
+  let jackpot: string | null = null;
+  let winner: number | null = null;
+
+  $("table.tablep tr").each((_i, row) => {
+    const tds = $(row).find("td");
+    if (tds.length < 3) return;
+    const label = $(tds[0]).text().trim();
+    if (!config.topPrizeLabel.test(label)) return;
+    const winnersText = $(tds[1]).text().trim().replace(/,/g, "");
+    const payoutText = $(tds[2]).text().trim();
+    const winnersNum = parseInt(winnersText, 10);
+    winner = Number.isNaN(winnersNum) ? null : winnersNum;
+    jackpot = payoutText || jackpot;
+  });
+
+  const isRollover = jackpot && /rollover/i.test(jackpot);
+  if (!jackpot || isRollover) {
+    const rolloverLi = $('ul li:contains("Rollover Value")').first().text().match(/Rollover Value:\s*(.+)/i);
+    const nextJackpotLi = $('ul li:contains("Next Jackpot")').first().text().match(/Next Jackpot:\s*(.+)/i);
+    jackpot = rolloverLi?.[1]?.trim() || nextJackpotLi?.[1]?.trim() || jackpot || null;
   }
 
-  const sortedNumbers = sortNumbers(winningNumbers);
+  return { jackpot, winner };
+};
 
-  logScrape(`Successfully parsed ${config.name}: ${sortedNumbers.join(', ')}${bonusNumber ? ` + ${bonusNumber}` : ''} on ${drawDate}`);
+const fetchGameResult = async (config: GameConfig, targetDateIso: string): Promise<ScrapedResult | null> => {
+  const headers = getRandomHeaders();
+  const dateSlug = formatDateForUrl(targetDateIso);
+  const url = `https://www.africanlottery.net/${config.path}/results/${dateSlug}/`;
+  logScrape(`[Scrape] Fetching ${config.name} at ${url}`);
 
-  return {
-    gameName: config.name,
-    gameSlug: config.slug,
-    winningNumbers: sortedNumbers,
-    bonusNumber: config.hasBonus ? bonusNumber : null,
-    drawDate,
-    nextJackpot,
-  };
-}
+  try {
+    const response = await axios.get(url, { headers, timeout: 30000, validateStatus: () => true });
+    if (response.status >= 400) {
+      logScrape(`[Scrape] ${config.name} returned status ${response.status}`);
+      return null;
+    }
+
+    const $ = cheerio.load(response.data);
+    const nums = parseWinningNumbers($, config);
+    if (!nums) return null;
+    const { jackpot, winner } = parseJackpotAndWinners($, config);
+
+    return {
+      gameId: config.slug,
+      gameName: config.name,
+      gameSlug: config.slug,
+      winningNumbers: nums.main,
+      bonusNumber: nums.bonus,
+      drawDate: targetDateIso,
+      jackpotAmount: jackpot || null,
+      nextJackpot: null,
+      winner: typeof winner === "number" ? winner : null,
+    };
+  } catch (err) {
+    logError(`[Scrape] ${config.name} fetch failed: ${err instanceof Error ? err.message : String(err)}`);
+    return null;
+  }
+};
 
 export async function scrapeLotteryResults(
-  retries: number = 3,
-  delayMs: number = 5000
+  retries: number = 1,
+  _delayMs: number = 0,
+  options?: { targetDate?: string; gameSlugs?: string[] }
 ): Promise<InsertLotteryResult[]> {
   let lastError: Error | null = null;
+  const targetDate = options?.targetDate || formatSastDateString();
+  const allowed = options?.gameSlugs ? new Set(options.gameSlugs) : null;
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      logScrape(`Starting scrape attempt ${attempt} of ${retries}`);
-
-      const headers = getRandomHeaders();
-      logScrape(`Using User-Agent: ${headers["User-Agent"].substring(0, 50)}...`);
-
-      const response = await axios.get("https://www.africanlottery.net/", {
-        headers,
-        timeout: 30000,
-      });
-
-      logScrape(`Response received, status: ${response.status}, content length: ${response.data.length}`);
-
-      const $ = cheerio.load(response.data);
       const results: InsertLotteryResult[] = [];
-
-      const fullText = $('body').text();
-
-      for (const config of GAME_CONFIGS) {
-        logScrape(`Looking for ${config.name}...`);
-
-        let sectionFound = false;
-
-        $('h2').each((_, h2Element) => {
-          const headingText = $(h2Element).text().trim();
-
-          if (config.headingPattern.test(headingText)) {
-            logScrape(`Found heading: "${headingText}" for ${config.name}`);
-            sectionFound = true;
-
-            let sectionContent = '';
-            let currentElement = $(h2Element).parent();
-
-            const nearbyElements: string[] = [];
-
-            let sibling = $(h2Element).next();
-            for (let j = 0; j < 15 && sibling.length; j++) {
-              nearbyElements.push(sibling.text().trim());
-              sibling = sibling.next();
-            }
-
-            const parentText = currentElement.text();
-            sectionContent = parentText;
-
-            if (sectionContent.length < 50) {
-              sectionContent = nearbyElements.join('\n');
-            }
-
-            const parsed = parseGameSection(sectionContent, config);
-
-            if (parsed) {
-              const jackpotAmount = parsed.nextJackpot || null;
-              results.push({
-                gameId: config.slug,
-                gameName: parsed.gameName,
-                gameSlug: parsed.gameSlug,
-                winningNumbers: parsed.winningNumbers,
-                bonusNumber: parsed.bonusNumber,
-                drawDate: parsed.drawDate,
-                jackpotAmount,
-                nextJackpot: null,
-              });
-              logScrape(`Added result for ${config.name}`);
-            }
-
-            return false;
-          }
-        });
-
-        if (!sectionFound) {
-          logScrape(`Trying regex search for ${config.name} in full page text...`);
-
-          const headingMatch = fullText.match(new RegExp(`${config.name}\\s+results[\\s\\S]{0,500}`, 'i'));
-          if (headingMatch) {
-            const parsed = parseGameSection(headingMatch[0], config);
-            if (parsed) {
-              const jackpotAmount = parsed.nextJackpot || null;
-              results.push({
-                gameId: config.slug,
-                gameName: parsed.gameName,
-                gameSlug: parsed.gameSlug,
-                winningNumbers: parsed.winningNumbers,
-                bonusNumber: parsed.bonusNumber,
-                drawDate: parsed.drawDate,
-                jackpotAmount,
-                nextJackpot: null,
-              });
-              logScrape(`Added result for ${config.name} via regex search`);
-            }
-          }
+      for (let i = 0; i < GAME_CONFIGS.length; i++) {
+        const cfg = GAME_CONFIGS[i];
+        if (allowed && !allowed.has(cfg.slug)) continue;
+        const res = await fetchGameResult(cfg, targetDate);
+        if (res) results.push(res);
+        if (i < GAME_CONFIGS.length - 1) {
+          await politeDelay(5000, 15000);
         }
       }
 
       if (results.length > 0) {
-        logScrape(`Successfully scraped ${results.length} lottery results`);
+        logScrape(`[Scrape] Completed with ${results.length} results for ${targetDate}`);
         return results;
       }
 
-      logScrape(`No results found on attempt ${attempt}`);
-
       if (attempt < retries) {
-        logScrape(`Waiting ${delayMs / 1000} seconds before retry...`);
-        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        logScrape(`[Scrape] No results found, retrying attempt ${attempt + 1} after 10 seconds`);
+        await politeDelay(10000, 12000);
       }
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
       logError(`Scraping attempt ${attempt} failed: ${lastError.message}`);
-
       if (attempt < retries) {
-        logScrape(`Retrying in ${delayMs / 1000} seconds (attempt ${attempt + 1} of ${retries})...`);
-        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        await politeDelay(10000, 12000);
       }
     }
   }
 
-  const errorMsg = lastError?.message || "Failed to scrape lottery results after multiple attempts.";
-  logError(`All scraping attempts failed: ${errorMsg}`);
-  throw lastError || new Error(errorMsg);
+  if (lastError) {
+    logError(`All scraping attempts failed: ${lastError.message}`);
+  }
+  return [];
+}
+
+export async function scrapeDateRange(startDate: string, endDate: string, gameSlugs?: string[]): Promise<InsertLotteryResult[]> {
+  const results: InsertLotteryResult[] = [];
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    const iso = formatSastDateString(new Date(d));
+    const dayResults = await scrapeLotteryResults(1, 0, { targetDate: iso, gameSlugs });
+    results.push(...dayResults);
+    await politeDelay(2000, 5000);
+  }
+  return results;
 }
 
 export async function processScrapedResults(scrapedResults: InsertLotteryResult[]) {
@@ -405,7 +330,7 @@ export function startScraperCron(): void {
     isCronRunning = true;
     try {
       logInfo(`[Cron] Automatic scrape started for ${gameSlug} (${trigger})`);
-      const scrapedResults = await scrapeLotteryResults(1, 0);
+      const scrapedResults = await scrapeLotteryResults(1, 0, { gameSlugs: [gameSlug] });
       const { addedCount } = await processScrapedResults(scrapedResults);
       if (addedCount > 0) {
         const paths = buildPurgePaths(scrapedResults);
@@ -419,7 +344,7 @@ export function startScraperCron(): void {
         gameRunState[gameSlug] = { lastRunDate: todayStr, nextRetryAt: null, retryDeadline: null };
       } else {
         const state = gameRunState[gameSlug] || { lastRunDate: null, nextRetryAt: null, retryDeadline: null };
-        const nextRetry = Date.now() + 5 * 60 * 1000;
+        const nextRetry = Date.now() + 5 * 60 * 1000; // retry after 5 minutes
         const deadline = state.retryDeadline ?? Date.now() + 5 * 60 * 60 * 1000; // retry window up to 5 hours
         gameRunState[gameSlug] = { lastRunDate: state.lastRunDate, nextRetryAt: nextRetry, retryDeadline: deadline };
         logInfo(`[Cron] No results yet for ${gameSlug}, will retry after 5 minutes (until ${new Date(deadline).toISOString()})`);
@@ -450,7 +375,6 @@ export function startScraperCron(): void {
             ? (() => { try { return JSON.parse(game.drawDays as any); } catch { return []; } })()
             : []);
       if (!isDrawDay(drawDays, sastNow)) {
-        // not a draw day: reset retry window
         gameRunState[game.slug] = { lastRunDate: gameRunState[game.slug]?.lastRunDate ?? null, nextRetryAt: null, retryDeadline: null };
         continue;
       }
@@ -468,7 +392,7 @@ export function startScraperCron(): void {
       const state = gameRunState[game.slug] || { lastRunDate: null, nextRetryAt: null, retryDeadline: null };
       if (state.lastRunDate === todayStr) continue;
 
-      const deadline = state.retryDeadline ?? (scheduledMs + 5 * 60 * 60 * 1000); // allow up to 5 hours of retries
+      const deadline = state.retryDeadline ?? (scheduledMs + 5 * 60 * 60 * 1000);
       if (nowMs > deadline) continue;
 
       const nextAllowed = state.nextRetryAt ?? scheduledMs;

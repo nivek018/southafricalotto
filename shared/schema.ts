@@ -54,6 +54,7 @@ export const lotteryResults = mysqlTable("lottery_results", {
   drawDate: varchar("draw_date", { length: 50 }).notNull(),
   jackpotAmount: varchar("jackpot_amount", { length: 255 }),
   nextJackpot: varchar("next_jackpot", { length: 255 }),
+  winner: int("winner"),
   hotNumber: int("hot_number"),
   coldNumber: int("cold_number"),
 });
