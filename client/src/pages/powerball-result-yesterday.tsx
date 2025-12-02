@@ -86,6 +86,10 @@ export default function PowerballResultYesterdayPage() {
             </Button>
           </Link>
         </div>
+        <div className="max-w-3xl mx-auto w-full mb-6">
+          <AdSlot slot="5683668562" className="hidden md:block" />
+          <AdSlot slot="3057505225" className="block md:hidden" />
+        </div>
 
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

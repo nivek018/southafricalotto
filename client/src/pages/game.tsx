@@ -320,8 +320,8 @@ export default function GamePage() {
   const showFrequencySection = showHotColdSection && hasGroup;
   const prizeHistoryRef = useRef<HTMLDivElement | null>(null);
   const freqRef = useRef<HTMLDivElement | null>(null);
-  const [prizeHistoryVisible, setPrizeHistoryVisible] = useState(false);
-  const [freqVisible, setFreqVisible] = useState(false);
+  const [prizeHistoryVisible, setPrizeHistoryVisible] = useState(true);
+  const [freqVisible, setFreqVisible] = useState(true);
 
   const getLatestDrawDate = () => {
     if (hasGroup && groupedData) {
@@ -393,20 +393,9 @@ export default function GamePage() {
   }, [hasGroup, groupedData]);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            if (entry.target === prizeHistoryRef.current) setPrizeHistoryVisible(true);
-            if (entry.target === freqRef.current) setFreqVisible(true);
-          }
-        });
-      },
-      { rootMargin: "150px 0px 150px 0px" }
-    );
-    if (prizeHistoryRef.current) observer.observe(prizeHistoryRef.current);
-    if (freqRef.current) observer.observe(freqRef.current);
-    return () => observer.disconnect();
+    // charts always visible now to avoid missing render
+    setPrizeHistoryVisible(true);
+    setFreqVisible(true);
   }, []);
 
   const frequencyData = useMemo(() => {
@@ -483,6 +472,10 @@ export default function GamePage() {
                 {groupDescription}
               </p>
             )}
+            <div className="max-w-3xl mx-auto w-full mt-4">
+              <AdSlot slot="5683668562" className="hidden md:block" />
+              <AdSlot slot="3057505225" className="block md:hidden" />
+            </div>
           </div>
         </div>
       </section>
@@ -745,6 +738,11 @@ export default function GamePage() {
                 </Link>
               </div>
 
+              <div className="max-w-3xl mx-auto w-full mt-6">
+                <AdSlot slot="5683668562" className="hidden md:block" />
+                <AdSlot slot="3057505225" className="block md:hidden" />
+              </div>
+
               <div className="max-w-3xl mx-auto w-full mt-6 space-y-4">
                 <AdSlot slot="5683668562" className="hidden md:block" />
                 <AdSlot slot="3057505225" className="block md:hidden" />
@@ -833,7 +831,7 @@ export default function GamePage() {
                 </section>
               )}
 
-              <div ref={prizeHistoryRef} />
+              <div ref={prizeHistoryRef} className="h-1" />
               {prizeHistoryVisible && hasGroup && groupedData && (
                 <PrizeHistoryChart
                   groupSlug={groupSlug || ""}
@@ -841,7 +839,7 @@ export default function GamePage() {
                 />
               )}
 
-              <div ref={freqRef} />
+              <div ref={freqRef} className="h-1" />
               {freqVisible && showFrequencySection && groupedData && freqVariant && (
                 <section className="mt-10" data-testid="section-frequency-analysis">
                   <Card>

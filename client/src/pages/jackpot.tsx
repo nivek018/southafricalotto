@@ -66,20 +66,12 @@ export default function JackpotPage() {
   }, []);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.target instanceof HTMLElement) {
-            const key = entry.dataset.group || "";
-            setChartVisible((prev) => ({ ...prev, [key]: true }));
-          }
-        });
-      },
-      { rootMargin: "150px 0px 150px 0px" }
-    );
-    chartRefs.current.forEach((el) => el && observer.observe(el));
-    return () => observer.disconnect();
-  }, [queries]);
+    setChartVisible({
+      "powerball": true,
+      "lotto": true,
+      "daily-lotto": true,
+    });
+  }, []);
 
   return (
     <div className="min-h-screen">
@@ -93,6 +85,10 @@ export default function JackpotPage() {
           <p className="text-muted-foreground max-w-2xl mx-auto">
             See the Latest Jackpot Prize History for Powerball, Lotto, and Daily Lotto and Stay Updated on the Most Recent Winning Amounts.
           </p>
+          <div className="max-w-3xl mx-auto w-full mt-4">
+            <AdSlot slot="5683668562" className="hidden md:block" />
+            <AdSlot slot="3057505225" className="block md:hidden" />
+          </div>
         </div>
       </section>
 
@@ -178,7 +174,7 @@ export default function JackpotPage() {
                 </CardContent>
               </Card>
 
-              <div ref={(el) => (chartRefs.current[idx] = el)} data-group={groupSlug} />
+              <div ref={(el) => (chartRefs.current[idx] = el)} data-group={groupSlug} className="mt-4" />
               {chartVisible[groupSlug] && (
                 <PrizeHistoryChart groupSlug={groupSlug} variants={data.group.variants} />
               )}

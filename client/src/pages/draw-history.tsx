@@ -160,6 +160,10 @@ export default function DrawHistoryPage() {
               ))}
             </div>
           )}
+          <div className="max-w-3xl mx-auto w-full mt-4">
+            <AdSlot slot="5683668562" className="hidden md:block" />
+            <AdSlot slot="3057505225" className="block md:hidden" />
+          </div>
         </div>
 
         <div className="mb-6 flex items-center justify-between">
