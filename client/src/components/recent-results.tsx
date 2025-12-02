@@ -43,8 +43,8 @@ export function RecentResultsSection() {
   const entries = data?.dates || [];
 
   const skeletonItems = Array.from({ length: 6 });
-  const rows = Math.max(Math.ceil((entries.length || skeletonItems.length) / 2), 3);
-  const reservedHeight = rows * 180 + 220; // header + grid rows
+  // Reserve generous space up front so loaded content doesn't expand the layout and trigger CLS
+  const reservedHeight = 1100;
 
   return (
     <section
