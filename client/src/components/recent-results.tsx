@@ -43,14 +43,9 @@ export function RecentResultsSection() {
   const entries = data?.dates || [];
 
   const skeletonItems = Array.from({ length: 6 });
-  // Fixed reservation to keep layout stable without excessive blank space
-  const reservedHeight = 650;
 
   return (
-    <section
-      className="py-10 lg:py-14"
-      style={{ minHeight: reservedHeight }}
-    >
+    <section className="py-10 lg:py-14">
       <div className="max-w-7xl mx-auto px-4 lg:px-8">
         <Card>
           <CardHeader className="pb-4">
@@ -66,8 +61,8 @@ export function RecentResultsSection() {
             {isLoading ? (
               <div className="grid gap-4 md:grid-cols-2">
                 {skeletonItems.map((_, idx) => (
-                  <Card key={idx} className="bg-card/50 border-dashed h-[190px]">
-                    <CardContent className="p-4 h-full flex flex-col justify-center">
+                  <Card key={idx} className="bg-card/50 border-dashed">
+                    <CardContent className="p-4">
                       <div className="flex gap-4 items-center">
                         <div className="w-14 h-14 rounded-lg bg-muted animate-pulse" />
                         <div className="flex-1 space-y-2">
@@ -102,8 +97,8 @@ export function RecentResultsSection() {
                   const primaryHref = primarySlug ? `/${primarySlug}-result/${entry.date}` : null;
 
                   return (
-                    <Card key={entry.date} className="bg-card/70 h-[190px]">
-                      <CardContent className="p-4 h-full flex flex-col justify-center">
+                    <Card key={entry.date} className="bg-card/70">
+                      <CardContent className="p-4">
                         <div className="flex gap-4">
                           <div className="w-14 h-14 rounded-lg bg-gradient-to-b from-primary/15 to-primary/10 border flex flex-col items-center justify-center">
                             <span className="text-xl font-bold leading-tight">{day}</span>
@@ -114,15 +109,7 @@ export function RecentResultsSection() {
                               <Calendar className="w-4 h-4 text-primary" />
                               <p className="font-semibold leading-tight">Lotto Results {formatLongDate(entry.date)}</p>
                             </div>
-                            <p
-                              className="text-sm text-muted-foreground leading-snug"
-                              style={{
-                                display: "-webkit-box",
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: "vertical",
-                                overflow: "hidden"
-                              }}
-                            >
+                            <p className="text-sm text-muted-foreground leading-snug">
                               Results for{" "}
                               {gameLinks.map((gl, idx) => (
                                 <Link
