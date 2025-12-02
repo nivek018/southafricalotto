@@ -43,9 +43,14 @@ export function RecentResultsSection() {
   const entries = data?.dates || [];
 
   const skeletonItems = Array.from({ length: 6 });
+  const rows = Math.max(Math.ceil((entries.length || skeletonItems.length) / 2), 3);
+  const reservedHeight = rows * 180 + 220; // header + grid rows
 
   return (
-    <section className="py-10 lg:py-14 min-h-[520px]">
+    <section
+      className="py-10 lg:py-14"
+      style={{ minHeight: reservedHeight }}
+    >
       <div className="max-w-7xl mx-auto px-4 lg:px-8">
         <Card>
           <CardHeader className="pb-4">
