@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LotteryBall } from "@/components/lottery-ball";
-import { Calendar, ArrowRight, Trophy } from "lucide-react";
+import { Calendar, ArrowRight, Trophy, Users } from "lucide-react";
 import type { LotteryResult } from "@shared/schema";
 import { canonicalSlug } from "@shared/schema";
 import { Button } from "@/components/ui/button";
@@ -68,6 +68,13 @@ export function LotteryResultCard({ result }: LotteryResultCardProps) {
               <Trophy className="w-4 h-4 text-lottery-ball-bonus" />
               <span className="text-muted-foreground">Jackpot:</span>
               <span className="text-foreground">{result.jackpotAmount}</span>
+            </div>
+          )}
+          {typeof (result as any).winner === "number" && (
+            <div className="inline-flex items-center gap-2 rounded-md bg-muted/40 px-3 py-1.5 text-xs font-semibold">
+              <Users className="w-4 h-4 text-primary" />
+              <span className="text-muted-foreground">Winners:</span>
+              <span className="text-foreground">{(result as any).winner}</span>
             </div>
           )}
 
