@@ -43,14 +43,13 @@ export function RecentResultsSection() {
   const entries = data?.dates || [];
 
   const skeletonItems = Array.from({ length: 6 });
-  // Reserve space based on expected rows to minimize layout shift without leaving large blanks
-  const rows = Math.max(1, Math.ceil((entries.length || skeletonItems.length) / 2));
-  const reservedHeight = Math.max(1100, rows * 210 + 180);
+  // Fixed reservation to keep layout stable without excessive blank space
+  const reservedHeight = 650;
 
   return (
     <section
       className="py-10 lg:py-14"
-      style={{ minHeight: reservedHeight, overflow: "hidden" }}
+      style={{ minHeight: reservedHeight }}
     >
       <div className="max-w-7xl mx-auto px-4 lg:px-8">
         <Card>
