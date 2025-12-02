@@ -86,7 +86,7 @@ export default function JackpotPage() {
           <p className="text-muted-foreground max-w-2xl mx-auto">
             See the Latest Jackpot Prize History for Powerball, Lotto, and Daily Lotto and Stay Updated on the Most Recent Winning Amounts.
           </p>
-          <div className="max-w-3xl mx-auto w-full mt-4">
+          <div className="max-w-5xl mx-auto w-full mt-4">
             <AdSlot slot="5683668562" className="hidden md:block" />
             <AdSlot slot="3057505225" className="block md:hidden" />
           </div>
