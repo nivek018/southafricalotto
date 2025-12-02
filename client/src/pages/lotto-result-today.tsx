@@ -108,14 +108,6 @@ export default function LottoResultTodayPage() {
 
   const todayDate = getTodayDateSAST();
   const todayWeekday = getTodayWeekdaySAST();
-  const formatToSastYmd = (value: string | Date) =>
-    new Intl.DateTimeFormat("en-CA", {
-      timeZone: "Africa/Johannesburg",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).format(typeof value === "string" ? new Date(value) : value);
-
   useEffect(() => {
     const formattedDate = new Date(todayDate).toLocaleDateString("en-ZA", {
       weekday: "short",
@@ -140,7 +132,7 @@ export default function LottoResultTodayPage() {
   const todayGames = useMemo(() => {
     if (!data) return [];
     return data.games.map(({ game, result }) => {
-      const drawDateNormalized = result?.drawDate ? formatToSastYmd(result.drawDate) : null;
+      const drawDateNormalized = result?.drawDate ? (result.drawDate as string).slice(0, 10) : null;
       const isTodayResult = drawDateNormalized === todayDate;
       return {
         game,
