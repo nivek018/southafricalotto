@@ -61,4 +61,4 @@ Disallow: /
 User-agent: Amazonbot
 Disallow: /
 
-Sitemap: https://lottopcso.io/sitemap.xml
+Sitemap: https://za.pwedeh.com/sitemap.xml
