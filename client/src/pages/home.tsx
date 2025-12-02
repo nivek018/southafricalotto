@@ -40,7 +40,7 @@ export default function HomePage() {
           <p className="text-muted-foreground text-lg lg:text-xl max-w-2xl mx-auto">
             View the latest PowerBall, Powerball Plus, Lotto, Lotto Plus, Daily Lotto, and Daily Lotto Plus results, updated after each draw.
           </p>
-          <div className="max-w-5xl mx-auto w-full mt-4 mb-6">
+          <div className="max-w-5xl mx-auto w-full mt-4 mb-2">
             <AdSlot slot="5683668562" className="hidden md:block" />
             <AdSlot slot="3057505225" className="block md:hidden" />
           </div>
