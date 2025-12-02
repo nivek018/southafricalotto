@@ -41,10 +41,10 @@ export function AdSlot({ slot, className = "", format = "auto" }: AdSlotProps) {
   }, []);
 
   return (
-    <div className={`${className} min-h-[120px] w-full`}>
+    <div className={`${className} min-h-[280px] w-full`}>
       <ins
         className="adsbygoogle"
-        style={{ display: "block", minHeight: "120px", width: "100%" }}
+        style={{ display: "block", minHeight: "280px", height: "280px", width: "100%" }}
         data-ad-client={AD_CLIENT}
         data-ad-slot={slot}
         data-ad-format={format}

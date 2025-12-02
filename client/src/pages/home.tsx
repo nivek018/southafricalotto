@@ -27,7 +27,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen">
-      <section className="bg-gradient-to-b from-card to-background py-12 lg:py-16">
+      <section className="bg-gradient-to-b from-card to-background pt-12 pb-6 lg:pt-16 lg:pb-8">
       <div className="max-w-7xl mx-auto px-4 lg:px-8 text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
             <CircleDot className="h-8 w-8 text-lottery-ball-main" />
@@ -47,7 +47,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-12 lg:py-16">
+      <section className="pt-6 pb-12 lg:pt-8 lg:pb-16">
       <div className="max-w-7xl mx-auto px-4 lg:px-8">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl lg:text-3xl font-semibold">Latest Results</h2>
