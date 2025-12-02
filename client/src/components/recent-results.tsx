@@ -61,14 +61,28 @@ export function RecentResultsSection() {
             {isLoading ? (
               <div className="grid gap-4 md:grid-cols-2">
                 {skeletonItems.map((_, idx) => (
-                  <Card key={idx} className="bg-card/50 border-dashed min-h-[140px]">
+                  <Card key={idx} className="bg-card/50 border-dashed">
                     <CardContent className="p-4">
                       <div className="flex gap-4 items-start">
+                        {/* Badge Placeholder */}
                         <div className="w-14 h-14 rounded-lg bg-muted animate-pulse shrink-0" />
-                        <div className="flex-1 space-y-2.5">
-                          <div className="h-4 w-3/4 bg-muted animate-pulse rounded" />
-                          <div className="h-3 w-full bg-muted animate-pulse rounded" />
-                          <div className="h-3 w-2/3 bg-muted animate-pulse rounded" />
+
+                        {/* Content Placeholder */}
+                        <div className="flex-1 space-y-2">
+                          {/* Title Row */}
+                          <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 rounded bg-muted animate-pulse shrink-0" />
+                            <div className="h-5 w-3/4 bg-muted animate-pulse rounded" />
+                          </div>
+
+                          {/* Description Lines */}
+                          <div className="space-y-1 pt-0.5">
+                            <div className="h-4 w-full bg-muted animate-pulse rounded" />
+                            <div className="h-4 w-5/6 bg-muted animate-pulse rounded" />
+                          </div>
+
+                          {/* Link Placeholder */}
+                          <div className="h-4 w-32 bg-muted animate-pulse rounded pt-1" />
                         </div>
                       </div>
                     </CardContent>
@@ -98,7 +112,7 @@ export function RecentResultsSection() {
                   const primaryHref = primarySlug ? `/${primarySlug}-result/${entry.date}` : null;
 
                   return (
-                    <Card key={entry.date} className="bg-card/70 min-h-[140px]">
+                    <Card key={entry.date} className="bg-card/70">
                       <CardContent className="p-4">
                         <div className="flex gap-4 items-start">
                           <div className="w-14 h-14 rounded-lg bg-gradient-to-b from-primary/15 to-primary/10 border flex flex-col items-center justify-center shrink-0">
