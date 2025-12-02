@@ -3,7 +3,8 @@ import { useQueries } from "@tanstack/react-query";
 import { LOTTERY_GROUPS } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { PrizeHistoryChart } from "@/components/prize-history-chart";
+import { lazy, Suspense } from "react";
+const PrizeHistoryChart = lazy(() => import("@/components/prize-history-chart"));
 import { Calendar, Trophy, CircleDot } from "lucide-react";
 import type { LotteryResult } from "@shared/schema";
 import { AdSlot } from "@/components/ad-slot";
@@ -177,7 +178,9 @@ export default function JackpotPage() {
 
               <div ref={(el) => (chartRefs.current[idx] = el)} data-group={groupSlug} className="mt-4" />
               {chartVisible[groupSlug] && (
-                <PrizeHistoryChart groupSlug={groupSlug} variants={data.group.variants} />
+                <Suspense fallback={<div className="text-center text-muted-foreground py-4">Loading chart...</div>}>
+                  <PrizeHistoryChart groupSlug={groupSlug} variants={data.group.variants} />
+                </Suspense>
               )}
             </div>
           );

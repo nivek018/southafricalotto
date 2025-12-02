@@ -28,10 +28,10 @@ import {
 } from "lucide-react";
 import type { LotteryResult, LotteryGame } from "@shared/schema";
 import { getGroupForSlug } from "@shared/schema";
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef, lazy, Suspense } from "react";
 import { useCountdown, getNextDrawDate } from "@/hooks/use-countdown";
-import { PrizeHistoryChart } from "@/components/prize-history-chart";
 import { AdSlot } from "@/components/ad-slot";
+const PrizeHistoryChart = lazy(() => import("@/components/prize-history-chart"));
 
 interface GroupedResultsResponse {
   group: {
@@ -833,10 +833,12 @@ export default function GamePage() {
 
               <div ref={prizeHistoryRef} className="h-1" />
               {prizeHistoryVisible && hasGroup && groupedData && (
-                <PrizeHistoryChart
-                  groupSlug={groupSlug || ""}
-                  variants={groupedData.group.variants}
-                />
+                <Suspense fallback={<div className="text-center text-muted-foreground py-4">Loading chart...</div>}>
+                  <PrizeHistoryChart
+                    groupSlug={groupSlug || ""}
+                    variants={groupedData.group.variants}
+                  />
+                </Suspense>
               )}
 
               <div ref={freqRef} className="h-1" />
