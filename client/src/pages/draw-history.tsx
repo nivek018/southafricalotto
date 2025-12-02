@@ -11,6 +11,7 @@ import { ChevronLeft, History, Calendar, CircleDot, Trophy } from "lucide-react"
 import { format } from "date-fns";
 import type { LotteryResult } from "@shared/schema";
 import { getGroupForSlug, LOTTERY_GROUPS, canonicalSlug } from "@shared/schema";
+import { Users } from "lucide-react";
 
 interface GroupedResultsResponse {
   group: {
@@ -240,12 +241,20 @@ export default function DrawHistoryPage() {
                                     </>
                                   )}
                                 </div>
-                                {result.jackpotAmount && (
-                                  <div className="flex items-center gap-1 justify-start lg:justify-end">
-                                    <Trophy className="h-4 w-4 text-lottery-ball-bonus" />
-                                    <span className="font-semibold text-sm">Jackpot {result.jackpotAmount}</span>
-                                  </div>
-                                )}
+                                <div className="flex items-center gap-2 justify-start lg:justify-end flex-wrap">
+                                  {result.jackpotAmount && (
+                                    <div className="inline-flex items-center gap-1">
+                                      <Trophy className="h-4 w-4 text-lottery-ball-bonus" />
+                                      <span className="font-semibold text-sm">Jackpot {result.jackpotAmount}</span>
+                                    </div>
+                                  )}
+                                  {typeof (result as any).winner === "number" && (
+                                    <div className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                                      <Users className="h-3.5 w-3.5 text-primary" />
+                                      <span>Winners: {(result as any).winner}</span>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           );

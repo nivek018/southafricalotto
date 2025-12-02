@@ -6,7 +6,7 @@ import { ResultCardSkeleton } from "@/components/loading-skeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, Calendar, CircleDot, Trophy, History } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, CircleDot, Trophy, History, Users } from "lucide-react";
 import { format, addDays, subDays, parseISO } from "date-fns";
 import type { LotteryResult } from "@shared/schema";
 import { LOTTERY_GROUPS, canonicalSlug } from "@shared/schema";

@@ -24,7 +24,8 @@ import {
   HelpCircle,
   BookOpen,
   BarChart2,
-  Activity
+  Activity,
+  Users
 } from "lucide-react";
 import type { LotteryResult, LotteryGame } from "@shared/schema";
 import { getGroupForSlug, canonicalSlug } from "@shared/schema";
@@ -260,13 +261,14 @@ export default function GamePage() {
         .map((variant) => {
           const res = groupedData.latestResults[variant];
           const amount = res?.jackpotAmount || null;
-          return amount ? { name: getVariantDisplayName(variant), amount } : null;
+          const winner = (res as any)?.winner;
+          return amount ? { name: getVariantDisplayName(variant), amount, winner } : null;
         })
-        .filter(Boolean) as { name: string; amount: string }[];
+        .filter(Boolean) as { name: string; amount: string; winner?: number | null }[];
     }
     if (singleResults && singleResults[0]?.jackpotAmount) {
       const displayName = singleResults[0].gameName || canonical.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
-      return [{ name: displayName, amount: singleResults[0].jackpotAmount }];
+      return [{ name: displayName, amount: singleResults[0].jackpotAmount, winner: (singleResults[0] as any)?.winner }];
     }
     return [];
   }, [hasGroup, groupedData, singleResults, canonical]);
@@ -537,11 +539,16 @@ export default function GamePage() {
                     gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))"
                   }}
                 >
-                  {(latestJackpots.length > 0 ? latestJackpots : [{ name: "Loading...", amount: "-" }, { name: "Loading...", amount: "-" }, { name: "Loading...", amount: "-" }]).slice(0, 3).map((item, idx) => (
+                  {(latestJackpots.length > 0 ? latestJackpots : [{ name: "Loading...", amount: "-", winner: null }, { name: "Loading...", amount: "-", winner: null }, { name: "Loading...", amount: "-", winner: null }]).slice(0, 3).map((item, idx) => (
                     <div key={idx} className="rounded-lg border bg-muted/40 px-3 py-2 text-center">
                       <p className="text-sm font-semibold text-foreground mb-1 break-words leading-tight">{item.name}</p>
                       <p className="text-base sm:text-lg font-bold text-lottery-ball-bonus break-words leading-tight">{item.amount}</p>
-
+                      {typeof item.winner === "number" && (
+                        <div className="mt-1 inline-flex items-center gap-1.5 justify-center text-xs font-semibold text-muted-foreground">
+                          <Users className="w-3.5 h-3.5 text-primary" />
+                          <span>Winners: {item.winner}</span>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -614,6 +621,12 @@ export default function GamePage() {
                                 <div className="inline-flex flex-col items-center rounded-lg bg-gradient-to-r from-lottery-ball-main/10 to-lottery-ball-bonus/10 px-4 py-3 min-w-[240px]">
                                   <p className="text-xs text-muted-foreground mb-1">Jackpot</p>
                                   <p className="text-2xl font-bold">{latestResult.jackpotAmount}</p>
+                                  {typeof (latestResult as any).winner === "number" && (
+                                    <div className="mt-1 inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                                      <Users className="w-3.5 h-3.5 text-primary" />
+                                      <span>Winners: {(latestResult as any).winner}</span>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             )}
@@ -728,6 +741,12 @@ export default function GamePage() {
                                       <div className="text-right">
                                         <span className="text-sm text-muted-foreground">Jackpot: </span>
                                         <span className="font-semibold">{result.jackpotAmount}</span>
+                                        {typeof (result as any).winner === "number" && (
+                                          <div className="text-xs text-muted-foreground flex items-center justify-end gap-1 mt-1">
+                                            <Users className="w-3.5 h-3.5 text-primary" />
+                                            <span>Winners: {(result as any).winner}</span>
+                                          </div>
+                                        )}
                                       </div>
                                     )}
                                   </div>
