@@ -81,7 +81,7 @@ function AppLayout() {
       <main className="flex-1">
         {router}
       </main>
-      <div className="max-w-7xl mx-auto px-4 lg:px-8 w-full space-y-4 my-6">
+      <div className="max-w-5xl mx-auto px-4 lg:px-8 w-full space-y-4 my-6">
         <AdSlot
           slot="5683668562"
           className="hidden md:block"
@@ -92,7 +92,7 @@ function AppLayout() {
         />
       </div>
       <RecentResultsSection />
-      <div className="max-w-7xl mx-auto px-4 lg:px-8 w-full space-y-4 my-6">
+      <div className="max-w-5xl mx-auto px-4 lg:px-8 w-full space-y-4 my-6">
         <AdSlot
           slot="5683668562"
           className="hidden md:block"

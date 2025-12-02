@@ -42,7 +42,7 @@ export function RecentResultsSection() {
 
   const entries = data?.dates || [];
 
-  const skeletonItems = Array.from({ length: 6 });
+  const skeletonItems = Array.from({ length: 10 });
 
   return (
     <section className="py-10 lg:py-14">
