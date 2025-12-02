@@ -82,13 +82,31 @@ const formatDateForUrl = (dateIso: string): string => {
   return fmt.format(date).replace(/ /g, "-").toLowerCase();
 };
 
+const DRAW_DAYS: Record<string, Set<number>> = {
+  "powerball": new Set([2, 5]), // Tue, Fri
+  "powerball-plus": new Set([2, 5]),
+  "lotto": new Set([3, 6]), // Wed, Sat
+  "lotto-plus-1": new Set([3, 6]),
+  "lotto-plus-2": new Set([3, 6]),
+  "daily-lotto": new Set([0, 1, 2, 3, 4, 5, 6]),
+  "daily-lotto-plus": new Set([0, 1, 2, 3, 4, 5, 6]),
+};
+
+const isDrawDayForDate = (slug: string, targetIso: string): boolean => {
+  const target = new Date(targetIso + "T00:00:00Z");
+  const day = target.getUTCDay(); // day of week; SAST=UTC+2 but day won't change for 00:00Z baseline
+  const set = DRAW_DAYS[slug];
+  return set ? set.has(day) : true;
+};
+
 const parseWinningNumbers = ($: cheerio.CheerioAPI, config: GameConfig): { main: number[]; bonus: number | null } | null => {
+  const block = $("div.results").first();
   const mainNums: number[] = [];
-  $("div.results span.ball, div.results span.ballr, div.results span.ball2").each((_i, el) => {
+  block.find("span.ball, span.ballr, span.ball2").each((_i, el) => {
     const num = parseInt($(el).text().trim(), 10);
     if (!Number.isNaN(num)) mainNums.push(num);
   });
-  const bonusEl = $("div.results span.bonusball, div.results span.bonusball2").first();
+  const bonusEl = block.find("span.bonusball, span.bonusball2").first();
   const bonus = bonusEl.length ? parseInt(bonusEl.text().trim(), 10) : null;
 
   if (mainNums.length !== config.numberCount) {
@@ -174,6 +192,7 @@ export async function scrapeLotteryResults(
       for (let i = 0; i < GAME_CONFIGS.length; i++) {
         const cfg = GAME_CONFIGS[i];
         if (allowed && !allowed.has(cfg.slug)) continue;
+        if (!isDrawDayForDate(cfg.slug, targetDate)) continue;
         const res = await fetchGameResult(cfg, targetDate);
         if (res) results.push(res);
         if (i < GAME_CONFIGS.length - 1) {
