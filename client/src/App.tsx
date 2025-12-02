@@ -1,5 +1,5 @@
 import { Switch, Route, useLocation } from "wouter";
-import { useEffect } from "react";
+import { useEffect, Suspense, lazy } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -10,23 +10,24 @@ import { RecentResultsSection } from "@/components/recent-results";
 import { AdSlot } from "@/components/ad-slot";
 import { initDeferredScripts } from "@/lib/deferred-scripts";
 import HomePage from "@/pages/home";
-import JackpotPage from "@/pages/jackpot";
-import GamePage from "@/pages/game";
-import NewsPage from "@/pages/news";
-import NewsArticlePage from "@/pages/news-article";
-import AdminLoginPage from "@/pages/admin-login";
-import AdminDashboard from "@/pages/admin-dashboard";
-import LottoResultTodayPage from "@/pages/lotto-result-today";
-import LottoResultYesterdayPage from "@/pages/lotto-result-yesterday";
-import PowerballResultYesterdayPage from "@/pages/powerball-result-yesterday";
-import DailyLottoResultYesterdayPage from "@/pages/daily-lotto-result-yesterday";
-import LottoSaResultYesterdayPage from "@/pages/lotto-sa-result-yesterday";
-import DrawHistoryPage from "@/pages/draw-history";
-import DateResultPage from "@/pages/date-result";
-import AboutPage from "@/pages/about";
-import ContactPage from "@/pages/contact";
-import PrivacyPolicyPage from "@/pages/privacy";
-import NotFound from "@/pages/not-found";
+
+const JackpotPage = lazy(() => import("@/pages/jackpot"));
+const GamePage = lazy(() => import("@/pages/game"));
+const NewsPage = lazy(() => import("@/pages/news"));
+const NewsArticlePage = lazy(() => import("@/pages/news-article"));
+const AdminLoginPage = lazy(() => import("@/pages/admin-login"));
+const AdminDashboard = lazy(() => import("@/pages/admin-dashboard"));
+const LottoResultTodayPage = lazy(() => import("@/pages/lotto-result-today"));
+const LottoResultYesterdayPage = lazy(() => import("@/pages/lotto-result-yesterday"));
+const PowerballResultYesterdayPage = lazy(() => import("@/pages/powerball-result-yesterday"));
+const DailyLottoResultYesterdayPage = lazy(() => import("@/pages/daily-lotto-result-yesterday"));
+const LottoSaResultYesterdayPage = lazy(() => import("@/pages/lotto-sa-result-yesterday"));
+const DrawHistoryPage = lazy(() => import("@/pages/draw-history"));
+const DateResultPage = lazy(() => import("@/pages/date-result"));
+const AboutPage = lazy(() => import("@/pages/about"));
+const ContactPage = lazy(() => import("@/pages/contact"));
+const PrivacyPolicyPage = lazy(() => import("@/pages/privacy"));
+const NotFound = lazy(() => import("@/pages/not-found"));
 
 function Router() {
   return (
@@ -58,6 +59,11 @@ function Router() {
 function AppLayout() {
   const [location] = useLocation();
   const isAdminRoute = location.startsWith("/encode");
+  const router = (
+    <Suspense fallback={<div className="p-6 text-center text-muted-foreground">Loading...</div>}>
+      <Router />
+    </Suspense>
+  );
 
   useEffect(() => {
     if (!isAdminRoute) {
@@ -66,14 +72,14 @@ function AppLayout() {
   }, [location, isAdminRoute]);
 
   if (isAdminRoute) {
-    return <Router />;
+    return router;
   }
 
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-1">
-        <Router />
+        {router}
       </main>
       <div className="max-w-7xl mx-auto px-4 lg:px-8 w-full space-y-4 my-6">
         <AdSlot

@@ -27,7 +27,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen">
-      <section className="bg-gradient-to-b from-card to-background pt-12 pb-6 lg:pt-16 lg:pb-8">
+      <section className="bg-gradient-to-b from-card to-background pt-12 pb-2 lg:pt-16 lg:pb-4">
       <div className="max-w-7xl mx-auto px-4 lg:px-8 text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
             <CircleDot className="h-8 w-8 text-lottery-ball-main" />
@@ -40,16 +40,16 @@ export default function HomePage() {
           <p className="text-muted-foreground text-lg lg:text-xl max-w-2xl mx-auto">
             View the latest PowerBall, Powerball Plus, Lotto, Lotto Plus, Daily Lotto, and Daily Lotto Plus results, updated after each draw.
           </p>
-          <div className="max-w-5xl mx-auto w-full mt-4 mb-2">
+          <div className="max-w-5xl mx-auto w-full mt-4 mb-0">
             <AdSlot slot="5683668562" className="hidden md:block" />
             <AdSlot slot="3057505225" className="block md:hidden" />
           </div>
         </div>
       </section>
 
-      <section className="pt-6 pb-12 lg:pt-8 lg:pb-16">
+      <section className="pt-4 pb-12 lg:pt-6 lg:pb-14">
       <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl lg:text-3xl font-semibold">Latest Results</h2>
           </div>
           
