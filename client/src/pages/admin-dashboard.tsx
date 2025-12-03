@@ -56,13 +56,16 @@ export default function AdminDashboard() {
 
   const [scrapeStart, setScrapeStart] = useState(() => new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Johannesburg" }).format(new Date()));
   const [scrapeEnd, setScrapeEnd] = useState(() => new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Johannesburg" }).format(new Date()));
+  const [scrapeController, setScrapeController] = useState<AbortController | null>(null);
 
   const scrapeMutation = useMutation({
     mutationFn: async () => {
+      const controller = new AbortController();
+      setScrapeController(controller);
       const res = await apiRequest("POST", "/api/scrape/date-range", {
         startDate: scrapeStart,
         endDate: scrapeEnd,
-      });
+      }, { signal: controller.signal });
       return res.json();
     },
     onSuccess: (data: any) => {
@@ -86,11 +89,21 @@ export default function AdminDashboard() {
       }
     },
     onError: (error: any) => {
-      toast({
-        title: "Scraping Failed",
-        description: error?.message || "Could not fetch lottery results. Please try again.",
-        variant: "destructive",
-      });
+      if (error?.name === "AbortError") {
+        toast({
+          title: "Scraper Stopped",
+          description: "The scraping request was cancelled.",
+        });
+      } else {
+        toast({
+          title: "Scraping Failed",
+          description: error?.message || "Could not fetch lottery results. Please try again.",
+          variant: "destructive",
+        });
+      }
+    },
+    onSettled: () => {
+      setScrapeController(null);
     },
   });
 
@@ -270,15 +283,31 @@ export default function AdminDashboard() {
                     className="flex-1"
                   />
                 </div>
-                <Button
-                  onClick={() => scrapeMutation.mutate()}
-                  disabled={scrapeMutation.isPending}
-                  className="w-full"
-                  data-testid="button-scrape"
-                >
-                  <RefreshCw className={`h-4 w-4 mr-2 ${scrapeMutation.isPending ? "animate-spin" : ""}`} />
-                  {scrapeMutation.isPending ? "Scraping..." : "Fetch Results"}
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button
+                    onClick={() => {
+                      const confirmRun = window.confirm(`Fetch results from ${scrapeStart} to ${scrapeEnd}?`);
+                      if (!confirmRun) return;
+                      scrapeMutation.mutate();
+                    }}
+                    disabled={scrapeMutation.isPending}
+                    className="w-full sm:w-auto flex-1"
+                    data-testid="button-scrape"
+                  >
+                    <RefreshCw className={`h-4 w-4 mr-2 ${scrapeMutation.isPending ? "animate-spin" : ""}`} />
+                    {scrapeMutation.isPending ? "Scraping..." : "Fetch Results"}
+                  </Button>
+                  {scrapeMutation.isPending && (
+                    <Button
+                      variant="destructive"
+                      onClick={() => scrapeController?.abort()}
+                      className="w-full sm:w-auto"
+                      data-testid="button-scrape-stop"
+                    >
+                      Force Stop
+                    </Button>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -59,10 +59,18 @@ export default function AdminResults() {
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingResult, setEditingResult] = useState<LotteryResult | null>(null);
+  const [searchDateInput, setSearchDateInput] = useState("");
+  const [appliedDate, setAppliedDate] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const { data: results, isLoading } = useQuery<LotteryResult[]>({
     queryKey: ["/api/results"],
   });
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [appliedDate, results?.length]);
 
   const form = useForm<ResultForm>({
     resolver: zodResolver(resultFormSchema),
@@ -227,6 +235,18 @@ export default function AdminResults() {
       year: "numeric",
     });
   };
+
+  const filteredResults = useMemo(() => {
+    if (!results) return [];
+    return results.filter((r) => {
+      if (!appliedDate) return true;
+      return (r.drawDate || "").startsWith(appliedDate);
+    });
+  }, [results, appliedDate]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredResults.length / PAGE_SIZE));
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const paginatedResults = filteredResults.slice(startIndex, startIndex + PAGE_SIZE);
 
   return (
     <Card>
@@ -396,9 +416,61 @@ export default function AdminResults() {
         </Dialog>
       </CardHeader>
       <CardContent>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <Input
+              type="date"
+              value={searchDateInput}
+              onChange={(e) => setSearchDateInput(e.target.value)}
+              className="w-[180px]"
+              data-testid="input-search-date"
+            />
+            <Button
+              size="sm"
+              onClick={() => setAppliedDate(searchDateInput)}
+              data-testid="button-search-date"
+            >
+              Search
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setSearchDateInput("");
+                setAppliedDate("");
+              }}
+              data-testid="button-clear-search"
+            >
+              Reset
+            </Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              data-testid="button-prev-page"
+            >
+              Prev
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              Page {Math.min(currentPage, totalPages)} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage >= totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              data-testid="button-next-page"
+            >
+              Next
+            </Button>
+          </div>
+        </div>
         {isLoading ? (
           <TableSkeleton rows={5} />
-        ) : results && results.length > 0 ? (
+        ) : paginatedResults && paginatedResults.length > 0 ? (
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -411,7 +483,7 @@ export default function AdminResults() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {results.map((result) => (
+                {paginatedResults.map((result) => (
                   <TableRow key={result.id} data-testid={`row-result-${result.id}`}>
                     <TableCell>
                       <Badge variant="secondary">{result.gameName}</Badge>
