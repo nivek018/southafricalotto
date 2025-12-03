@@ -559,7 +559,7 @@ export async function registerRoutes(
 
   app.post("/api/debug/scrape-proxy", mutationLimiter, requireAdmin, csrfGuard, async (req, res) => {
     try {
-      const { url, userAgent } = req.body || {};
+      const { url, userAgent, acceptLanguage } = req.body || {};
       if (!url || typeof url !== "string") {
         return res.status(400).json({ error: "Target URL is required" });
       }
@@ -567,10 +567,14 @@ export async function registerRoutes(
         typeof userAgent === "string" && userAgent.trim().length > 0
           ? userAgent.trim().slice(0, 500)
           : "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
+      const acceptLang =
+        typeof acceptLanguage === "string" && acceptLanguage.trim().length > 0
+          ? acceptLanguage.trim().slice(0, 200)
+          : "en-US,en;q=0.9";
 
       const response = await fetch(url, {
         method: "GET",
-        headers: { "User-Agent": ua },
+        headers: { "User-Agent": ua, "Accept-Language": acceptLang },
       });
 
       const text = await response.text();

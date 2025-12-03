@@ -30,10 +30,11 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("results");
   const [globalScheduleTime, setGlobalScheduleTime] = useState("21:30");
-  const [scrapeUserAgent, setScrapeUserAgent] = useState("google");
+  const [scrapeUserAgent, setScrapeUserAgent] = useState("desktop");
   const [customUserAgent, setCustomUserAgent] = useState("");
   const [scrapeTargetUrl, setScrapeTargetUrl] = useState("https://www.example.com/");
   const [scrapeLog, setScrapeLog] = useState("");
+  const [acceptLanguage, setAcceptLanguage] = useState("en-US,en;q=0.9");
 
   useEffect(() => {
     const isAuth = localStorage.getItem("adminAuth");
@@ -218,6 +219,7 @@ export default function AdminDashboard() {
       const res = await apiRequest("POST", "/api/debug/scrape-proxy", {
         url: scrapeTargetUrl,
         userAgent: resolveUserAgent(),
+        acceptLanguage,
       });
       const body = await res.json();
       setScrapeLog(JSON.stringify(body, null, 2));
@@ -581,6 +583,19 @@ export default function AdminDashboard() {
                       data-testid="input-scrape-target"
                     />
                     <p className="text-xs text-muted-foreground">Full URL to fetch using the selected user agent.</p>
+                  </div>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="accept-language">Accept-Language</Label>
+                    <Input
+                      id="accept-language"
+                      placeholder="en-US,en;q=0.9"
+                      value={acceptLanguage}
+                      onChange={(e) => setAcceptLanguage(e.target.value)}
+                      data-testid="input-accept-language"
+                    />
+                    <p className="text-xs text-muted-foreground">Use your browser's language header for closer parity.</p>
                   </div>
                 </div>
                 <div className="flex gap-2">
