@@ -308,7 +308,7 @@ export default function LottoResultTodayPage() {
                               </>
                             )}
                           </div>
-                          <div className="text-center min-h-[44px] flex flex-col items-center justify-center gap-2">
+                          <div className="text-center min-h-[44px] flex flex-col items-center justify-center gap-3">
                             {result.jackpotAmount && (
                               <div className="inline-flex items-center gap-2 rounded-md bg-muted/50 px-3 py-1.5">
                                 <Trophy className="w-4 h-4 text-lottery-ball-bonus" />
