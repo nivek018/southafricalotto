@@ -37,6 +37,10 @@ const PrizeHistoryChart = lazy(async () => {
   const mod = await import("@/components/prize-history-chart");
   return { default: mod.PrizeHistoryChart };
 });
+const WinnerHistoryChart = lazy(async () => {
+  const mod = await import("@/components/winner-history-chart");
+  return { default: mod.WinnerHistoryChart };
+});
 
 interface GroupedResultsResponse {
   group: {
@@ -870,6 +874,17 @@ export default function GamePage() {
                 <div className="min-h-[320px]">
                   <Suspense fallback={<div className="text-center text-muted-foreground py-4">Loading chart...</div>}>
                     <PrizeHistoryChart
+                      groupSlug={groupSlug || ""}
+                      variants={groupedData.group.variants}
+                    />
+                  </Suspense>
+                </div>
+              )}
+
+              {hasGroup && groupedData && (
+                <div className="min-h-[320px] mt-8">
+                  <Suspense fallback={<div className="text-center text-muted-foreground py-4">Loading winners chart...</div>}>
+                    <WinnerHistoryChart
                       groupSlug={groupSlug || ""}
                       variants={groupedData.group.variants}
                     />
