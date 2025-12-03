@@ -638,12 +638,12 @@ export default function GamePage() {
                               {allVariantResults.slice(1, 4).map((result) => (
                                 <Card key={result.id} data-testid={`card-history-${result.id}`}>
                                   <CardContent className="py-3">
-                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                                    <div className="grid grid-cols-1 md:grid-cols-[auto,1fr,auto] items-center gap-3 md:gap-4">
                                       <Badge variant="outline" className="inline-flex w-fit">
                                         <Calendar className="w-3 h-3 mr-1" />
                                         {formatShortDate(result.drawDate)}
                                       </Badge>
-                                      <div className="flex flex-wrap items-center gap-2">
+                                      <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
                                         {sortNumbers(result.winningNumbers).map((num, idx) => (
                                           <LotteryBall key={idx} number={num} size="sm" />
                                         ))}
@@ -654,8 +654,18 @@ export default function GamePage() {
                                           </>
                                         )}
                                       </div>
-                                      {result.jackpotAmount && (
-                                        <span className="text-sm font-semibold">{result.jackpotAmount}</span>
+                                      {(result.jackpotAmount || typeof (result as any).winner === "number") && (
+                                        <div className="text-center md:text-right space-y-1">
+                                          {result.jackpotAmount && (
+                                            <div className="text-sm font-semibold leading-tight">{result.jackpotAmount}</div>
+                                          )}
+                                          {typeof (result as any).winner === "number" && (
+                                            <div className="inline-flex items-center gap-1.5 justify-center md:justify-end text-xs font-semibold text-muted-foreground">
+                                              <Users className="w-3.5 h-3.5 text-primary" />
+                                              <span>Winners: {(result as any).winner}</span>
+                                            </div>
+                                          )}
+                                        </div>
                                       )}
                                     </div>
                                   </CardContent>
@@ -715,12 +725,12 @@ export default function GamePage() {
                             {singleResults.slice(1).map((result) => (
                               <Card key={result.id} data-testid={`card-history-${result.id}`}>
                                 <CardContent className="py-4">
-                                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                  <div className="grid grid-cols-1 md:grid-cols-[auto,1fr,auto] items-center gap-4">
                                     <Badge variant="outline" className="inline-flex w-fit">
                                       <Calendar className="w-3 h-3 mr-1" />
                                       {formatShortDate(result.drawDate)}
                                     </Badge>
-                                    <div className="flex flex-wrap items-center gap-2">
+                                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
                                       {sortNumbers(result.winningNumbers).map((num, idx) => (
                                         <LotteryBall key={idx} number={num} size="sm" />
                                       ))}
@@ -731,12 +741,16 @@ export default function GamePage() {
                                         </>
                                       )}
                                     </div>
-                                    {result.jackpotAmount && (
-                                      <div className="text-right">
-                                        <span className="text-sm text-muted-foreground">Jackpot: </span>
-                                        <span className="font-semibold">{result.jackpotAmount}</span>
+                                    {(result.jackpotAmount || typeof (result as any).winner === "number") && (
+                                      <div className="text-center md:text-right space-y-1">
+                                        {result.jackpotAmount && (
+                                          <div className="text-sm font-semibold leading-tight">
+                                            <span className="text-muted-foreground">Jackpot: </span>
+                                            <span className="text-foreground">{result.jackpotAmount}</span>
+                                          </div>
+                                        )}
                                         {typeof (result as any).winner === "number" && (
-                                          <div className="text-xs text-muted-foreground flex items-center justify-end gap-1 mt-1">
+                                          <div className="inline-flex items-center gap-1.5 justify-center md:justify-end text-xs font-semibold text-muted-foreground">
                                             <Users className="w-3.5 h-3.5 text-primary" />
                                             <span>Winners: {(result as any).winner}</span>
                                           </div>
