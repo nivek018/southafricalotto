@@ -29,8 +29,12 @@ export default function DrawHistoryPage() {
   const [, setLocation] = useLocation();
   const canonical = canonicalSlug(slug || "");
   const [showAll, setShowAll] = useState(false);
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
+
+  const currentYear = new Date().getFullYear();
+  const defaultFrom = `${currentYear}-01-01`;
+  const defaultTo = `${currentYear}-12-31`;
+  const [fromDate, setFromDate] = useState(defaultFrom);
+  const [toDate, setToDate] = useState(defaultTo);
 
   useEffect(() => {
     if (canonical && canonical !== slug) {
@@ -116,7 +120,6 @@ export default function DrawHistoryPage() {
 
   const filteredDates = useMemo(() => {
     if (isRangeInvalid) return [];
-    if (!fromDate && !toDate) return allDates;
     return allDates.filter((date) => {
       if (fromDate && date < fromDate) return false;
       if (toDate && date > toDate) return false;
@@ -190,38 +193,31 @@ export default function DrawHistoryPage() {
         </div>
 
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="flex flex-col gap-1">
               <span className="text-xs text-muted-foreground">From</span>
-              <input
-                type="date"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                className="h-9 rounded-md border bg-background px-3 text-sm"
-                data-testid="input-from-date"
-              />
+              <div className="relative">
+                <input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  className="h-10 w-[170px] rounded-md border border-border bg-background px-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  data-testid="input-from-date"
+                />
+              </div>
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-xs text-muted-foreground">To</span>
-              <input
-                type="date"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-                className="h-9 rounded-md border bg-background px-3 text-sm"
-                data-testid="input-to-date"
-              />
+              <div className="relative">
+                <input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  className="h-10 w-[170px] rounded-md border border-border bg-background px-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  data-testid="input-to-date"
+                />
+              </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setFromDate("");
-                setToDate("");
-              }}
-              data-testid="button-clear-range"
-            >
-              Clear Range
-            </Button>
           </div>
           <span className="text-sm text-muted-foreground">
             {isRangeInvalid
