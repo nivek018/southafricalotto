@@ -289,9 +289,9 @@ const gameRunState: Record<string, { lastRunDate: string | null; nextRetryAt: nu
 
 function getSASTDate(base?: Date): Date {
   const now = base ? new Date(base) : new Date();
-  const sastOffset = 2 * 60;
-  const localOffset = now.getTimezoneOffset();
-  return new Date(now.getTime() + (sastOffset + localOffset) * 60000);
+  // SAST is UTC+2, no DST
+  const sastOffset = 2 * 60 * 60 * 1000; // 2 hours in ms
+  return new Date(now.getTime() + sastOffset);
 }
 
 function isDrawDay(gameDrawDays: string[] | null | undefined, sastNow: Date): boolean {
@@ -397,8 +397,8 @@ export function startScraperCron(): void {
       const drawDays = Array.isArray(game.drawDays)
         ? game.drawDays
         : (typeof (game.drawDays as any) === "string"
-            ? (() => { try { return JSON.parse(game.drawDays as any); } catch { return []; } })()
-            : []);
+          ? (() => { try { return JSON.parse(game.drawDays as any); } catch { return []; } })()
+          : []);
       if (!isDrawDay(drawDays, sastNow)) {
         gameRunState[game.slug] = { lastRunDate: gameRunState[game.slug]?.lastRunDate ?? null, nextRetryAt: null, retryDeadline: null };
         continue;

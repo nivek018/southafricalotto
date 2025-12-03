@@ -304,9 +304,9 @@ export async function registerRoutes(
 
   const getSastDateString = (offsetDays = 0): string => {
     const now = new Date();
-    const sastOffset = 2 * 60; // SAST is UTC+2
-    const localOffset = now.getTimezoneOffset(); // minutes to UTC (negative for UTC+)
-    const sastTime = new Date(now.getTime() + (sastOffset - localOffset) * 60000);
+    // SAST is UTC+2, no DST
+    const sastOffset = 2 * 60 * 60 * 1000; // 2 hours in ms
+    const sastTime = new Date(now.getTime() + sastOffset);
     sastTime.setUTCDate(sastTime.getUTCDate() + offsetDays);
     return sastTime.toISOString().split("T")[0];
   };

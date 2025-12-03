@@ -10,10 +10,10 @@ import { AdSlot } from "@/components/ad-slot";
 
 function getYesterdayDateSAST(): string {
   const now = new Date();
-  const sastOffset = 2 * 60;
-  const localOffset = now.getTimezoneOffset();
-  const sastTime = new Date(now.getTime() + (sastOffset + localOffset) * 60000);
-  sastTime.setDate(sastTime.getDate() - 1);
+  // SAST is UTC+2
+  const sastOffset = 2 * 60 * 60 * 1000;
+  const sastTime = new Date(now.getTime() + sastOffset);
+  sastTime.setUTCDate(sastTime.getUTCDate() - 1);
   return sastTime.toISOString().split("T")[0];
 }
 
@@ -23,7 +23,7 @@ export default function LottoSaResultYesterdayPage() {
   });
 
   const yesterdayDate = getYesterdayDateSAST();
-  
+
   const lottoResults = results?.filter(
     (r) => r.gameSlug === "lotto" || r.gameSlug === "lotto-plus-1" || r.gameSlug === "lotto-plus-2"
   ) || [];
@@ -61,11 +61,11 @@ export default function LottoSaResultYesterdayPage() {
             </h1>
           </div>
           <p className="text-muted-foreground text-lg" data-testid="text-lotto-sa-date">
-            Lotto, Lotto Plus 1 & Lotto Plus 2 results from {new Date(yesterdayDate).toLocaleDateString('en-ZA', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
+            Lotto, Lotto Plus 1 & Lotto Plus 2 results from {new Date(yesterdayDate).toLocaleDateString('en-ZA', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
             })}
           </p>
         </div>
@@ -120,7 +120,7 @@ export default function LottoSaResultYesterdayPage() {
         <div className="mt-12 bg-card rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">About SA Lotto</h2>
           <p className="text-muted-foreground mb-4">
-            SA Lotto is South Africa's original lottery game with guaranteed jackpots starting at R2 million. 
+            SA Lotto is South Africa's original lottery game with guaranteed jackpots starting at R2 million.
             Players choose 6 numbers from 1-58, plus a bonus ball is drawn.
           </p>
           <p className="text-muted-foreground mb-4">

@@ -249,8 +249,8 @@ export default function LottoResultTodayPage() {
             const todayKey = normalizeDay(todayWeekday);
 
             const gamesForToday = todayGames.filter(({ game, result }) => {
-              // Always include if we already have a result for today
-              if (result) return true;
+              // Always include if we already have a result matching the server's today date
+              if (result && normalizeDateStr(result.drawDate) === data?.date) return true;
 
               const schedule = SCHEDULE_MAP[game.slug] || [];
               const normalizedSchedule = schedule.map(normalizeDay);

@@ -10,10 +10,10 @@ import { AdSlot } from "@/components/ad-slot";
 
 function getYesterdayDateSAST(): string {
   const now = new Date();
-  const sastOffset = 2 * 60;
-  const localOffset = now.getTimezoneOffset();
-  const sastTime = new Date(now.getTime() + (sastOffset + localOffset) * 60000);
-  sastTime.setDate(sastTime.getDate() - 1);
+  // SAST is UTC+2
+  const sastOffset = 2 * 60 * 60 * 1000;
+  const sastTime = new Date(now.getTime() + sastOffset);
+  sastTime.setUTCDate(sastTime.getUTCDate() - 1);
   return sastTime.toISOString().split("T")[0];
 }
 
@@ -23,7 +23,7 @@ export default function PowerballResultYesterdayPage() {
   });
 
   const yesterdayDate = getYesterdayDateSAST();
-  
+
   const powerballResults = results?.filter(
     (r) => r.gameSlug === "powerball" || r.gameSlug === "powerball-plus"
   ) || [];
@@ -61,11 +61,11 @@ export default function PowerballResultYesterdayPage() {
             </h1>
           </div>
           <p className="text-muted-foreground text-lg" data-testid="text-powerball-date">
-            Powerball and Powerball Plus results from {new Date(yesterdayDate).toLocaleDateString('en-ZA', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
+            Powerball and Powerball Plus results from {new Date(yesterdayDate).toLocaleDateString('en-ZA', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
             })}
           </p>
         </div>
@@ -120,7 +120,7 @@ export default function PowerballResultYesterdayPage() {
         <div className="mt-12 bg-card rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">About Powerball</h2>
           <p className="text-muted-foreground mb-4">
-            Powerball is South Africa's biggest lottery game with jackpots starting at R3 million. 
+            Powerball is South Africa's biggest lottery game with jackpots starting at R3 million.
             Players choose 5 numbers from 1-50 and 1 Powerball number from 1-20.
           </p>
           <p className="text-muted-foreground mb-4">
