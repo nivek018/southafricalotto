@@ -365,6 +365,7 @@ export function startScraperCron(): void {
       const { addedCount } = await processScrapedResults(scrapedResults);
       if (scrapedResults.length > 0) {
         const paths = buildPurgePaths(scrapedResults);
+        logInfo("[Cron] Scrape finished, triggering Cloudflare purge", { gameSlug, trigger, paths });
         void purgeCloudflareSite(paths);
       }
       const timestamp = new Date().toISOString();

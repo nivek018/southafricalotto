@@ -6,6 +6,7 @@ import fs from "fs";
 import { storage } from "./storage";
 import { scrapeLotteryResults, processScrapedResults, scrapeDateRange } from "./scraper";
 import { purgeCloudflareSite } from "./cloudflare";
+import { info as logInfo } from "./logger";
 import {
   insertLotteryResultSchema,
   insertNewsArticleSchema,
@@ -494,6 +495,7 @@ export async function registerRoutes(
       const { addedCount, addedResults, skippedResults } = await processScrapedResults(scrapedResults);
       await storage.updateScraperLastRun(new Date().toISOString());
       const paths = buildPurgePaths(scrapedResults);
+      logInfo("[Scraper] Manual scrape complete, triggering Cloudflare purge", { paths });
       void purgeCloudflareSite(paths);
 
       console.log(`[Scraper] Complete: scraped ${scrapedResults.length}, added ${addedCount}`);
@@ -538,6 +540,7 @@ export async function registerRoutes(
       const scrapedResults = await scrapeDateRange(startDate, endDate, Array.isArray(gameSlugs) ? gameSlugs : undefined);
       const { addedCount, addedResults, skippedResults } = await processScrapedResults(scrapedResults);
       const paths = buildPurgePaths(scrapedResults);
+      logInfo("[Scraper] Manual date range scrape complete, triggering Cloudflare purge", { paths });
       void purgeCloudflareSite(paths);
 
       res.json({

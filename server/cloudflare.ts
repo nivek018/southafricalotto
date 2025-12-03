@@ -1,3 +1,5 @@
+import { info as logInfo, warn as logWarn, error as logError } from "./logger";
+
 const CF_API_BASE = "https://api.cloudflare.com/client/v4";
 
 function getConfig() {
@@ -33,7 +35,7 @@ function buildUrls(paths: string[]): string[] {
 export async function purgeCloudflareSite(paths?: string[]): Promise<void> {
   const cfg = getConfig();
   if (!cfg) {
-    console.warn("[Cloudflare] Purge skipped: missing CF config (token/key or zone/email/base URL)");
+    logWarn("[Cloudflare] Purge skipped: missing CF config (token/key or zone/email/base URL)");
     return;
   }
 
@@ -80,15 +82,18 @@ export async function purgeCloudflareSite(paths?: string[]): Promise<void> {
       body: JSON.stringify(body),
     });
     const text = await res.text();
+    const logPayload = { label, status: res.status, body, response: text };
     if (!res.ok) {
-      console.error(`[Cloudflare] ${label} purge failed: ${res.status} ${text}`);
+      logError(`[Cloudflare] ${label} purge failed: ${res.status}`, logPayload);
     } else {
-      console.log(`[Cloudflare] ${label} purge triggered`, body, text || "");
+      logInfo(`[Cloudflare] ${label} purge triggered`, logPayload);
     }
     return res.ok;
   };
 
   try {
+    logInfo("[Cloudflare] Purge request prepared", { strategy, targetCount: targets.length, payload });
+
     const primaryOk = await attemptPurge(strategy === "files" ? "URL" : strategy.toUpperCase(), payload);
 
     // If file purge fails (common with custom cache keys), attempt host purge as a fallback when allowed
@@ -96,6 +101,6 @@ export async function purgeCloudflareSite(paths?: string[]): Promise<void> {
       await attemptPurge("Host-fallback", { hosts: [cfg.host] });
     }
   } catch (err) {
-    console.error("[Cloudflare] URL purge error:", err);
+    logError("[Cloudflare] URL purge error", err instanceof Error ? err.message : String(err));
   }
 }
