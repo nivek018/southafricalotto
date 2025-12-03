@@ -36,6 +36,7 @@ export default function AdminDashboard() {
   const [scrapeLog, setScrapeLog] = useState("");
   const [acceptLanguage, setAcceptLanguage] = useState("en-US,en;q=0.9");
   const [useAmp, setUseAmp] = useState(true);
+  const [discoverData, setDiscoverData] = useState(true);
 
   useEffect(() => {
     const isAuth = localStorage.getItem("adminAuth");
@@ -222,6 +223,7 @@ export default function AdminDashboard() {
         userAgent: resolveUserAgent(),
         acceptLanguage,
         useAmp,
+        discoverData,
       });
       const body = await res.json();
       setScrapeLog(JSON.stringify(body, null, 2));
@@ -601,6 +603,22 @@ export default function AdminDashboard() {
                   </div>
                   <div className="text-xs text-muted-foreground">
                     When enabled, the request rewrites to `/amp/...` which often returns a static, scrape-friendly page.
+                  </div>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="toggle-discover"
+                      type="checkbox"
+                      checked={discoverData}
+                      onChange={(e) => setDiscoverData(e.target.checked)}
+                      className="h-4 w-4 rounded border"
+                      data-testid="toggle-discover-data"
+                    />
+                    <Label htmlFor="toggle-discover">Discover & fetch data URLs (amp-list/json)</Label>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Scans the HTML for amp-list/src/json links and fetches up to 5 of them for inspection.
                   </div>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">

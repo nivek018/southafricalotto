@@ -559,7 +559,7 @@ export async function registerRoutes(
 
   app.post("/api/debug/scrape-proxy", mutationLimiter, requireAdmin, csrfGuard, async (req, res) => {
     try {
-      const { url, userAgent, acceptLanguage, useAmp } = req.body || {};
+      const { url, userAgent, acceptLanguage, useAmp, discoverData } = req.body || {};
       if (!url || typeof url !== "string") {
         return res.status(400).json({ error: "Target URL is required" });
       }
@@ -597,12 +597,67 @@ export async function registerRoutes(
         headers[key] = value;
       });
 
+      const discoveredUrls: string[] = [];
+      if (discoverData) {
+        const addUrl = (raw: string) => {
+          try {
+            const resolved = new URL(raw, targetUrl).toString();
+            if (!discoveredUrls.includes(resolved)) {
+              discoveredUrls.push(resolved);
+            }
+          } catch {
+            /* ignore bad urls */
+          }
+        };
+
+        const ampListRegex = /<amp-list[^>]+?\s+src="([^"]+)"/gi;
+        let m: RegExpExecArray | null;
+        while ((m = ampListRegex.exec(text)) !== null) {
+          addUrl(m[1]);
+        }
+
+        const jsonSrcRegex = /(data-src|src)="([^"]+?\.json[^"]*)"/gi;
+        while ((m = jsonSrcRegex.exec(text)) !== null) {
+          addUrl(m[2]);
+        }
+      }
+
+      const dataFetchResults: any[] = [];
+      if (discoverData && discoveredUrls.length > 0) {
+        const toFetch = discoveredUrls.slice(0, 5);
+        for (const u of toFetch) {
+          try {
+            const resp = await fetch(u, {
+              headers: {
+                "User-Agent": ua,
+                "Accept-Language": acceptLang,
+                "Accept": "application/json,text/plain;q=0.9,*/*;q=0.1",
+              },
+            });
+            const bodyText = await resp.text();
+            dataFetchResults.push({
+              url: u,
+              status: resp.status,
+              statusText: resp.statusText,
+              body: bodyText.slice(0, 8000),
+            });
+          } catch (err) {
+            dataFetchResults.push({
+              url: u,
+              error: err instanceof Error ? err.message : String(err),
+            });
+          }
+        }
+      }
+
       res.json({
         status: response.status,
         statusText: response.statusText,
         headers,
         body: text.slice(0, 8000),
         fetchedUrl: targetUrl,
+        discoveredUrls,
+        dataFetchResults,
       });
     } catch (error) {
       console.error("Debug scrape failed:", error);
