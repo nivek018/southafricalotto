@@ -543,12 +543,6 @@ export default function GamePage() {
                     <div key={idx} className="rounded-lg border bg-muted/40 px-3 py-2 text-center">
                       <p className="text-sm font-semibold text-foreground mb-1 break-words leading-tight">{item.name}</p>
                       <p className="text-base sm:text-lg font-bold text-lottery-ball-bonus break-words leading-tight">{item.amount}</p>
-                      {typeof item.winner === "number" && (
-                        <div className="mt-1 inline-flex items-center gap-1.5 justify-center text-xs font-semibold text-muted-foreground">
-                          <Users className="w-3.5 h-3.5 text-primary" />
-                          <span>Winners: {item.winner}</span>
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>
