@@ -279,34 +279,40 @@ export async function processScrapedResults(scrapedResults: InsertLotteryResult[
   return { addedCount, addedResults, skippedResults };
 }
 
-const parsedInterval = parseInt(process.env.SCRAPER_INTERVAL_MINUTES || "60", 10);
-const DEFAULT_SCRAPER_INTERVAL_MINUTES = Number.isFinite(parsedInterval)
-  ? Math.max(15, parsedInterval)
-  : 60;
 let cronTimer: NodeJS.Timeout | null = null;
 let isCronRunning = false;
 const gameRunState: Record<string, { lastRunDate: string | null; nextRetryAt: number | null; retryDeadline: number | null }> = {};
 
-function getSASTDate(base?: Date): Date {
-  const now = base ? new Date(base) : new Date();
-  // SAST is UTC+2, no DST
-  const sastOffset = 2 * 60 * 60 * 1000; // 2 hours in ms
-  return new Date(now.getTime() + sastOffset);
+const SAST_TZ = "Africa/Johannesburg";
+const pad2 = (n: number) => n.toString().padStart(2, "0");
+
+function getSastContext(base?: Date): { date: string; time: string; weekday: string; sastMs: number } {
+  const ref = base ?? new Date();
+  const fmt = new Intl.DateTimeFormat("en-CA", {
+    timeZone: SAST_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+    weekday: "long",
+  });
+  const parts = fmt.formatToParts(ref);
+  const pick = (type: string) => parts.find(p => p.type === type)?.value ?? "0";
+  const date = `${pick("year")}-${pick("month")}-${pick("day")}`;
+  const time = `${pick("hour")}:${pick("minute")}:${pick("second")}`;
+  const weekday = pick("weekday");
+  const sastMs = Date.parse(`${date}T${time}+02:00`); // SAST is always UTC+2, no DST
+  return { date, time, weekday, sastMs };
 }
 
-function isDrawDay(gameDrawDays: string[] | null | undefined, sastNow: Date): boolean {
+function isDrawDay(gameDrawDays: string[] | null | undefined, sastWeekday: string): boolean {
   if (!gameDrawDays || gameDrawDays.length === 0) return false;
-  const dayMap: Record<number, string> = {
-    0: "Sunday",
-    1: "Monday",
-    2: "Tuesday",
-    3: "Wednesday",
-    4: "Thursday",
-    5: "Friday",
-    6: "Saturday",
-  };
-  const todayName = dayMap[sastNow.getDay()];
-  return gameDrawDays.includes(todayName);
+  const normalized = gameDrawDays.map(d => d.trim().toLowerCase());
+  if (normalized.some(d => d === "daily" || d === "everyday")) return true;
+  return normalized.includes(sastWeekday.trim().toLowerCase());
 }
 
 function parseScheduleTime(timeStr: string | null | undefined): { hours: number; minutes: number } | null {
@@ -386,9 +392,8 @@ export function startScraperCron(): void {
   const tick = async () => {
     const settings = await storage.getScraperSettings();
     const games = await storage.getGames();
-    const sastNow = getSASTDate();
-    const todayStr = sastNow.toISOString().split("T")[0];
-    const nowMs = sastNow.getTime();
+    const { date: todayStr, weekday: sastWeekday } = getSastContext();
+    const nowMs = Date.now();
 
     for (const setting of settings) {
       if (setting.isEnabled === false) continue;
@@ -400,7 +405,7 @@ export function startScraperCron(): void {
         : (typeof (game.drawDays as any) === "string"
           ? (() => { try { return JSON.parse(game.drawDays as any); } catch { return []; } })()
           : []);
-      if (!isDrawDay(drawDays, sastNow)) {
+      if (!isDrawDay(drawDays, sastWeekday)) {
         gameRunState[game.slug] = { lastRunDate: gameRunState[game.slug]?.lastRunDate ?? null, nextRetryAt: null, retryDeadline: null };
         continue;
       }
@@ -408,10 +413,8 @@ export function startScraperCron(): void {
       const timeParts = parseScheduleTime(setting.scheduleTime || "21:30");
       if (!timeParts) continue;
 
-      const scheduled = new Date(sastNow);
-      scheduled.setHours(timeParts.hours, timeParts.minutes, 0, 0);
-      const scheduledMs = scheduled.getTime();
-      const nowMs = sastNow.getTime();
+      const scheduledMs = Date.parse(`${todayStr}T${pad2(timeParts.hours)}:${pad2(timeParts.minutes)}:00+02:00`);
+      if (!Number.isFinite(scheduledMs)) continue;
 
       if (nowMs < scheduledMs) continue;
 
