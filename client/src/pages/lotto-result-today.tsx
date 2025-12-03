@@ -316,6 +316,14 @@ export default function LottoResultTodayPage() {
                               </>
                             ) : null}
                           </div>
+                          <div className="text-center min-h-[44px] flex flex-col items-center justify-center">
+                            {typeof result.winner === "number" ? (
+                              <>
+                                <p className="text-xs text-muted-foreground">Winners</p>
+                                <p className="font-bold text-primary">{result.winner}</p>
+                              </>
+                            ) : null}
+                          </div>
                         </div>
                       ) : (
                         <div className="text-center pt-1 pb-1 w-full flex flex-col items-center gap-5">
