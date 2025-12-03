@@ -312,15 +312,15 @@ export default function LottoResultTodayPage() {
                             {result.jackpotAmount && (
                               <div className="inline-flex items-center gap-2 rounded-md bg-muted/50 px-3 py-1.5">
                                 <Trophy className="w-4 h-4 text-lottery-ball-bonus" />
-                                <span className="text-xs text-muted-foreground">Jackpot:</span>
-                                <span className="text-sm font-bold text-lottery-ball-bonus">{result.jackpotAmount}</span>
+                                <span className="text-sm text-muted-foreground">Jackpot:</span>
+                                <span className="text-base font-bold text-lottery-ball-bonus">{result.jackpotAmount}</span>
                               </div>
                             )}
                             {typeof result.winner === "number" && (
                               <div className="inline-flex items-center gap-2 rounded-md bg-muted/40 px-3 py-1.5">
                                 <Users className="w-4 h-4 text-primary" />
-                                <span className="text-xs text-muted-foreground">Winners:</span>
-                                <span className="text-sm font-semibold text-primary">{result.winner}</span>
+                                <span className="text-sm text-muted-foreground">Winners:</span>
+                                <span className="text-base font-semibold text-primary">{result.winner}</span>
                               </div>
                             )}
                           </div>
