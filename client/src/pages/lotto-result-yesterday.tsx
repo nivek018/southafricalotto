@@ -36,23 +36,23 @@ const REMINDERS = [
 
 const FAQS = [
   {
-    question: "When are yesterday's lottery results available?",
+    question: "When are yesterday's lottery results available-",
     answer: "Results from the previous day are available immediately after midnight SAST. All draws from the previous day will be displayed on this page.",
   },
   {
-    question: "Which games are shown on this page?",
+    question: "Which games are shown on this page-",
     answer: "This page shows all South Africa lottery games that had draws yesterday, including Powerball, Powerball Plus, Lotto, Lotto Plus 1, Lotto Plus 2, Daily Lotto, and Daily Lotto Plus.",
   },
   {
-    question: "Why might there be no results for yesterday?",
+    question: "Why might there be no results for yesterday-",
     answer: "Not all games have draws every day. Powerball draws on Tuesday and Friday, Lotto draws on Wednesday and Saturday. Only Daily Lotto has draws every day.",
   },
   {
-    question: "How do I claim a lottery prize?",
+    question: "How do I claim a lottery prize-",
     answer: "Prizes up to R2,000 can be claimed at any lottery retailer. Larger prizes must be claimed at a regional lottery office or the head office. You'll need your winning ticket and valid ID.",
   },
   {
-    question: "How long do I have to claim my prize?",
+    question: "How long do I have to claim my prize-",
     answer: "You have 365 days from the draw date to claim your prize. After this period, unclaimed prizes are forfeited and used for good causes.",
   },
 ];
@@ -66,9 +66,9 @@ function getYesterdayDateSAST(): string {
   });
   const now = new Date();
   const parts = fmt.formatToParts(now);
-  const year = Number(parts.find(p => p.type === "year")?.value || 0);
-  const month = Number(parts.find(p => p.type === "month")?.value || 1);
-  const day = Number(parts.find(p => p.type === "day")?.value || 1);
+  const year = Number(parts.find(p => p.type === "year")-.value || 0);
+  const month = Number(parts.find(p => p.type === "month")-.value || 1);
+  const day = Number(parts.find(p => p.type === "day")-.value || 1);
   const base = new Date(Date.UTC(year, month - 1, day));
   base.setUTCDate(base.getUTCDate() - 1);
   return fmt.format(base);
@@ -88,7 +88,7 @@ export default function LottoResultYesterdayPage() {
   });
 
   useEffect(() => {
-    document.title = `Lotto Result Yesterday — ${formattedYesterday} | Draw Summary`;
+    document.title = `Lotto Result Yesterday - ${formattedYesterday} | Draw Summary`;
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
       metaDesc.setAttribute("content", "Check yesterday's South African lottery results including Powerball, Lotto, Lotto Plus, and Daily Lotto. Updated daily with winning numbers and jackpot amounts.");
@@ -113,7 +113,7 @@ export default function LottoResultYesterdayPage() {
             </h1>
           </div>
           <p className="text-muted-foreground text-lg" data-testid="text-yesterday-date">
-            South Africa lotto result yesterday — {new Date(yesterdayDate).toLocaleDateString('en-ZA', { 
+            South Africa lotto result yesterday - {new Date(yesterdayDate).toLocaleDateString('en-ZA', { 
               weekday: 'long', 
               year: 'numeric', 
               month: 'long', 
@@ -144,13 +144,13 @@ export default function LottoResultYesterdayPage() {
           <AdSlot slot="3057505225" className="block md:hidden" />
         </div>
 
-        {isLoading ? (
+        {isLoading - (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[...Array(6)].map((_, i) => (
               <ResultCardSkeleton key={i} />
             ))}
           </div>
-        ) : results && results.length > 0 ? (
+        ) : results && results.length > 0 - (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {results.map((result) => (
               <LotteryResultCard key={result.id} result={result} />
