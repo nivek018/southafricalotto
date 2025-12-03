@@ -225,12 +225,12 @@ export default function DrawHistoryPage() {
                           
                           return (
                             <div key={variantSlug} className="py-3 px-4 bg-muted/20 rounded-lg" data-testid={`result-${variantSlug}-${date}`}>
-                              <div className="grid grid-cols-1 lg:grid-cols-[200px,1fr,200px] items-center gap-3">
+                              <div className="grid grid-cols-1 md:grid-cols-[auto,1fr] lg:grid-cols-[200px,1fr,200px] items-center gap-3 md:gap-4">
                                 <div className="flex items-center gap-2">
                                   <CircleDot className="h-4 w-4 text-lottery-ball-main" />
                                   <span className="font-semibold">{getVariantDisplayName(variantSlug)}</span>
                                 </div>
-                                <div className="flex flex-wrap items-center gap-2 justify-center lg:justify-center">
+                                <div className="flex flex-wrap items-center gap-2 justify-center">
                                   {sortNumbers(result.winningNumbers).map((num, idx) => (
                                     <LotteryBall key={idx} number={num} size="sm" />
                                   ))}
@@ -241,15 +241,15 @@ export default function DrawHistoryPage() {
                                     </>
                                   )}
                                 </div>
-                                <div className="flex items-center gap-2 justify-start lg:justify-end flex-wrap">
+                                <div className="flex flex-col sm:flex-row sm:flex-wrap items-center sm:items-center gap-2 justify-center lg:justify-end text-center lg:text-right">
                                   {result.jackpotAmount && (
-                                    <div className="inline-flex items-center gap-1">
+                                    <div className="inline-flex items-center gap-1.5 text-sm font-semibold leading-tight">
                                       <Trophy className="h-4 w-4 text-lottery-ball-bonus" />
-                                      <span className="font-semibold text-sm">Jackpot {result.jackpotAmount}</span>
+                                      <span className="text-foreground">{result.jackpotAmount}</span>
                                     </div>
                                   )}
                                   {typeof (result as any).winner === "number" && (
-                                    <div className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                                    <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                                       <Users className="h-3.5 w-3.5 text-primary" />
                                       <span>Winners: {(result as any).winner}</span>
                                     </div>
