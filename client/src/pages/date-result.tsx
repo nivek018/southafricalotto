@@ -203,20 +203,6 @@ export default function DateResultPage() {
                         <CircleDot className="h-5 w-5 text-lottery-ball-main" />
                         <CardTitle className="text-xl">{getVariantDisplayName(variantSlug)}</CardTitle>
                       </div>
-                      <div className="flex items-center gap-3 flex-wrap justify-end">
-                        {result.jackpotAmount && (
-                          <div className="flex items-center gap-2 bg-gradient-to-r from-lottery-ball-main/10 to-lottery-ball-bonus/10 px-4 py-2 rounded-lg">
-                            <Trophy className="h-5 w-5 text-lottery-ball-bonus" />
-                            <span className="font-bold">{result.jackpotAmount}</span>
-                          </div>
-                        )}
-                        {typeof (result as any).winner === "number" && (
-                          <div className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground">
-                            <Users className="h-4 w-4 text-primary" />
-                            <span>Winners: {(result as any).winner}</span>
-                          </div>
-                        )}
-                      </div>
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -231,8 +217,24 @@ export default function DateResultPage() {
                         </>
                       )}
                     </div>
-
-
+                    {(result.jackpotAmount || typeof (result as any).winner === "number") && (
+                      <div className="flex flex-wrap justify-center items-center gap-3 mt-1">
+                        {result.jackpotAmount && (
+                          <div className="inline-flex items-center gap-2 rounded-md bg-muted/50 px-3 py-1.5">
+                            <Trophy className="h-4 w-4 text-lottery-ball-bonus" />
+                            <span className="text-sm text-muted-foreground">Jackpot:</span>
+                            <span className="text-base font-semibold text-foreground">{result.jackpotAmount}</span>
+                          </div>
+                        )}
+                        {typeof (result as any).winner === "number" && (
+                          <div className="inline-flex items-center gap-2 rounded-md bg-muted/40 px-3 py-1.5">
+                            <Users className="h-4 w-4 text-primary" />
+                            <span className="text-sm text-muted-foreground">Winners:</span>
+                            <span className="text-base font-semibold text-primary">{(result as any).winner}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               );
