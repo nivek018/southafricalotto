@@ -559,10 +559,24 @@ export async function registerRoutes(
 
   app.post("/api/debug/scrape-proxy", mutationLimiter, requireAdmin, csrfGuard, async (req, res) => {
     try {
-      const { url, userAgent, acceptLanguage } = req.body || {};
+      const { url, userAgent, acceptLanguage, useAmp } = req.body || {};
       if (!url || typeof url !== "string") {
         return res.status(400).json({ error: "Target URL is required" });
       }
+      const buildAmpUrl = (target: string) => {
+        try {
+          const u = new URL(target);
+          if (!u.pathname.startsWith("/amp")) {
+            u.pathname = `/amp${u.pathname}`;
+          }
+          return u.toString();
+        } catch {
+          return target;
+        }
+      };
+
+      const targetUrl = useAmp ? buildAmpUrl(url) : url;
+
       const ua =
         typeof userAgent === "string" && userAgent.trim().length > 0
           ? userAgent.trim().slice(0, 500)
@@ -572,7 +586,7 @@ export async function registerRoutes(
           ? acceptLanguage.trim().slice(0, 200)
           : "en-US,en;q=0.9";
 
-      const response = await fetch(url, {
+      const response = await fetch(targetUrl, {
         method: "GET",
         headers: { "User-Agent": ua, "Accept-Language": acceptLang },
       });
@@ -588,6 +602,7 @@ export async function registerRoutes(
         statusText: response.statusText,
         headers,
         body: text.slice(0, 8000),
+        fetchedUrl: targetUrl,
       });
     } catch (error) {
       console.error("Debug scrape failed:", error);

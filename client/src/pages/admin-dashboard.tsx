@@ -35,6 +35,7 @@ export default function AdminDashboard() {
   const [scrapeTargetUrl, setScrapeTargetUrl] = useState("https://www.example.com/");
   const [scrapeLog, setScrapeLog] = useState("");
   const [acceptLanguage, setAcceptLanguage] = useState("en-US,en;q=0.9");
+  const [useAmp, setUseAmp] = useState(true);
 
   useEffect(() => {
     const isAuth = localStorage.getItem("adminAuth");
@@ -220,6 +221,7 @@ export default function AdminDashboard() {
         url: scrapeTargetUrl,
         userAgent: resolveUserAgent(),
         acceptLanguage,
+        useAmp,
       });
       const body = await res.json();
       setScrapeLog(JSON.stringify(body, null, 2));
@@ -583,6 +585,22 @@ export default function AdminDashboard() {
                       data-testid="input-scrape-target"
                     />
                     <p className="text-xs text-muted-foreground">Full URL to fetch using the selected user agent.</p>
+                  </div>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="toggle-amp"
+                      type="checkbox"
+                      checked={useAmp}
+                      onChange={(e) => setUseAmp(e.target.checked)}
+                      className="h-4 w-4 rounded border"
+                      data-testid="toggle-use-amp"
+                    />
+                    <Label htmlFor="toggle-amp">Try AMP version (if available)</Label>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    When enabled, the request rewrites to `/amp/...` which often returns a static, scrape-friendly page.
                   </div>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
