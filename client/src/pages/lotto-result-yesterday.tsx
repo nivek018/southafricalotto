@@ -88,7 +88,7 @@ export default function LottoResultYesterdayPage() {
   });
 
   useEffect(() => {
-    document.title = `Lotto Result Yesterday - ${formattedYesterday} | Draw Summary`;
+    document.title = `Lotto Result Yesterday ƒ?" ${formattedYesterday} | Draw Summary`;
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
       metaDesc.setAttribute("content", "Check yesterday's South African lottery results including Powerball, Lotto, Lotto Plus, and Daily Lotto. Updated daily with winning numbers and jackpot amounts.");
@@ -113,7 +113,7 @@ export default function LottoResultYesterdayPage() {
             </h1>
           </div>
           <p className="text-muted-foreground text-lg" data-testid="text-yesterday-date">
-            South Africa lotto result yesterday - {new Date(yesterdayDate).toLocaleDateString('en-ZA', { 
+            South Africa lotto result yesterday ƒ?" {new Date(yesterdayDate).toLocaleDateString('en-ZA', { 
               weekday: 'long', 
               year: 'numeric', 
               month: 'long', 
@@ -144,13 +144,13 @@ export default function LottoResultYesterdayPage() {
           <AdSlot slot="3057505225" className="block md:hidden" />
         </div>
 
-        {isLoading - (
+        {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[...Array(6)].map((_, i) => (
               <ResultCardSkeleton key={i} />
             ))}
           </div>
-        ) : results && results.length > 0 - (
+        ) : results && results.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {results.map((result) => (
               <LotteryResultCard key={result.id} result={result} />
