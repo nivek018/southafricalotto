@@ -643,7 +643,7 @@ export default function GamePage() {
                                         <Calendar className="w-3 h-3 mr-1" />
                                         {formatShortDate(result.drawDate)}
                                       </Badge>
-                                      <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
+                                      <div className="flex flex-wrap items-center justify-center gap-2">
                                         {sortNumbers(result.winningNumbers).map((num, idx) => (
                                           <LotteryBall key={idx} number={num} size="sm" />
                                         ))}
@@ -730,7 +730,7 @@ export default function GamePage() {
                                       <Calendar className="w-3 h-3 mr-1" />
                                       {formatShortDate(result.drawDate)}
                                     </Badge>
-                                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
+                                    <div className="flex flex-wrap items-center justify-center gap-2">
                                       {sortNumbers(result.winningNumbers).map((num, idx) => (
                                         <LotteryBall key={idx} number={num} size="sm" />
                                       ))}
