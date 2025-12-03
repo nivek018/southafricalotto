@@ -12,6 +12,46 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <script>
+      (function() {
+        var pathname = (location.pathname || "/").toLowerCase();
+        var setMeta = function(title, desc) {
+          if (title) document.title = title;
+          var descTag = document.querySelector('meta[name="description"]');
+          if (!descTag) {
+            descTag = document.createElement("meta");
+            descTag.name = "description";
+            document.head.appendChild(descTag);
+          }
+          if (desc) descTag.setAttribute("content", desc);
+          var ogTitle = document.querySelector('meta[property="og:title"]') || document.createElement("meta");
+          ogTitle.setAttribute("property", "og:title");
+          ogTitle.setAttribute("content", title || "");
+          if (!ogTitle.parentElement) document.head.appendChild(ogTitle);
+          var ogDesc = document.querySelector('meta[property="og:description"]') || document.createElement("meta");
+          ogDesc.setAttribute("property", "og:description");
+          ogDesc.setAttribute("content", desc || "");
+          if (!ogDesc.parentElement) document.head.appendChild(ogDesc);
+        };
+        var routes = [
+          { test: function(p){ return p === "/" || p === "/home"; }, title: "South Africa Lotto Results - Powerball, Lotto, Daily Lotto | Official Numbers", desc: "View South Africa lottery results for Powerball, Lotto, Lotto Plus, and Daily Lotto. Updated immediately after each draw with winning numbers and jackpots." },
+          { test: function(p){ return p.indexOf("/lotto-result/today") === 0; }, title: "Lotto Result Today | Official South Africa Numbers", desc: "Check all South Africa lottery results for today with winning numbers, jackpots, and live updates." },
+          { test: function(p){ return p.indexOf("/lotto-result/yesterday") === 0; }, title: "Lotto Results Yesterday | Official South Africa Numbers", desc: "See yesterday's Lotto, Lotto Plus, Powerball, and Daily Lotto results with jackpots and winners." },
+          { test: function(p){ return p.indexOf("/daily-lotto-result/yesterday") === 0; }, title: "Daily Lotto Results Yesterday | Winning Numbers & Jackpots", desc: "View yesterday's Daily Lotto and Daily Lotto Plus winning numbers and jackpots." },
+          { test: function(p){ return p.indexOf("/powerball-result") === 0; }, title: "Powerball Results South Africa | Latest Winning Numbers", desc: "Get the latest South Africa Powerball and Powerball Plus results with winning numbers and jackpots." },
+          { test: function(p){ return p.indexOf("/sa-lotto-result") === 0 || p.indexOf("/lotto-result") === 0; }, title: "Lotto Results South Africa | Lotto, Lotto Plus 1 & 2", desc: "Check the latest Lotto, Lotto Plus 1, and Lotto Plus 2 results with winning numbers and prize info." },
+          { test: function(p){ return p.indexOf("/game/") === 0; }, title: "South Africa Lottery Results | Game Details & History", desc: "Explore game details, draw history, and latest results for South Africa lottery games." },
+          { test: function(p){ return p.indexOf("/draw-history") === 0; }, title: "Draw History | South Africa Lottery Results Archive", desc: "Browse full draw history with winning numbers and jackpots for South Africa lottery games." },
+          { test: function(p){ return p.indexOf("/news") === 0; }, title: "South African Lottery News & Jackpots", desc: "Read the latest South African lottery news, jackpot updates, and winner stories." }
+        ];
+        for (var i = 0; i < routes.length; i++) {
+          if (routes[i].test(pathname)) {
+            setMeta(routes[i].title, routes[i].desc);
+            break;
+          }
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
