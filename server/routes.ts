@@ -639,7 +639,7 @@ export async function registerRoutes(
               url: u,
               status: resp.status,
               statusText: resp.statusText,
-              body: bodyText.slice(0, 8000),
+              body: bodyText.slice(0, 20000),
             });
           } catch (err) {
             dataFetchResults.push({
@@ -650,14 +650,24 @@ export async function registerRoutes(
         }
       }
 
+      let numberMatches: string[] = [];
+      if (discoverData) {
+        const numberRegex = /\b\d{1,2}\b/g;
+        const matches = text.match(numberRegex);
+        if (matches) {
+          numberMatches = Array.from(new Set(matches)).slice(0, 50);
+        }
+      }
+
       res.json({
         status: response.status,
         statusText: response.statusText,
         headers,
-        body: text.slice(0, 8000),
+        body: text.slice(0, 20000),
         fetchedUrl: targetUrl,
         discoveredUrls,
         dataFetchResults,
+        numberMatches,
       });
     } catch (error) {
       console.error("Debug scrape failed:", error);
