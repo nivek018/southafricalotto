@@ -29,6 +29,8 @@ export default function DrawHistoryPage() {
   const [, setLocation] = useLocation();
   const canonical = canonicalSlug(slug || "");
   const [showAll, setShowAll] = useState(false);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
   useEffect(() => {
     if (canonical && canonical !== slug) {
@@ -110,7 +112,19 @@ export default function DrawHistoryPage() {
     return [];
   }, [hasGroup, groupedData, singleResults]);
 
-  const displayDates = showAll ? allDates : allDates.slice(0, 7);
+  const isRangeInvalid = fromDate && toDate && fromDate > toDate;
+
+  const filteredDates = useMemo(() => {
+    if (isRangeInvalid) return [];
+    if (!fromDate && !toDate) return allDates;
+    return allDates.filter((date) => {
+      if (fromDate && date < fromDate) return false;
+      if (toDate && date > toDate) return false;
+      return true;
+    });
+  }, [allDates, fromDate, toDate, isRangeInvalid]);
+
+  const displayDates = showAll ? filteredDates : filteredDates.slice(0, 7);
 
   const getResultsForDate = (date: string) => {
     if (hasGroup && groupedData) {
@@ -175,9 +189,44 @@ export default function DrawHistoryPage() {
           </div>
         </div>
 
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-muted-foreground">From</span>
+              <input
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="h-9 rounded-md border bg-background px-3 text-sm"
+                data-testid="input-from-date"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-muted-foreground">To</span>
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className="h-9 rounded-md border bg-background px-3 text-sm"
+                data-testid="input-to-date"
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setFromDate("");
+                setToDate("");
+              }}
+              data-testid="button-clear-range"
+            >
+              Clear Range
+            </Button>
+          </div>
           <span className="text-sm text-muted-foreground">
-            {allDates.length} draw dates available
+            {isRangeInvalid
+              ? "Start date must be before end date"
+              : `${filteredDates.length} of ${allDates.length} draw dates`}
           </span>
         </div>
 
@@ -187,7 +236,7 @@ export default function DrawHistoryPage() {
               <ResultCardSkeleton key={i} />
             ))}
           </div>
-        ) : displayDates.length > 0 ? (
+        ) : !isRangeInvalid && displayDates.length > 0 ? (
           <>
             <div className="space-y-6">
               {displayDates.map((date) => {
@@ -266,19 +315,19 @@ export default function DrawHistoryPage() {
               })}
             </div>
             
-            {!showAll && allDates.length > 7 && (
+            {!showAll && filteredDates.length > 7 && (
               <div className="mt-8 text-center">
                 <Button 
                   variant="outline" 
                   onClick={() => setShowAll(true)}
                   data-testid="button-show-all"
                 >
-                  Show All {allDates.length} Draw Dates
+                  Show All {filteredDates.length} Draw Dates
                 </Button>
               </div>
             )}
             
-            {showAll && allDates.length > 7 && (
+            {showAll && filteredDates.length > 7 && (
               <div className="mt-8 text-center">
                 <Button 
                   variant="outline" 
@@ -295,7 +344,9 @@ export default function DrawHistoryPage() {
             <History className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">No Results Found</h3>
             <p className="text-muted-foreground">
-              No draw history available for {groupName} yet.
+              {isRangeInvalid
+                ? "Please correct the date range."
+                : `No draw history available for ${groupName} yet.`}
             </p>
           </div>
         )}
