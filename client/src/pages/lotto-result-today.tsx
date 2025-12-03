@@ -294,7 +294,7 @@ export default function LottoResultTodayPage() {
                         <span>Draw at {game.drawTime} SAST</span>
                       </div>
                     </CardHeader>
-                    <CardContent className="pt-8 pb-8 text-center flex flex-col items-center gap-6">
+                    <CardContent className="pt-6 pb-6 text-center flex flex-col items-center gap-5">
                       {result ? (
                         <div className="w-full flex flex-col items-center gap-5">
                           <div className="flex flex-wrap items-center justify-center gap-3 lg:gap-4 mt-1.5">
