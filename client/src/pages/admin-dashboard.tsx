@@ -30,6 +30,10 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("results");
   const [globalScheduleTime, setGlobalScheduleTime] = useState("21:30");
+  const [scrapeUserAgent, setScrapeUserAgent] = useState("google");
+  const [customUserAgent, setCustomUserAgent] = useState("");
+  const [scrapeTargetUrl, setScrapeTargetUrl] = useState("https://www.example.com/");
+  const [scrapeLog, setScrapeLog] = useState("");
 
   useEffect(() => {
     const isAuth = localStorage.getItem("adminAuth");
@@ -57,6 +61,7 @@ export default function AdminDashboard() {
   const [scrapeStart, setScrapeStart] = useState(() => new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Johannesburg" }).format(new Date()));
   const [scrapeEnd, setScrapeEnd] = useState(() => new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Johannesburg" }).format(new Date()));
   const [scrapeController, setScrapeController] = useState<AbortController | null>(null);
+  const [debugScrapePending, setDebugScrapePending] = useState(false);
 
   const scrapeMutation = useMutation({
     mutationFn: async () => {
@@ -182,6 +187,50 @@ export default function AdminDashboard() {
 
   const handleDrawDaysUpdate = (gameSlug: string, drawDays: string[]) => {
     drawDaysMutation.mutate({ gameSlug, drawDays });
+  };
+
+  const USER_AGENT_PRESETS: Record<string, string> = {
+    google: "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+    bing: "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)",
+    duckduck: "Mozilla/5.0 (compatible; DuckDuckBot/1.0; +http://duckduckgo.com/duckduckbot.html)",
+    desktop: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+  };
+
+  const resolveUserAgent = () => {
+    if (scrapeUserAgent === "custom") {
+      return customUserAgent.trim() || USER_AGENT_PRESETS.google;
+    }
+    return USER_AGENT_PRESETS[scrapeUserAgent] || USER_AGENT_PRESETS.google;
+  };
+
+  const handleDebugScrape = async () => {
+    if (!scrapeTargetUrl) {
+      toast({
+        title: "Target URL required",
+        description: "Please enter a URL to scrape.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setDebugScrapePending(true);
+    setScrapeLog("Running request...");
+    try {
+      const res = await apiRequest("POST", "/api/debug/scrape-proxy", {
+        url: scrapeTargetUrl,
+        userAgent: resolveUserAgent(),
+      });
+      const body = await res.json();
+      setScrapeLog(JSON.stringify(body, null, 2));
+    } catch (error: any) {
+      setScrapeLog(error?.message || "Failed to run debug scrape.");
+      toast({
+        title: "Debug scrape failed",
+        description: error?.message || "Unable to fetch target URL.",
+        variant: "destructive",
+      });
+    } finally {
+      setDebugScrapePending(false);
+    }
   };
 
   const applyGlobalSchedule = () => {
@@ -314,7 +363,7 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-3">
+          <TabsList className="grid w-full max-w-2xl grid-cols-5">
             <TabsTrigger value="results" data-testid="tab-results">
               <CircleDot className="h-4 w-4 mr-2" />
               Lottery Results
@@ -326,6 +375,14 @@ export default function AdminDashboard() {
             <TabsTrigger value="settings" data-testid="tab-settings">
               <Settings className="h-4 w-4 mr-2" />
               Settings
+            </TabsTrigger>
+            <TabsTrigger value="scraping" data-testid="tab-scraping">
+              <Download className="h-4 w-4 mr-2" />
+              Scraping
+            </TabsTrigger>
+            <TabsTrigger value="debug" data-testid="tab-debug">
+              <Clock className="h-4 w-4 mr-2" />
+              Debug
             </TabsTrigger>
           </TabsList>
 
@@ -471,6 +528,99 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="scraping" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Scraping Debugger</CardTitle>
+                <CardDescription>Simulate requests with custom user agents and view the raw response.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>User Agent</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {(["google", "bing", "duckduck", "desktop", "custom"] as const).map((opt) => (
+                        <Button
+                          key={opt}
+                          size="sm"
+                          variant={scrapeUserAgent === opt ? "default" : "outline"}
+                          onClick={() => setScrapeUserAgent(opt)}
+                        >
+                          {opt === "google" && "Googlebot"}
+                          {opt === "bing" && "Bingbot"}
+                          {opt === "duckduck" && "DuckDuckBot"}
+                          {opt === "desktop" && "Desktop Chrome"}
+                          {opt === "custom" && "Custom"}
+                        </Button>
+                      ))}
+                    </div>
+                    <Input
+                      placeholder="Enter custom user agent"
+                      value={scrapeUserAgent === "custom" ? customUserAgent : resolveUserAgent()}
+                      onChange={(e) => {
+                        setCustomUserAgent(e.target.value);
+                        setScrapeUserAgent("custom");
+                      }}
+                      disabled={scrapeUserAgent !== "custom"}
+                      className="w-full"
+                      data-testid="input-custom-ua"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Samples: Googlebot, Bingbot, DuckDuckBot, Desktop Chrome. Switch to Custom to edit.
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="scrape-target">Target URL</Label>
+                    <Input
+                      id="scrape-target"
+                      placeholder="https://example.com/page"
+                      value={scrapeTargetUrl}
+                      onChange={(e) => setScrapeTargetUrl(e.target.value)}
+                      data-testid="input-scrape-target"
+                    />
+                    <p className="text-xs text-muted-foreground">Full URL to fetch using the selected user agent.</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleDebugScrape}
+                    disabled={debugScrapePending}
+                    data-testid="button-run-debug-scrape"
+                  >
+                    {debugScrapePending ? "Running..." : "Run Debug Scrape"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setScrapeLog("")}
+                    data-testid="button-clear-debug-log"
+                  >
+                    Clear Log
+                  </Button>
+                </div>
+                <div>
+                  <Label>Response Log</Label>
+                  <pre className="mt-2 h-64 overflow-auto rounded-md border bg-muted/40 p-3 text-xs whitespace-pre-wrap" data-testid="debug-log">
+                    {scrapeLog || "Run a debug scrape to see output here."}
+                  </pre>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="debug" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Debug Tools</CardTitle>
+                <CardDescription>Use the Scraping tab to probe URLs with different user agents.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Additional debug utilities can be added here. Current focus: scraping diagnostics in the Scraping tab.
+                </p>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </main>

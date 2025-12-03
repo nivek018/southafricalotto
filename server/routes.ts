@@ -557,6 +557,40 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/debug/scrape-proxy", mutationLimiter, requireAdmin, csrfGuard, async (req, res) => {
+    try {
+      const { url, userAgent } = req.body || {};
+      if (!url || typeof url !== "string") {
+        return res.status(400).json({ error: "Target URL is required" });
+      }
+      const ua =
+        typeof userAgent === "string" && userAgent.trim().length > 0
+          ? userAgent.trim().slice(0, 500)
+          : "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
+
+      const response = await fetch(url, {
+        method: "GET",
+        headers: { "User-Agent": ua },
+      });
+
+      const text = await response.text();
+      const headers: Record<string, string> = {};
+      response.headers.forEach((value, key) => {
+        headers[key] = value;
+      });
+
+      res.json({
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+        body: text.slice(0, 8000),
+      });
+    } catch (error) {
+      console.error("Debug scrape failed:", error);
+      res.status(500).json({ error: "Debug scrape failed", details: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
   app.get("/api/results/date/:groupSlug/:date", async (req, res) => {
     try {
       const { groupSlug, date } = req.params;
