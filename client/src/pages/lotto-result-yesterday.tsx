@@ -88,7 +88,7 @@ export default function LottoResultYesterdayPage() {
   });
 
   useEffect(() => {
-    document.title = `Lotto Result Yesterday ƒ?" ${formattedYesterday} | Draw Summary`;
+    document.title = `Lotto Result Yesterday —" ${formattedYesterday} | Draw Summary`;
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
       metaDesc.setAttribute("content", "Check yesterday's South African lottery results including Powerball, Lotto, Lotto Plus, and Daily Lotto. Updated daily with winning numbers and jackpot amounts.");
@@ -113,7 +113,7 @@ export default function LottoResultYesterdayPage() {
             </h1>
           </div>
           <p className="text-muted-foreground text-lg" data-testid="text-yesterday-date">
-            South Africa lotto result yesterday ƒ?" {new Date(yesterdayDate).toLocaleDateString('en-ZA', { 
+            South Africa Lotto Result Yesterday —" {new Date(yesterdayDate).toLocaleDateString('en-ZA', { 
               weekday: 'long', 
               year: 'numeric', 
               month: 'long', 
