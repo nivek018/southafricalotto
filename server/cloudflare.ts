@@ -4,8 +4,8 @@ function getConfig() {
   const apiKey = process.env.CF_API_KEY;
   const zoneId = process.env.CF_ZONE_ID;
   const email = process.env.CF_EMAIL;
-  const baseUrl = process.env.CF_BASE_URL;
-  if (!apiKey || !zoneId || !email || !baseUrl) return null;
+  const baseUrl = process.env.CF_BASE_URL || "https://za.pwedeh.com";
+  if (!apiKey || !zoneId || !email) return null;
   return { apiKey, zoneId, email, baseUrl: baseUrl.replace(/\/+$/, "") };
 }
 
@@ -22,18 +22,18 @@ export async function purgeCloudflareSite(paths?: string[]): Promise<void> {
   const targets = paths && paths.length > 0
     ? buildUrls(paths)
     : buildUrls([
-        "/",
-        "/sitemap.xml",
-        "/game/powerball",
-        "/game/lotto",
-        "/game/daily-lotto",
-        "/lotto-result/today",
-        "/lotto-result/yesterday",
-        "/powerball-result/yesterday",
-        "/daily-lotto-result/yesterday",
-        "/sa-lotto-result/yesterday",
-        "/news",
-      ]);
+      "/",
+      "/sitemap.xml",
+      "/game/powerball",
+      "/game/lotto",
+      "/game/daily-lotto",
+      "/lotto-result/today",
+      "/lotto-result/yesterday",
+      "/powerball-result/yesterday",
+      "/daily-lotto-result/yesterday",
+      "/sa-lotto-result/yesterday",
+      "/news",
+    ]);
 
   if (targets.length === 0) return;
 

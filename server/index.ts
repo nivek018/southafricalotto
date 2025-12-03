@@ -6,7 +6,7 @@ import { createServer } from "http";
 import { storage } from "./storage";
 import { initializeLogger, info as logInfo } from "./logger";
 import { startScraperCron } from "./scraper";
-import { purgeCloudflareEverything } from "./cloudflare";
+import { purgeCloudflareSite } from "./cloudflare";
 
 const app = express();
 const httpServer = createServer(app);
