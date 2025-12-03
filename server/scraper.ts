@@ -347,7 +347,7 @@ export function startScraperCron(): void {
 
   const intervalMs = 60 * 1000; // check every minute
 
-  const runForGame = async (gameSlug: string, trigger: string, todayStr: string) => {
+  const runForGame = async (gameSlug: string, trigger: string, todayStr: string, nowMs: number) => {
     if (isCronRunning) {
       logScrape(`[Cron] Skip ${trigger} for ${gameSlug} - scraper already running`);
       return;
@@ -357,7 +357,7 @@ export function startScraperCron(): void {
       logInfo(`[Cron] Automatic scrape started for ${gameSlug} (${trigger})`);
       const scrapedResults = await scrapeLotteryResults(1, 0, { gameSlugs: [gameSlug] });
       const { addedCount } = await processScrapedResults(scrapedResults);
-      if (addedCount > 0) {
+      if (scrapedResults.length > 0) {
         const paths = buildPurgePaths(scrapedResults);
         void purgeCloudflareSite(paths);
       }
@@ -369,8 +369,8 @@ export function startScraperCron(): void {
         gameRunState[gameSlug] = { lastRunDate: todayStr, nextRetryAt: null, retryDeadline: null };
       } else {
         const state = gameRunState[gameSlug] || { lastRunDate: null, nextRetryAt: null, retryDeadline: null };
-        const nextRetry = Date.now() + 5 * 60 * 1000; // retry after 5 minutes
-        const deadline = state.retryDeadline ?? Date.now() + 5 * 60 * 60 * 1000; // retry window up to 5 hours
+        const nextRetry = nowMs + 5 * 60 * 1000; // retry after 5 minutes (SAST-based clock)
+        const deadline = state.retryDeadline ?? nowMs + 5 * 60 * 60 * 1000; // retry window up to 5 hours
         gameRunState[gameSlug] = { lastRunDate: state.lastRunDate, nextRetryAt: nextRetry, retryDeadline: deadline };
         logInfo(`[Cron] No results yet for ${gameSlug}, will retry after 5 minutes (until ${new Date(deadline).toISOString()})`);
       }
@@ -388,6 +388,7 @@ export function startScraperCron(): void {
     const games = await storage.getGames();
     const sastNow = getSASTDate();
     const todayStr = sastNow.toISOString().split("T")[0];
+    const nowMs = sastNow.getTime();
 
     for (const setting of settings) {
       if (setting.isEnabled === false) continue;
@@ -423,7 +424,7 @@ export function startScraperCron(): void {
       const nextAllowed = state.nextRetryAt ?? scheduledMs;
       if (nowMs < nextAllowed) continue;
 
-      await runForGame(game.slug, "scheduled", todayStr);
+      await runForGame(game.slug, "scheduled", todayStr, nowMs);
     }
   };
 

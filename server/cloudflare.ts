@@ -1,12 +1,20 @@
 const CF_API_BASE = "https://api.cloudflare.com/client/v4";
 
 function getConfig() {
-  const apiKey = process.env.CF_API_KEY;
+  const apiToken = process.env.CF_API_TOKEN || process.env.CF_API_KEY;
   const zoneId = process.env.CF_ZONE_ID;
   const email = process.env.CF_EMAIL;
   const baseUrl = process.env.CF_BASE_URL || "https://za.pwedeh.com";
-  if (!apiKey || !zoneId || !email) return null;
-  return { apiKey, zoneId, email, baseUrl: baseUrl.replace(/\/+$/, "") };
+  if (!apiToken || !zoneId) return null;
+  const useTokenAuth = Boolean(process.env.CF_API_TOKEN);
+  if (!useTokenAuth && !email) return null;
+  return {
+    apiToken,
+    zoneId,
+    email,
+    useTokenAuth,
+    baseUrl: baseUrl.replace(/\/+$/, "")
+  };
 }
 
 function buildUrls(paths: string[]): string[] {
@@ -38,20 +46,26 @@ export async function purgeCloudflareSite(paths?: string[]): Promise<void> {
   if (targets.length === 0) return;
 
   try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (cfg.useTokenAuth) {
+      headers["Authorization"] = `Bearer ${cfg.apiToken}`;
+    } else {
+      headers["X-Auth-Key"] = cfg.apiToken;
+      if (cfg.email) headers["X-Auth-Email"] = cfg.email;
+    }
+
     const res = await fetch(`${CF_API_BASE}/zones/${cfg.zoneId}/purge_cache`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Auth-Key": cfg.apiKey,
-        "X-Auth-Email": cfg.email,
-      },
+      headers,
       body: JSON.stringify({ files: targets }),
     });
+    const body = await res.text();
     if (!res.ok) {
-      const text = await res.text();
-      console.error(`[Cloudflare] URL purge failed: ${res.status} ${text}`);
+      console.error(`[Cloudflare] URL purge failed: ${res.status} ${body}`);
     } else {
-      console.log("[Cloudflare] URL purge triggered", targets);
+      console.log("[Cloudflare] URL purge triggered", targets, body || "");
     }
   } catch (err) {
     console.error("[Cloudflare] URL purge error:", err);
