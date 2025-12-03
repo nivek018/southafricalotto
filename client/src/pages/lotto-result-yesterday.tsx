@@ -36,23 +36,23 @@ const REMINDERS = [
 
 const FAQS = [
   {
-    question: "When are yesterday's lottery results available-",
+    question: "When are yesterday's lottery results available?",
     answer: "Results from the previous day are available immediately after midnight SAST. All draws from the previous day will be displayed on this page.",
   },
   {
-    question: "Which games are shown on this page-",
+    question: "Which games are shown on this page?",
     answer: "This page shows all South Africa lottery games that had draws yesterday, including Powerball, Powerball Plus, Lotto, Lotto Plus 1, Lotto Plus 2, Daily Lotto, and Daily Lotto Plus.",
   },
   {
-    question: "Why might there be no results for yesterday-",
+    question: "Why might there be no results for yesterday?",
     answer: "Not all games have draws every day. Powerball draws on Tuesday and Friday, Lotto draws on Wednesday and Saturday. Only Daily Lotto has draws every day.",
   },
   {
-    question: "How do I claim a lottery prize-",
+    question: "How do I claim a lottery prize?",
     answer: "Prizes up to R2,000 can be claimed at any lottery retailer. Larger prizes must be claimed at a regional lottery office or the head office. You'll need your winning ticket and valid ID.",
   },
   {
-    question: "How long do I have to claim my prize-",
+    question: "How long do I have to claim my prize?",
     answer: "You have 365 days from the draw date to claim your prize. After this period, unclaimed prizes are forfeited and used for good causes.",
   },
 ];
@@ -66,9 +66,9 @@ function getYesterdayDateSAST(): string {
   });
   const now = new Date();
   const parts = fmt.formatToParts(now);
-  const year = Number(parts.find(p => p.type === "year")-.value || 0);
-  const month = Number(parts.find(p => p.type === "month")-.value || 1);
-  const day = Number(parts.find(p => p.type === "day")-.value || 1);
+  const year = Number(parts.find(p => p.type === "year")?.value || 0);
+  const month = Number(parts.find(p => p.type === "month")?.value || 1);
+  const day = Number(parts.find(p => p.type === "day")?.value || 1);
   const base = new Date(Date.UTC(year, month - 1, day));
   base.setUTCDate(base.getUTCDate() - 1);
   return fmt.format(base);
