@@ -11,7 +11,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ChevronLeft, Calendar, Clock, CircleDot, Bell, HelpCircle, AlertCircle } from "lucide-react";
+import { ChevronLeft, Calendar, Clock, CircleDot, Bell, HelpCircle, AlertCircle, Trophy, Users } from "lucide-react";
 import type { LotteryResult, LotteryGame } from "@shared/schema";
 import { canonicalSlug } from "@shared/schema";
 import { useEffect, useMemo } from "react";
@@ -308,13 +308,22 @@ export default function LottoResultTodayPage() {
                               </>
                             )}
                           </div>
-                          <div className="text-center min-h-[44px] flex flex-col items-center justify-center">
+                          <div className="text-center min-h-[44px] flex flex-col items-center justify-center gap-1">
                             {result.jackpotAmount ? (
-                              <>
-                                <p className="text-xs text-muted-foreground">Jackpot</p>
-                                <p className="font-bold text-lottery-ball-bonus">{result.jackpotAmount}</p>
-                              </>
+                              <div className="inline-flex items-center gap-2">
+                                <Trophy className="w-4 h-4 text-lottery-ball-bonus" />
+                                <div className="text-left">
+                                  <p className="text-xs text-muted-foreground">Jackpot</p>
+                                  <p className="font-bold text-lottery-ball-bonus">{result.jackpotAmount}</p>
+                                </div>
+                              </div>
                             ) : null}
+                            {typeof (result as any).winner === "number" && (
+                              <div className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+                                <Users className="w-4 h-4 text-primary" />
+                                <span>Winners: {(result as any).winner}</span>
+                              </div>
+                            )}
                           </div>
                           <div className="text-center min-h-[44px] flex flex-col items-center justify-center">
                             {typeof result.winner === "number" ? (
