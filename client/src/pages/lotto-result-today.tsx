@@ -308,24 +308,16 @@ export default function LottoResultTodayPage() {
                               </>
                             )}
                           </div>
-                          <div className="text-center min-h-[44px] flex flex-col items-center justify-center">
-                            {(result.jackpotAmount || typeof (result as any).winner === "number") && (
-                              <div className="inline-flex flex-wrap items-center justify-center gap-2">
-                                {result.jackpotAmount && (
-                                  <div className="inline-flex items-center gap-1.5 rounded-md bg-muted/50 px-3 py-1.5">
-                                    <Trophy className="w-4 h-4 text-lottery-ball-bonus" />
-                                    <div className="text-left leading-tight">
-                                      <p className="text-[11px] text-muted-foreground">Jackpot</p>
-                                      <p className="text-sm font-bold text-lottery-ball-bonus">{result.jackpotAmount}</p>
-                                    </div>
-                                  </div>
-                                )}
-                                {typeof (result as any).winner === "number" && (
-                                  <div className="inline-flex items-center gap-1.5 rounded-md bg-muted/30 px-3 py-1.5 text-xs font-semibold text-muted-foreground">
-                                    <Users className="w-4 h-4 text-primary" />
-                                    <span>Winners: {(result as any).winner}</span>
-                                  </div>
-                                )}
+                          <div className="text-center min-h-[44px] flex flex-col items-center justify-center gap-1">
+                            {result.jackpotAmount && (
+                              <div className="inline-flex items-center gap-2 rounded-md bg-muted/50 px-3 py-1.5">
+                                <Trophy className="w-4 h-4 text-lottery-ball-bonus" />
+                                <p className="text-sm font-bold text-lottery-ball-bonus">{result.jackpotAmount}</p>
+                              </div>
+                            )}
+                            {typeof (result as any).winner === "number" && (
+                              <div className="text-xs text-muted-foreground">
+                                Winners: <span className="text-primary font-semibold">{(result as any).winner}</span>
                               </div>
                             )}
                           </div>
