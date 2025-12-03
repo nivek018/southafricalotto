@@ -8,12 +8,19 @@ function getConfig() {
   if (!apiToken || !zoneId) return null;
   const useTokenAuth = Boolean(process.env.CF_API_TOKEN);
   if (!useTokenAuth && !email) return null;
+  let host: string | null = null;
+  try {
+    host = new URL(baseUrl).host;
+  } catch {
+    /* ignore bad host */
+  }
   return {
     apiToken,
     zoneId,
     email,
     useTokenAuth,
-    baseUrl: baseUrl.replace(/\/+$/, "")
+    baseUrl: baseUrl.replace(/\/+$/, ""),
+    host,
   };
 }
 
@@ -25,7 +32,10 @@ function buildUrls(paths: string[]): string[] {
 
 export async function purgeCloudflareSite(paths?: string[]): Promise<void> {
   const cfg = getConfig();
-  if (!cfg) return;
+  if (!cfg) {
+    console.warn("[Cloudflare] Purge skipped: missing CF config (token/key or zone/email/base URL)");
+    return;
+  }
 
   const targets = paths && paths.length > 0
     ? buildUrls(paths)
@@ -45,7 +55,15 @@ export async function purgeCloudflareSite(paths?: string[]): Promise<void> {
 
   if (targets.length === 0) return;
 
-  try {
+  const strategy = (process.env.CF_PURGE_STRATEGY || "files").toLowerCase();
+  const payload =
+    strategy === "everything"
+      ? { purge_everything: true }
+      : strategy === "hosts" && cfg.host
+        ? { hosts: [cfg.host] }
+        : { files: targets };
+
+  const attemptPurge = async (label: string, body: any) => {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
@@ -59,13 +77,23 @@ export async function purgeCloudflareSite(paths?: string[]): Promise<void> {
     const res = await fetch(`${CF_API_BASE}/zones/${cfg.zoneId}/purge_cache`, {
       method: "POST",
       headers,
-      body: JSON.stringify({ files: targets }),
+      body: JSON.stringify(body),
     });
-    const body = await res.text();
+    const text = await res.text();
     if (!res.ok) {
-      console.error(`[Cloudflare] URL purge failed: ${res.status} ${body}`);
+      console.error(`[Cloudflare] ${label} purge failed: ${res.status} ${text}`);
     } else {
-      console.log("[Cloudflare] URL purge triggered", targets, body || "");
+      console.log(`[Cloudflare] ${label} purge triggered`, body, text || "");
+    }
+    return res.ok;
+  };
+
+  try {
+    const primaryOk = await attemptPurge(strategy === "files" ? "URL" : strategy.toUpperCase(), payload);
+
+    // If file purge fails (common with custom cache keys), attempt host purge as a fallback when allowed
+    if (!primaryOk && strategy === "files" && cfg.host) {
+      await attemptPurge("Host-fallback", { hosts: [cfg.host] });
     }
   } catch (err) {
     console.error("[Cloudflare] URL purge error:", err);
