@@ -117,6 +117,7 @@ export const resultFormSchema = z.object({
   drawDate: z.string().min(1, "Draw date is required"),
   jackpotAmount: z.string().optional(),
   nextJackpot: z.string().optional(),
+  winner: z.string().optional(),
   hotNumber: z.string().optional(),
   coldNumber: z.string().optional(),
 });
