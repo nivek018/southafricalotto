@@ -494,9 +494,11 @@ export async function registerRoutes(
 
       const { addedCount, addedResults, skippedResults } = await processScrapedResults(scrapedResults);
       await storage.updateScraperLastRun(new Date().toISOString());
-      const paths = buildPurgePaths(scrapedResults);
-      logInfo("[Scraper] Manual scrape complete, triggering Cloudflare purge", { paths });
-      void purgeCloudflareSite(paths);
+      if (addedCount > 0) {
+        const paths = buildPurgePaths(scrapedResults);
+        logInfo("[Scraper] Manual scrape complete, triggering Cloudflare purge", { paths, addedCount });
+        void purgeCloudflareSite(paths);
+      }
 
       console.log(`[Scraper] Complete: scraped ${scrapedResults.length}, added ${addedCount}`);
 
@@ -539,9 +541,11 @@ export async function registerRoutes(
       console.log(`[Scraper] Manual date range scrape from ${startDate} to ${endDate}...`);
       const scrapedResults = await scrapeDateRange(startDate, endDate, Array.isArray(gameSlugs) ? gameSlugs : undefined);
       const { addedCount, addedResults, skippedResults } = await processScrapedResults(scrapedResults);
-      const paths = buildPurgePaths(scrapedResults);
-      logInfo("[Scraper] Manual date range scrape complete, triggering Cloudflare purge", { paths });
-      void purgeCloudflareSite(paths);
+      if (addedCount > 0) {
+        const paths = buildPurgePaths(scrapedResults);
+        logInfo("[Scraper] Manual date range scrape complete, triggering Cloudflare purge", { paths, addedCount });
+        void purgeCloudflareSite(paths);
+      }
 
       res.json({
         success: true,
