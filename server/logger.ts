@@ -4,13 +4,22 @@ import * as path from "path";
 const LOG_DIR = path.join(process.cwd(), "debug");
 const LOG_FILE = path.join(LOG_DIR, "debug.log");
 const MAX_LOG_AGE_DAYS = 14;
+const SAST_TZ = "Africa/Johannesburg";
 
 function getSASTTime(): string {
-  const now = new Date();
-  const sastOffset = 2 * 60;
-  const localOffset = now.getTimezoneOffset();
-  const sastTime = new Date(now.getTime() + (sastOffset + localOffset) * 60000);
-  return sastTime.toISOString().replace("T", " ").substring(0, 19) + " SAST";
+  const fmt = new Intl.DateTimeFormat("en-CA", {
+    timeZone: SAST_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+  const parts = fmt.formatToParts(new Date());
+  const pick = (type: string) => parts.find(p => p.type === type)?.value ?? "00";
+  return `${pick("year")}-${pick("month")}-${pick("day")} ${pick("hour")}:${pick("minute")}:${pick("second")} SAST`;
 }
 
 function cleanOldLogs(): void {
