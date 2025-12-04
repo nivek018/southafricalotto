@@ -4,7 +4,7 @@ import crypto from "crypto";
 import path from "path";
 import fs from "fs";
 import { storage } from "./storage";
-import { scrapeLotteryResults, processScrapedResults, scrapeDateRange, runCronTick } from "./scraper";
+import { scrapeLotteryResults, processScrapedResults, scrapeDateRange, runCronTick, setCronTickLogging, getCronTickLogging } from "./scraper";
 import { purgeCloudflareSite } from "./cloudflare";
 import { info as logInfo } from "./logger";
 import {
@@ -676,6 +676,19 @@ export async function registerRoutes(
       console.error("Debug scrape failed:", error);
       res.status(500).json({ error: "Debug scrape failed", details: error instanceof Error ? error.message : String(error) });
     }
+  });
+
+  app.get("/api/debug/cron-logging", mutationLimiter, requireAdmin, csrfGuard, (_req, res) => {
+    res.json({ enabled: getCronTickLogging() });
+  });
+
+  app.post("/api/debug/cron-logging", mutationLimiter, requireAdmin, csrfGuard, (req, res) => {
+    const { enabled } = req.body || {};
+    if (typeof enabled !== "boolean") {
+      return res.status(400).json({ error: "enabled must be boolean" });
+    }
+    setCronTickLogging(enabled);
+    res.json({ success: true, enabled });
   });
 
   app.post("/api/debug/run-cron-tick", mutationLimiter, requireAdmin, csrfGuard, async (req, res) => {

@@ -39,6 +39,7 @@ export default function AdminDashboard() {
   const [useAmp, setUseAmp] = useState(true);
   const [discoverData, setDiscoverData] = useState(true);
   const [cronSimTime, setCronSimTime] = useState("");
+  const [cronLoggingEnabled, setCronLoggingEnabled] = useState(true);
 
   useEffect(() => {
     const isAuth = localStorage.getItem("adminAuth");
@@ -61,6 +62,17 @@ export default function AdminDashboard() {
 
   const { data: scraperSettings } = useQuery<ScraperSetting[]>({
     queryKey: ["/api/scraper-settings"],
+  });
+
+  useQuery<{ enabled: boolean }>({
+    queryKey: ["/api/debug/cron-logging"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/debug/cron-logging");
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setCronLoggingEnabled(data?.enabled ?? true);
+    },
   });
 
   const [scrapeStart, setScrapeStart] = useState(() => new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Johannesburg" }).format(new Date()));
@@ -164,6 +176,27 @@ export default function AdminDashboard() {
       toast({
         title: "Cron test failed",
         description: error?.message || "Could not run cron tick.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const cronLoggingMutation = useMutation({
+    mutationFn: async (enabled: boolean) => {
+      const res = await apiRequest("POST", "/api/debug/cron-logging", { enabled });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setCronLoggingEnabled(data.enabled);
+      toast({
+        title: "Cron logging updated",
+        description: data.enabled ? "Tick logs enabled" : "Tick logs disabled",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update failed",
+        description: error?.message || "Could not update cron logging.",
         variant: "destructive",
       });
     },
@@ -736,6 +769,21 @@ export default function AdminDashboard() {
                   </div>
                   <p className="text-sm text-muted-foreground">
                     The cron tick uses Africa/Johannesburg (SAST) internally, matching the live scheduler. Set game schedules/draw days in the Scraping tab, then run this to confirm the timing without staying up.
+                  </p>
+                  <div className="flex items-center gap-3 pt-2">
+                    <Switch
+                      id="cron-log-toggle"
+                      checked={cronLoggingEnabled}
+                      onCheckedChange={(val) => cronLoggingMutation.mutate(Boolean(val))}
+                      disabled={cronLoggingMutation.isPending}
+                      data-testid="switch-cron-log-toggle"
+                    />
+                    <Label htmlFor="cron-log-toggle" className="cursor-pointer">
+                      Log cron ticks every minute
+                    </Label>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Turn this off to reduce log noise. Cron still runs; only the per-minute tick logs are suppressed.
                   </p>
                 </div>
               </CardContent>

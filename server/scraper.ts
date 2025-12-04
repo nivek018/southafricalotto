@@ -282,6 +282,7 @@ export async function processScrapedResults(scrapedResults: InsertLotteryResult[
 let cronTimer: NodeJS.Timeout | null = null;
 let isCronRunning = false;
 const gameRunState: Record<string, { lastRunDate: string | null; nextRetryAt: number | null; retryDeadline: number | null }> = {};
+let cronTickLoggingEnabled = true;
 
 const SAST_TZ = "Africa/Johannesburg";
 const pad2 = (n: number) => n.toString().padStart(2, "0");
@@ -392,11 +393,13 @@ export async function runCronTick(simulatedNow?: Date): Promise<void> {
   const { date: todayStr, weekday: sastWeekday, time } = getSastContext(base);
   const nowMs = simulatedNow ? simulatedNow.getTime() : Date.now();
 
-  logInfo(`[Cron] Tick triggered (${simulatedNow ? "debug" : "interval"}) at ${todayStr} ${time} SAST`, {
-    simulatedTime: simulatedNow ? simulatedNow.toISOString() : null,
-    settingsCount: settings.length,
-    gamesCount: games.length,
-  });
+  if (cronTickLoggingEnabled) {
+    logInfo(`[Cron] Tick triggered (${simulatedNow ? "debug" : "interval"}) at ${todayStr} ${time} SAST`, {
+      simulatedTime: simulatedNow ? simulatedNow.toISOString() : null,
+      settingsCount: settings.length,
+      gamesCount: games.length,
+    });
+  }
 
   let ranAny = false;
 
@@ -436,7 +439,7 @@ export async function runCronTick(simulatedNow?: Date): Promise<void> {
     await runForGame(game.slug, "scheduled", todayStr, nowMs);
   }
 
-  if (!ranAny) {
+  if (!ranAny && cronTickLoggingEnabled) {
     logInfo("[Cron] Tick complete - no games ran for this tick");
   }
 }
@@ -451,6 +454,14 @@ export function startScraperCron(): void {
   }, intervalMs);
 
   void runCronTick();
+}
+
+export function setCronTickLogging(enabled: boolean): void {
+  cronTickLoggingEnabled = enabled;
+}
+
+export function getCronTickLogging(): boolean {
+  return cronTickLoggingEnabled;
 }
 
 export async function testScraper(): Promise<{
