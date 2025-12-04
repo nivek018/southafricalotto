@@ -389,8 +389,16 @@ export async function runCronTick(simulatedNow?: Date): Promise<void> {
   const settings = await storage.getScraperSettings();
   const games = await storage.getGames();
   const base = simulatedNow ?? new Date();
-  const { date: todayStr, weekday: sastWeekday } = getSastContext(base);
+  const { date: todayStr, weekday: sastWeekday, time } = getSastContext(base);
   const nowMs = simulatedNow ? simulatedNow.getTime() : Date.now();
+
+  logInfo(`[Cron] Tick triggered (${simulatedNow ? "debug" : "interval"}) at ${todayStr} ${time} SAST`, {
+    simulatedTime: simulatedNow ? simulatedNow.toISOString() : null,
+    settingsCount: settings.length,
+    gamesCount: games.length,
+  });
+
+  let ranAny = false;
 
   for (const setting of settings) {
     if (setting.isEnabled === false) continue;
@@ -424,7 +432,12 @@ export async function runCronTick(simulatedNow?: Date): Promise<void> {
     const nextAllowed = state.nextRetryAt ?? scheduledMs;
     if (nowMs < nextAllowed) continue;
 
+    ranAny = true;
     await runForGame(game.slug, "scheduled", todayStr, nowMs);
+  }
+
+  if (!ranAny) {
+    logInfo("[Cron] Tick complete - no games ran for this tick");
   }
 }
 
