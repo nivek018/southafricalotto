@@ -5,33 +5,22 @@ const CF_API_BASE = "https://api.cloudflare.com/client/v4";
 function getConfig() {
   const apiToken = process.env.CF_API_TOKEN || process.env.CF_API_KEY;
   const zoneId = process.env.CF_ZONE_ID;
-  const email = process.env.CF_EMAIL;
   const baseUrl = process.env.CF_BASE_URL || "https://za.pwedeh.com";
   if (!apiToken || !zoneId) return null;
-  const useTokenAuth = Boolean(process.env.CF_API_TOKEN);
-  if (!useTokenAuth && !email) return null;
-  let host: string | null = null;
-  try {
-    host = new URL(baseUrl).host;
-  } catch {
-    /* ignore bad host */
-  }
-  const extraHosts = (process.env.CF_PURGE_HOSTS || "")
-    .split(",")
-    .map(h => h.trim())
-    .filter(Boolean);
 
-  // If CF_PURGE_HOSTS is provided, use only those; otherwise fall back to the host derived from CF_BASE_URL
-  const hosts = extraHosts.length > 0
-    ? Array.from(new Set(extraHosts))
-    : Array.from(new Set([host].filter(Boolean)));
+  const hosts = Array.from(
+    new Set(
+      (process.env.CF_PURGE_HOSTS || "")
+        .split(",")
+        .map(h => h.trim())
+        .filter(Boolean)
+    )
+  );
+
   return {
     apiToken,
     zoneId,
-    email,
-    useTokenAuth,
     baseUrl: baseUrl.replace(/\/+$/, ""),
-    host,
     hosts,
   };
 }
@@ -69,7 +58,7 @@ export async function purgeCloudflareSite(paths?: string[]): Promise<void> {
 
   // Default to host-level purge because Cloudflare full-page caching often uses host cache keys
   const strategy = (process.env.CF_PURGE_STRATEGY || "hosts").toLowerCase();
-  const hostList = cfg.hosts && cfg.hosts.length > 0 ? cfg.hosts : (cfg.host ? [cfg.host] : []);
+  const hostList = cfg.hosts && cfg.hosts.length > 0 ? cfg.hosts : [];
   const payload =
     strategy === "everything"
       ? { purge_everything: true }
@@ -80,13 +69,8 @@ export async function purgeCloudflareSite(paths?: string[]): Promise<void> {
   const attemptPurge = async (label: string, body: any) => {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
+      "Authorization": `Bearer ${cfg.apiToken}`,
     };
-    if (cfg.useTokenAuth) {
-      headers["Authorization"] = `Bearer ${cfg.apiToken}`;
-    } else {
-      headers["X-Auth-Key"] = cfg.apiToken;
-      if (cfg.email) headers["X-Auth-Email"] = cfg.email;
-    }
 
     const res = await fetch(`${CF_API_BASE}/zones/${cfg.zoneId}/purge_cache`, {
       method: "POST",
@@ -111,17 +95,7 @@ export async function purgeCloudflareSite(paths?: string[]): Promise<void> {
       return;
     }
 
-    const primaryOk = await attemptPurge(strategy === "files" ? "URL" : strategy.toUpperCase(), payload);
-
-    // If file purge fails (common with custom cache keys), attempt host purge as a fallback when allowed
-    if (!primaryOk && strategy === "files" && hostList.length > 0) {
-      await attemptPurge("Host-fallback", { hosts: hostList });
-    }
-
-    // If primary strategy is not hosts and host is available, optionally also purge host to cover custom cache keys
-    if (strategy !== "hosts" && hostList.length > 0) {
-      await attemptPurge("Host-secondary", { hosts: hostList });
-    }
+    await attemptPurge(strategy === "hosts" ? "HOSTS" : strategy.toUpperCase(), payload);
   } catch (err) {
     logError("[Cloudflare] URL purge error", err instanceof Error ? err.message : String(err));
   }
