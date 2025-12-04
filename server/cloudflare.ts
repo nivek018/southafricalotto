@@ -57,7 +57,8 @@ export async function purgeCloudflareSite(paths?: string[]): Promise<void> {
 
   if (targets.length === 0) return;
 
-  const strategy = (process.env.CF_PURGE_STRATEGY || "files").toLowerCase();
+  // Default to host-level purge because Cloudflare full-page caching often uses host cache keys
+  const strategy = (process.env.CF_PURGE_STRATEGY || "hosts").toLowerCase();
   const payload =
     strategy === "everything"
       ? { purge_everything: true }
@@ -99,6 +100,11 @@ export async function purgeCloudflareSite(paths?: string[]): Promise<void> {
     // If file purge fails (common with custom cache keys), attempt host purge as a fallback when allowed
     if (!primaryOk && strategy === "files" && cfg.host) {
       await attemptPurge("Host-fallback", { hosts: [cfg.host] });
+    }
+
+    // If primary strategy is not hosts and host is available, optionally also purge host to cover custom cache keys
+    if (strategy !== "hosts" && cfg.host) {
+      await attemptPurge("Host-secondary", { hosts: [cfg.host] });
     }
   } catch (err) {
     logError("[Cloudflare] URL purge error", err instanceof Error ? err.message : String(err));

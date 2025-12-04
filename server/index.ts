@@ -88,6 +88,15 @@ app.use((req, res, next) => {
   next();
 });
 
+// Ensure API responses are never cached by CDN or browser (full-page cache rules should skip API)
+app.use("/api", (_req, res, next) => {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  res.setHeader("CDN-Cache-Control", "no-store");
+  next();
+});
+
 (async () => {
   initializeLogger();
   logInfo("Server starting up...");
