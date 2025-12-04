@@ -282,7 +282,7 @@ export async function processScrapedResults(scrapedResults: InsertLotteryResult[
 let cronTimer: NodeJS.Timeout | null = null;
 let isCronRunning = false;
 const gameRunState: Record<string, { lastRunDate: string | null; nextRetryAt: number | null; retryDeadline: number | null }> = {};
-let cronTickLoggingEnabled = true;
+let cronTickLoggingEnabled = false;
 
 const SAST_TZ = "Africa/Johannesburg";
 const pad2 = (n: number) => n.toString().padStart(2, "0");

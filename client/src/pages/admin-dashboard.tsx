@@ -39,7 +39,7 @@ export default function AdminDashboard() {
   const [useAmp, setUseAmp] = useState(true);
   const [discoverData, setDiscoverData] = useState(true);
   const [cronSimTime, setCronSimTime] = useState("");
-  const [cronLoggingEnabled, setCronLoggingEnabled] = useState(true);
+  const [cronLoggingEnabled, setCronLoggingEnabled] = useState(false);
 
   useEffect(() => {
     const isAuth = localStorage.getItem("adminAuth");
