@@ -348,95 +348,96 @@ function buildPurgePaths(results: InsertLotteryResult[]): string[] {
   return Array.from(paths);
 }
 
+const runForGame = async (gameSlug: string, trigger: string, todayStr: string, nowMs: number) => {
+  if (isCronRunning) {
+    logScrape(`[Cron] Skip ${trigger} for ${gameSlug} - scraper already running`);
+    return;
+  }
+  isCronRunning = true;
+  try {
+    logInfo(`[Cron] Automatic scrape started for ${gameSlug} (${trigger})`);
+    const scrapedResults = await scrapeLotteryResults(1, 0, { gameSlugs: [gameSlug] });
+    const { addedCount } = await processScrapedResults(scrapedResults);
+    if (scrapedResults.length > 0) {
+      const paths = buildPurgePaths(scrapedResults);
+      logInfo("[Cron] Scrape finished, triggering Cloudflare purge", { gameSlug, trigger, paths });
+      void purgeCloudflareSite(paths);
+    }
+    const timestamp = new Date().toISOString();
+    await storage.updateScraperLastRun(timestamp);
+
+    const hasResultForGame = scrapedResults.some(r => r.gameSlug === gameSlug);
+    if (hasResultForGame) {
+      gameRunState[gameSlug] = { lastRunDate: todayStr, nextRetryAt: null, retryDeadline: null };
+    } else {
+      const state = gameRunState[gameSlug] || { lastRunDate: null, nextRetryAt: null, retryDeadline: null };
+      const nextRetry = nowMs + 5 * 60 * 1000; // retry after 5 minutes (SAST-based clock)
+      const deadline = state.retryDeadline ?? nowMs + 5 * 60 * 60 * 1000; // retry window up to 5 hours
+      gameRunState[gameSlug] = { lastRunDate: state.lastRunDate, nextRetryAt: nextRetry, retryDeadline: deadline };
+      logInfo(`[Cron] No results yet for ${gameSlug}, will retry after 5 minutes (until ${new Date(deadline).toISOString()})`);
+    }
+
+    logInfo(`[Cron] Automatic scrape complete: scraped ${scrapedResults.length}, added ${addedCount}`);
+  } catch (error) {
+    logError(`[Cron] Automatic scrape failed for ${gameSlug}: ${error instanceof Error ? error.message : String(error)}`);
+  } finally {
+    isCronRunning = false;
+  }
+};
+
+export async function runCronTick(simulatedNow?: Date): Promise<void> {
+  const settings = await storage.getScraperSettings();
+  const games = await storage.getGames();
+  const base = simulatedNow ?? new Date();
+  const { date: todayStr, weekday: sastWeekday } = getSastContext(base);
+  const nowMs = simulatedNow ? simulatedNow.getTime() : Date.now();
+
+  for (const setting of settings) {
+    if (setting.isEnabled === false) continue;
+    const game = games.find(g => g.slug === setting.gameSlug);
+    if (!game) continue;
+
+    const drawDays = Array.isArray(game.drawDays)
+      ? game.drawDays
+      : (typeof (game.drawDays as any) === "string"
+        ? (() => { try { return JSON.parse(game.drawDays as any); } catch { return []; } })()
+        : []);
+    if (!isDrawDay(drawDays, sastWeekday)) {
+      gameRunState[game.slug] = { lastRunDate: gameRunState[game.slug]?.lastRunDate ?? null, nextRetryAt: null, retryDeadline: null };
+      continue;
+    }
+
+    const timeParts = parseScheduleTime(setting.scheduleTime || "21:30");
+    if (!timeParts) continue;
+
+    const scheduledMs = Date.parse(`${todayStr}T${pad2(timeParts.hours)}:${pad2(timeParts.minutes)}:00+02:00`);
+    if (!Number.isFinite(scheduledMs)) continue;
+
+    if (nowMs < scheduledMs) continue;
+
+    const state = gameRunState[game.slug] || { lastRunDate: null, nextRetryAt: null, retryDeadline: null };
+    if (state.lastRunDate === todayStr) continue;
+
+    const deadline = state.retryDeadline ?? (scheduledMs + 5 * 60 * 60 * 1000);
+    if (nowMs > deadline) continue;
+
+    const nextAllowed = state.nextRetryAt ?? scheduledMs;
+    if (nowMs < nextAllowed) continue;
+
+    await runForGame(game.slug, "scheduled", todayStr, nowMs);
+  }
+}
+
 export function startScraperCron(): void {
   if (cronTimer) return;
 
   const intervalMs = 60 * 1000; // check every minute
 
-  const runForGame = async (gameSlug: string, trigger: string, todayStr: string, nowMs: number) => {
-    if (isCronRunning) {
-      logScrape(`[Cron] Skip ${trigger} for ${gameSlug} - scraper already running`);
-      return;
-    }
-    isCronRunning = true;
-    try {
-      logInfo(`[Cron] Automatic scrape started for ${gameSlug} (${trigger})`);
-      const scrapedResults = await scrapeLotteryResults(1, 0, { gameSlugs: [gameSlug] });
-      const { addedCount } = await processScrapedResults(scrapedResults);
-      if (scrapedResults.length > 0) {
-        const paths = buildPurgePaths(scrapedResults);
-        logInfo("[Cron] Scrape finished, triggering Cloudflare purge", { gameSlug, trigger, paths });
-        void purgeCloudflareSite(paths);
-      }
-      const timestamp = new Date().toISOString();
-      await storage.updateScraperLastRun(timestamp);
-
-      const hasResultForGame = scrapedResults.some(r => r.gameSlug === gameSlug);
-      if (hasResultForGame) {
-        gameRunState[gameSlug] = { lastRunDate: todayStr, nextRetryAt: null, retryDeadline: null };
-      } else {
-        const state = gameRunState[gameSlug] || { lastRunDate: null, nextRetryAt: null, retryDeadline: null };
-        const nextRetry = nowMs + 5 * 60 * 1000; // retry after 5 minutes (SAST-based clock)
-        const deadline = state.retryDeadline ?? nowMs + 5 * 60 * 60 * 1000; // retry window up to 5 hours
-        gameRunState[gameSlug] = { lastRunDate: state.lastRunDate, nextRetryAt: nextRetry, retryDeadline: deadline };
-        logInfo(`[Cron] No results yet for ${gameSlug}, will retry after 5 minutes (until ${new Date(deadline).toISOString()})`);
-      }
-
-      logInfo(`[Cron] Automatic scrape complete: scraped ${scrapedResults.length}, added ${addedCount}`);
-    } catch (error) {
-      logError(`[Cron] Automatic scrape failed for ${gameSlug}: ${error instanceof Error ? error.message : String(error)}`);
-    } finally {
-      isCronRunning = false;
-    }
-  };
-
-  const tick = async () => {
-    const settings = await storage.getScraperSettings();
-    const games = await storage.getGames();
-    const { date: todayStr, weekday: sastWeekday } = getSastContext();
-    const nowMs = Date.now();
-
-    for (const setting of settings) {
-      if (setting.isEnabled === false) continue;
-      const game = games.find(g => g.slug === setting.gameSlug);
-      if (!game) continue;
-
-      const drawDays = Array.isArray(game.drawDays)
-        ? game.drawDays
-        : (typeof (game.drawDays as any) === "string"
-          ? (() => { try { return JSON.parse(game.drawDays as any); } catch { return []; } })()
-          : []);
-      if (!isDrawDay(drawDays, sastWeekday)) {
-        gameRunState[game.slug] = { lastRunDate: gameRunState[game.slug]?.lastRunDate ?? null, nextRetryAt: null, retryDeadline: null };
-        continue;
-      }
-
-      const timeParts = parseScheduleTime(setting.scheduleTime || "21:30");
-      if (!timeParts) continue;
-
-      const scheduledMs = Date.parse(`${todayStr}T${pad2(timeParts.hours)}:${pad2(timeParts.minutes)}:00+02:00`);
-      if (!Number.isFinite(scheduledMs)) continue;
-
-      if (nowMs < scheduledMs) continue;
-
-      const state = gameRunState[game.slug] || { lastRunDate: null, nextRetryAt: null, retryDeadline: null };
-      if (state.lastRunDate === todayStr) continue;
-
-      const deadline = state.retryDeadline ?? (scheduledMs + 5 * 60 * 60 * 1000);
-      if (nowMs > deadline) continue;
-
-      const nextAllowed = state.nextRetryAt ?? scheduledMs;
-      if (nowMs < nextAllowed) continue;
-
-      await runForGame(game.slug, "scheduled", todayStr, nowMs);
-    }
-  };
-
   cronTimer = setInterval(() => {
-    void tick();
+    void runCronTick();
   }, intervalMs);
 
-  void tick();
+  void runCronTick();
 }
 
 export async function testScraper(): Promise<{

@@ -4,7 +4,7 @@ import crypto from "crypto";
 import path from "path";
 import fs from "fs";
 import { storage } from "./storage";
-import { scrapeLotteryResults, processScrapedResults, scrapeDateRange } from "./scraper";
+import { scrapeLotteryResults, processScrapedResults, scrapeDateRange, runCronTick } from "./scraper";
 import { purgeCloudflareSite } from "./cloudflare";
 import { info as logInfo } from "./logger";
 import {
@@ -675,6 +675,26 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Debug scrape failed:", error);
       res.status(500).json({ error: "Debug scrape failed", details: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
+  app.post("/api/debug/run-cron-tick", mutationLimiter, requireAdmin, csrfGuard, async (req, res) => {
+    try {
+      const { simulatedTime } = req.body || {};
+      let parsed: Date | undefined = undefined;
+      if (simulatedTime) {
+        const d = new Date(simulatedTime);
+        if (Number.isNaN(d.getTime())) {
+          return res.status(400).json({ error: "Invalid simulatedTime; use ISO string (e.g., 2025-12-03T21:35:00+02:00)" });
+        }
+        parsed = d;
+      }
+
+      await runCronTick(parsed);
+      res.json({ success: true, simulatedTime: parsed ? parsed.toISOString() : null });
+    } catch (error) {
+      console.error("Debug cron tick failed:", error);
+      res.status(500).json({ error: "Failed to run cron tick" });
     }
   });
 

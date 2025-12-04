@@ -19,7 +19,8 @@ import {
   Download,
   Settings,
   Clock,
-  CalendarRange
+  CalendarRange,
+  Play
 } from "lucide-react";
 import type { LotteryResult, NewsArticle, LotteryGame, ScraperSetting } from "@shared/schema";
 import AdminResults from "@/pages/admin-results";
@@ -37,6 +38,7 @@ export default function AdminDashboard() {
   const [acceptLanguage, setAcceptLanguage] = useState("en-US,en;q=0.9");
   const [useAmp, setUseAmp] = useState(true);
   const [discoverData, setDiscoverData] = useState(true);
+  const [cronSimTime, setCronSimTime] = useState("");
 
   useEffect(() => {
     const isAuth = localStorage.getItem("adminAuth");
@@ -131,6 +133,37 @@ export default function AdminDashboard() {
       toast({
         title: "Failed to Save",
         description: "Could not save scraper settings. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const cronTestMutation = useMutation({
+    mutationFn: async () => {
+      const payload: Record<string, any> = {};
+      if (cronSimTime) {
+        const iso = `${cronSimTime}:00+02:00`; // treat input as SAST
+        const parsed = new Date(iso);
+        if (Number.isNaN(parsed.getTime())) {
+          throw new Error("Invalid date/time. Please use the datetime picker.");
+        }
+        payload.simulatedTime = parsed.toISOString();
+      }
+      const res = await apiRequest("POST", "/api/debug/run-cron-tick", payload);
+      return res.json();
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "Cron tick executed",
+        description: data?.simulatedTime
+          ? `Simulated SAST time: ${data.simulatedTime}`
+          : "Ran using current time.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Cron test failed",
+        description: error?.message || "Could not run cron tick.",
         variant: "destructive",
       });
     },
@@ -667,9 +700,44 @@ export default function AdminDashboard() {
                 <CardDescription>Use the Scraping tab to probe URLs with different user agents.</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Additional debug utilities can be added here. Current focus: scraping diagnostics in the Scraping tab.
-                </p>
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="cron-sim-time">Simulate SAST time (optional)</Label>
+                    <Input
+                      id="cron-sim-time"
+                      type="datetime-local"
+                      value={cronSimTime}
+                      onChange={(e) => setCronSimTime(e.target.value)}
+                      className="w-full sm:w-72"
+                      data-testid="input-cron-sim-time"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      This runs the cron scheduler logic right now. Leave blank to use current time, or pick a specific SAST datetime
+                      (e.g., 21:35 SAST) to simulate the scheduled run.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      onClick={() => cronTestMutation.mutate()}
+                      disabled={cronTestMutation.isPending}
+                      data-testid="button-run-cron-tick"
+                    >
+                      <Play className="h-4 w-4 mr-2" />
+                      {cronTestMutation.isPending ? "Running..." : "Run Cron Tick Now"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setCronSimTime("")}
+                      disabled={cronTestMutation.isPending}
+                      data-testid="button-clear-cron-sim-time"
+                    >
+                      Clear Time
+                    </Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    The cron tick uses Africa/Johannesburg (SAST) internally, matching the live scheduler. Set game schedules/draw days in the Scraping tab, then run this to confirm the timing without staying up.
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
