@@ -16,6 +16,15 @@ function getConfig() {
   } catch {
     /* ignore bad host */
   }
+  const extraHosts = (process.env.CF_PURGE_HOSTS || "")
+    .split(",")
+    .map(h => h.trim())
+    .filter(Boolean);
+
+  // If CF_PURGE_HOSTS is provided, use only those; otherwise fall back to the host derived from CF_BASE_URL
+  const hosts = extraHosts.length > 0
+    ? Array.from(new Set(extraHosts))
+    : Array.from(new Set([host].filter(Boolean)));
   return {
     apiToken,
     zoneId,
@@ -23,6 +32,7 @@ function getConfig() {
     useTokenAuth,
     baseUrl: baseUrl.replace(/\/+$/, ""),
     host,
+    hosts,
   };
 }
 
@@ -59,11 +69,12 @@ export async function purgeCloudflareSite(paths?: string[]): Promise<void> {
 
   // Default to host-level purge because Cloudflare full-page caching often uses host cache keys
   const strategy = (process.env.CF_PURGE_STRATEGY || "hosts").toLowerCase();
+  const hostList = cfg.hosts && cfg.hosts.length > 0 ? cfg.hosts : (cfg.host ? [cfg.host] : []);
   const payload =
     strategy === "everything"
       ? { purge_everything: true }
-      : strategy === "hosts" && cfg.host
-        ? { hosts: [cfg.host] }
+      : strategy === "hosts"
+        ? { hosts: hostList }
         : { files: targets };
 
   const attemptPurge = async (label: string, body: any) => {
@@ -95,16 +106,21 @@ export async function purgeCloudflareSite(paths?: string[]): Promise<void> {
   try {
     logInfo("[Cloudflare] Purge request prepared", { strategy, targetCount: targets.length, payload });
 
+    if (strategy === "hosts" && hostList.length === 0) {
+      logWarn("[Cloudflare] Host purge requested but no hosts resolved; skipping");
+      return;
+    }
+
     const primaryOk = await attemptPurge(strategy === "files" ? "URL" : strategy.toUpperCase(), payload);
 
     // If file purge fails (common with custom cache keys), attempt host purge as a fallback when allowed
-    if (!primaryOk && strategy === "files" && cfg.host) {
-      await attemptPurge("Host-fallback", { hosts: [cfg.host] });
+    if (!primaryOk && strategy === "files" && hostList.length > 0) {
+      await attemptPurge("Host-fallback", { hosts: hostList });
     }
 
     // If primary strategy is not hosts and host is available, optionally also purge host to cover custom cache keys
-    if (strategy !== "hosts" && cfg.host) {
-      await attemptPurge("Host-secondary", { hosts: [cfg.host] });
+    if (strategy !== "hosts" && hostList.length > 0) {
+      await attemptPurge("Host-secondary", { hosts: hostList });
     }
   } catch (err) {
     logError("[Cloudflare] URL purge error", err instanceof Error ? err.message : String(err));
