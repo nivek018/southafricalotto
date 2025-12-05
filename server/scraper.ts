@@ -105,41 +105,56 @@ const isDrawDayForDate = (slug: string, targetIso: string): boolean => {
 };
 
 const parseWinningNumbers = ($: cheerio.CheerioAPI, config: GameConfig): { main: number[]; bonus: number | null } | null => {
-  const block = $("div.results").first();
+  const blocks = $("div.results");
   const mainNums: number[] = [];
-  block.find("span.ball, span.ballr, span.ball2").each((_i, el) => {
+  const bonusCandidates: number[] = [];
+
+  blocks.find("span.ball, span.ballr, span.ball2").each((_i, el) => {
     const num = parseInt($(el).text().trim(), 10);
     if (!Number.isNaN(num)) mainNums.push(num);
   });
-  const bonusEl = block.find("span.bonusball, span.bonusball2").first();
-  const bonus = bonusEl.length ? parseInt(bonusEl.text().trim(), 10) : null;
+
+  blocks.find("span.bonusball, span.bonusball2").each((_i, el) => {
+    const num = parseInt($(el).text().trim(), 10);
+    if (!Number.isNaN(num)) bonusCandidates.push(num);
+  });
 
   if (mainNums.length !== config.numberCount) {
     logScrape(`[Scrape] ${config.name}: expected ${config.numberCount} numbers, got ${mainNums.length}`);
     return null;
   }
-  return { main: sortNumbers(mainNums), bonus: config.hasBonus ? bonus : null };
+  const bonus = config.hasBonus ? (bonusCandidates[0] ?? null) : null;
+  return { main: sortNumbers(mainNums), bonus };
 };
 
 const parseJackpotAndWinners = ($: cheerio.CheerioAPI, config: GameConfig): { jackpot: string | null; winner: number | null } => {
   let jackpot: string | null = null;
   let winner: number | null = null;
 
-  $("table.tablep tr").each((_i, row) => {
+  let found = false;
+  $("table tr").each((_i, row) => {
     const tds = $(row).find("td");
-    if (tds.length < 3) return;
+    if (tds.length < 2) return;
     const label = $(tds[0]).text().trim();
     if (!config.topPrizeLabel.test(label)) return;
     const winnersText = $(tds[1]).text().trim().replace(/,/g, "");
-    const payoutText = $(tds[2]).text().trim();
+    const payoutText = (tds[2] ? $(tds[2]).text() : "").trim();
     const winnersNum = parseInt(winnersText, 10);
     winner = Number.isNaN(winnersNum) ? null : winnersNum;
     jackpot = /rollover/i.test(payoutText) ? null : (payoutText || jackpot);
+    found = true;
+    return false;
   });
 
+  // Fallbacks for rollover / pooled values
   const rolloverLi = $('ul li:contains("Rollover Value")').first().text().match(/Rollover Value:\s*(.+)/i);
   const nextJackpotLi = $('ul li:contains("Next Jackpot")').first().text().match(/Next Jackpot:\s*(.+)/i);
-  jackpot = jackpot || rolloverLi?.[1]?.trim() || nextJackpotLi?.[1]?.trim() || null;
+  const totalPrizeLi = $('ul li:contains("Total Prize Pool")').first().text().match(/Total Prize Pool:\s*(.+)/i);
+  jackpot = jackpot || rolloverLi?.[1]?.trim() || nextJackpotLi?.[1]?.trim() || totalPrizeLi?.[1]?.trim() || null;
+
+  if (!found && !jackpot && !winner) {
+    logScrape(`[Scrape] ${config.name}: top prize row not found`);
+  }
 
   return { jackpot, winner };
 };
