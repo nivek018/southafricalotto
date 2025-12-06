@@ -159,7 +159,7 @@ export const LOTTERY_GROUPS: Record<string, { name: string; slugs: string[]; des
   "daily-lotto": {
     name: "Daily Lotto",
     slugs: ["daily-lotto", "daily-lotto-plus"],
-    description: "Play daily for a chance to win. Choose 5 numbers from 1-36 with draws every day."
+    description: "Daily Lotto results land right after the official draw. Five numbers from 1-36 are pulled every evening—check here to see if your picks matched."
   }
 };
 

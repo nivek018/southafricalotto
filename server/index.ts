@@ -102,6 +102,11 @@ app.use("/api", (_req, res, next) => {
   logInfo("Server starting up...");
   await storage.initializeDefaultData();
   await registerRoutes(httpServer, app);
+
+  // Redirect legacy Lotto Plus aggregate page to Lotto canonical
+  app.get("/game/lotto-plus", (_req, res) => res.redirect(301, "/game/lotto"));
+  app.get("/game/lotto-plus/", (_req, res) => res.redirect(301, "/game/lotto"));
+
   startScraperCron();
 
   // Daily purge at SAST midnight to keep cached pages and sitemap fresh

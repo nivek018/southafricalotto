@@ -21,6 +21,52 @@ interface DateResultsResponse {
   variants: string[];
 }
 
+const DRAW_COPY: Record<string, {
+  intro: (formattedDate: string) => string;
+  reminders: string[];
+  faqs: { question: string; answer: string }[];
+}> = {
+  "daily-lotto": {
+    intro: (d) => `Daily Lotto results for ${d} are posted right after the official evening draw. Five numbers from 1–36 are pulled nightly—check below to see if your picks matched.`,
+    reminders: [
+      "Draws happen every evening around 21:00 SAST; ticket cut-off is shortly before draw time.",
+      "Jackpot is shared among all top-division winners; amounts shown here reflect the per-winner share.",
+      "Prizes must be claimed within 365 days of the draw date with a valid ticket.",
+    ],
+    faqs: [
+      { question: "When are Daily Lotto draws?", answer: "Every evening around 21:00 SAST, seven days a week." },
+      { question: "Do Daily Lotto jackpots roll over?", answer: "No. The top prize is shared among winners and does not roll over." },
+      { question: "How many numbers are drawn?", answer: "Five numbers from 1 to 36. There is no bonus ball." },
+    ],
+  },
+  "powerball": {
+    intro: (d) => `Powerball results for ${d} are available moments after the Tuesday/Friday draw. You need 5 numbers from 1–50 plus the PowerBall (1–20) to take the jackpot.`,
+    reminders: [
+      "Draws run on Tuesdays and Fridays at about 20:58 SAST.",
+      "Jackpots roll over when not won and can grow quickly; amounts shown are per winner for this draw.",
+      "Check tickets and claim prizes within 365 days of the draw date.",
+    ],
+    faqs: [
+      { question: "What is the PowerBall number?", answer: "It is a separate ball from 1–20. Matching it can boost secondary prizes and is required for the jackpot." },
+      { question: "Do jackpots roll over?", answer: "Yes. If no one wins the top prize, the jackpot carries into the next draw." },
+      { question: "How many numbers are drawn?", answer: "Five main numbers (1–50) plus one PowerBall (1–20)." },
+    ],
+  },
+  "lotto": {
+    intro: (d) => `Lotto results for ${d} cover the Wednesday/Saturday main draw and any Plus variants. Six numbers from 1–58 are drawn, plus a bonus ball for secondary prizes.`,
+    reminders: [
+      "Draws occur every Wednesday and Saturday evening in South Africa.",
+      "Jackpots roll over when not won; amounts shown are per winner for this draw.",
+      "Claim prizes within 365 days; keep your ticket safe until verified.",
+    ],
+    faqs: [
+      { question: "How many numbers are drawn?", answer: "Six main numbers from 1–58, plus one bonus ball used for secondary divisions." },
+      { question: "When are Lotto draws?", answer: "Every Wednesday and Saturday evening (SAST)." },
+      { question: "Do Lotto jackpots roll over?", answer: "Yes. If the top prize isn’t won, it rolls to the next draw." },
+    ],
+  },
+};
+
 export default function DateResultPage() {
   const { date } = useParams<{ date: string }>();
   const [location] = useLocation();
@@ -81,13 +127,18 @@ export default function DateResultPage() {
 
   const groupName = data?.groupName || gameSlug?.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") || "Lottery";
   const variants = data?.variants || [];
+  const normalizedSlug = useMemo(() => {
+    if (gameSlug) return canonicalSlug(gameSlug);
+    if (data?.groupSlug) return canonicalSlug(data.groupSlug);
+    return null;
+  }, [gameSlug, data?.groupSlug]);
 
   useEffect(() => {
     if (data) {
       document.title = `${groupName} Results for ${formatDisplayDate(data.date)} | African Lottery`;
       const metaDesc = document.querySelector('meta[name="description"]');
       if (metaDesc) {
-        metaDesc.setAttribute("content", `${groupName} lottery results and winning numbers for ${formatDisplayDate(data.date)}. View the complete draw results including jackpot information.`);
+        metaDesc.setAttribute("content", `${groupName} lottery results and winning numbers for ${formatDisplayDate(data.date)}. View the complete draw results with jackpot, winners, and variants for this date.`);
       }
     }
   }, [data, groupName]);
@@ -153,6 +204,45 @@ export default function DateResultPage() {
             {formatDisplayDate(data.date)}
           </p>
         </div>
+
+        <Card className="mb-8">
+          <CardHeader className="pb-3">
+            <CardTitle>About these results</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 text-muted-foreground">
+            <p className="text-sm leading-relaxed">
+              {DRAW_COPY[normalizedSlug || ""]?.intro(formatDisplayDate(data.date)) ||
+                `Official ${groupName} winning numbers for ${formatDisplayDate(data.date)}. Review the draws below, including jackpots and winner counts where available.`}
+            </p>
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold text-foreground">Reminders</h3>
+              <ul className="list-disc pl-5 space-y-1 text-sm">
+                {(DRAW_COPY[normalizedSlug || ""]?.reminders || [
+                  "Check the published numbers against your ticket and keep it safe until prizes are claimed.",
+                  "Jackpot amounts reflect the per-winner share for the top division.",
+                  "Most South African lottery prizes must be claimed within 365 days of the draw date.",
+                ]).map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold text-foreground">FAQs</h3>
+              <div className="space-y-2">
+                {(DRAW_COPY[normalizedSlug || ""]?.faqs || [
+                  { question: "When are draws held?", answer: "Draw schedules depend on the game; check the game page for exact days and times." },
+                  { question: "How are jackpots shown?", answer: "Amounts shown here are per-winner shares when the top division is won; rollovers apply when not won for rollover games." },
+                  { question: "How long do I have to claim?", answer: "In South Africa, prizes generally must be claimed within 365 days of the draw date." },
+                ]).map((faq, idx) => (
+                  <div key={idx} className="rounded-md bg-muted/40 p-3">
+                    <p className="text-sm font-semibold text-foreground">{faq.question}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{faq.answer}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="flex items-center justify-between mb-8 gap-4 flex-wrap">
           {data.previousDate ? (
