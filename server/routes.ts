@@ -595,7 +595,12 @@ export async function registerRoutes(
 
       const response = await fetch(targetUrl, {
         method: "GET",
-        headers: { "User-Agent": ua, "Accept-Language": acceptLang },
+        // Send browser-like Accept to avoid origin 415 responses that reject generic fetch defaults
+        headers: {
+          "User-Agent": ua,
+          "Accept-Language": acceptLang,
+          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        },
       });
 
       const text = await response.text();

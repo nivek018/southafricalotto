@@ -12,7 +12,7 @@ interface GameConfig {
   numberCount: number;
   hasBonus: boolean;
   path: string;
-  topPrizeLabel: RegExp;
+  topPrizeLabel?: RegExp;
 }
 
 interface ScrapedResult extends InsertLotteryResult {
@@ -20,14 +20,16 @@ interface ScrapedResult extends InsertLotteryResult {
 }
 
 const GAME_CONFIGS: GameConfig[] = [
-  { slug: "powerball", name: "Powerball", numberCount: 5, hasBonus: true, path: "powerball", topPrizeLabel: /5\s*correct\s*\+\s*PB/i },
-  { slug: "powerball-plus", name: "Powerball Plus", numberCount: 5, hasBonus: true, path: "powerball-plus", topPrizeLabel: /5\s*correct\s*\+\s*PB/i },
-  { slug: "lotto", name: "Lotto", numberCount: 6, hasBonus: true, path: "lotto", topPrizeLabel: /6\s*correct/i },
-  { slug: "lotto-plus-1", name: "Lotto Plus 1", numberCount: 6, hasBonus: true, path: "lotto-plus", topPrizeLabel: /6\s*correct/i },
-  { slug: "lotto-plus-2", name: "Lotto Plus 2", numberCount: 6, hasBonus: true, path: "lotto-plus-2", topPrizeLabel: /6\s*correct/i },
-  { slug: "daily-lotto", name: "Daily Lotto", numberCount: 5, hasBonus: false, path: "daily-lotto", topPrizeLabel: /5\s*correct/i },
-  { slug: "daily-lotto-plus", name: "Daily Lotto Plus", numberCount: 5, hasBonus: false, path: "daily-lotto-plus", topPrizeLabel: /5\s*correct/i },
+  { slug: "powerball", name: "Powerball", numberCount: 5, hasBonus: true, path: "powerball" },
+  { slug: "powerball-plus", name: "Powerball Plus", numberCount: 5, hasBonus: true, path: "powerball-plus" },
+  { slug: "lotto", name: "Lotto", numberCount: 6, hasBonus: true, path: "lotto" },
+  { slug: "lotto-plus-1", name: "Lotto Plus 1", numberCount: 6, hasBonus: true, path: "lotto-plus-1" },
+  { slug: "lotto-plus-2", name: "Lotto Plus 2", numberCount: 6, hasBonus: true, path: "lotto-plus-2" },
+  { slug: "daily-lotto", name: "Daily Lotto", numberCount: 5, hasBonus: false, path: "daily-lotto" },
+  { slug: "daily-lotto-plus", name: "Daily Lotto Plus", numberCount: 5, hasBonus: false, path: "daily-lotto-plus" },
 ];
+
+const BASE_URL = "https://za.national-lottery.com";
 
 const USER_AGENTS = [
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -72,11 +74,12 @@ const formatSastDateString = (base?: Date): string => {
 };
 
 const formatDateForUrl = (dateIso: string): string => {
+  // Example: 2025-12-05 -> 05-december-2025
   const date = new Date(dateIso + "T00:00:00Z");
   const fmt = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Africa/Johannesburg",
-    day: "numeric", // no leading zero
-    month: "short",
+    day: "2-digit",
+    month: "long",
     year: "numeric",
   });
   return fmt.format(date).replace(/ /g, "-").toLowerCase();
@@ -105,55 +108,39 @@ const isDrawDayForDate = (slug: string, targetIso: string): boolean => {
 };
 
 const parseWinningNumbers = ($: cheerio.CheerioAPI, config: GameConfig): { main: number[]; bonus: number | null } | null => {
-  const blocks = $("div.results");
   const mainNums: number[] = [];
-  const bonusCandidates: number[] = [];
+  let bonus: number | null = null;
 
-  blocks.find("span.ball, span.ballr, span.ball2").each((_i, el) => {
+  $("#ballsCell li.ball").each((_i, el) => {
     const num = parseInt($(el).text().trim(), 10);
-    if (!Number.isNaN(num)) mainNums.push(num);
-  });
-
-  blocks.find("span.bonusball, span.bonusball2").each((_i, el) => {
-    const num = parseInt($(el).text().trim(), 10);
-    if (!Number.isNaN(num)) bonusCandidates.push(num);
+    if (Number.isNaN(num)) return;
+    const cls = ($(el).attr("class") || "").toLowerCase();
+    if (/powerball|bonus-ball/.test(cls)) {
+      bonus = num;
+      return;
+    }
+    mainNums.push(num);
   });
 
   if (mainNums.length !== config.numberCount) {
     logScrape(`[Scrape] ${config.name}: expected ${config.numberCount} numbers, got ${mainNums.length}`);
     return null;
   }
-  const bonus = config.hasBonus ? (bonusCandidates[0] ?? null) : null;
-  return { main: sortNumbers(mainNums), bonus };
+
+  return { main: sortNumbers(mainNums), bonus: config.hasBonus ? bonus : null };
 };
 
-const parseJackpotAndWinners = ($: cheerio.CheerioAPI, config: GameConfig): { jackpot: string | null; winner: number | null } => {
-  let jackpot: string | null = null;
+const parseJackpotAndWinners = ($: cheerio.CheerioAPI): { jackpot: string | null; winner: number | null } => {
+  const jackpot = $(".jackpot span").first().text().trim() || null;
+
   let winner: number | null = null;
-
-  let found = false;
-  $("table tr").each((_i, row) => {
-    const tds = $(row).find("td");
-    if (tds.length < 2) return;
-    const label = $(tds[0]).text().trim();
-    if (!config.topPrizeLabel.test(label)) return;
-    const winnersText = $(tds[1]).text().trim().replace(/,/g, "");
-    const payoutText = (tds[2] ? $(tds[2]).text() : "").trim();
+  const topRow = $(".prizebreakdown tbody tr").first();
+  if (topRow && topRow.length > 0) {
+    const winnersText = topRow.find('td[data-title="Winners"]').text().trim().replace(/,/g, "");
     const winnersNum = parseInt(winnersText, 10);
-    winner = Number.isNaN(winnersNum) ? null : winnersNum;
-    jackpot = /rollover/i.test(payoutText) ? null : (payoutText || jackpot);
-    found = true;
-    return false;
-  });
-
-  // Fallbacks for rollover / pooled values
-  const rolloverLi = $('ul li:contains("Rollover Value")').first().text().match(/Rollover Value:\s*(.+)/i);
-  const nextJackpotLi = $('ul li:contains("Next Jackpot")').first().text().match(/Next Jackpot:\s*(.+)/i);
-  const totalPrizeLi = $('ul li:contains("Total Prize Pool")').first().text().match(/Total Prize Pool:\s*(.+)/i);
-  jackpot = jackpot || rolloverLi?.[1]?.trim() || nextJackpotLi?.[1]?.trim() || totalPrizeLi?.[1]?.trim() || null;
-
-  if (!found && !jackpot && !winner) {
-    logScrape(`[Scrape] ${config.name}: top prize row not found`);
+    if (!Number.isNaN(winnersNum)) {
+      winner = winnersNum;
+    }
   }
 
   return { jackpot, winner };
@@ -162,7 +149,7 @@ const parseJackpotAndWinners = ($: cheerio.CheerioAPI, config: GameConfig): { ja
 const fetchGameResult = async (config: GameConfig, targetDateIso: string): Promise<ScrapedResult | null> => {
   const headers = getRandomHeaders();
   const dateSlug = formatDateForUrl(targetDateIso);
-  const url = `https://www.africanlottery.net/${config.path}/results/${dateSlug}/`;
+  const url = `${BASE_URL}/${config.path}/results/${dateSlug}`;
   logScrape(`[Scrape] Fetching ${config.name} at ${url}`);
 
   try {
@@ -175,7 +162,7 @@ const fetchGameResult = async (config: GameConfig, targetDateIso: string): Promi
     const $ = cheerio.load(response.data);
     const nums = parseWinningNumbers($, config);
     if (!nums) return null;
-    const { jackpot, winner } = parseJackpotAndWinners($, config);
+    const { jackpot, winner } = parseJackpotAndWinners($);
 
     return {
       gameId: config.slug,
@@ -265,11 +252,11 @@ export async function processScrapedResults(scrapedResults: InsertLotteryResult[
 
   for (const result of scrapedResults) {
     const existingResults = await storage.getResultsByGameSlug(result.gameSlug);
-    const exists = existingResults.some(
+    const existing = existingResults.find(
       r => r.drawDate === result.drawDate && r.gameSlug === result.gameSlug
     );
 
-    if (!exists) {
+    if (!existing) {
       await storage.createResult(result);
       addedCount++;
       addedResults.push({
@@ -280,14 +267,42 @@ export async function processScrapedResults(scrapedResults: InsertLotteryResult[
       });
       logScrape(`[Cron] Added new result for ${result.gameName}`);
     } else {
-      skippedResults.push({
-        game: result.gameName,
-        numbers: result.winningNumbers.join(', '),
-        bonus: result.bonusNumber,
-        date: result.drawDate,
-        reason: "Already exists"
-      });
-      logScrape(`[Cron] Skipped ${result.gameName} - already exists for ${result.drawDate}`);
+      const needsUpdate =
+        existing.jackpotAmount !== result.jackpotAmount ||
+        existing.bonusNumber !== result.bonusNumber ||
+        existing.winner !== result.winner ||
+        JSON.stringify(existing.winningNumbers) !== JSON.stringify(result.winningNumbers);
+
+      if (needsUpdate) {
+        await storage.updateResult(existing.id, {
+          winningNumbers: result.winningNumbers,
+          bonusNumber: result.bonusNumber,
+          jackpotAmount: result.jackpotAmount,
+          nextJackpot: result.nextJackpot,
+          winner: result.winner ?? existing.winner,
+          gameName: result.gameName,
+          gameSlug: result.gameSlug,
+          gameId: result.gameId,
+          drawDate: result.drawDate,
+        });
+        addedResults.push({
+          game: result.gameName,
+          numbers: result.winningNumbers.join(', '),
+          bonus: result.bonusNumber,
+          date: result.drawDate,
+          reason: "Updated existing",
+        });
+        logScrape(`[Cron] Updated existing result for ${result.gameName} (${result.drawDate})`);
+      } else {
+        skippedResults.push({
+          game: result.gameName,
+          numbers: result.winningNumbers.join(', '),
+          bonus: result.bonusNumber,
+          date: result.drawDate,
+          reason: "Already up to date"
+        });
+        logScrape(`[Cron] Skipped ${result.gameName} - already up to date for ${result.drawDate}`);
+      }
     }
   }
 
