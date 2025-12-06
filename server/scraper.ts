@@ -146,6 +146,9 @@ const parseJackpotAndWinners = ($: cheerio.CheerioAPI): { jackpot: string | null
   return { jackpot, winner };
 };
 
+const formatRand = (amount: number): string =>
+  `R${amount.toLocaleString("en-ZA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
 const fetchGameResult = async (config: GameConfig, targetDateIso: string): Promise<ScrapedResult | null> => {
   const headers = getRandomHeaders();
   const dateSlug = formatDateForUrl(targetDateIso);
@@ -164,6 +167,15 @@ const fetchGameResult = async (config: GameConfig, targetDateIso: string): Promi
     if (!nums) return null;
     const { jackpot, winner } = parseJackpotAndWinners($);
 
+    // The site shows total payout for the top division; divide by winners to get per-winner jackpot
+    let jackpotAmount = jackpot || null;
+    if (jackpot && typeof winner === "number" && winner > 0) {
+      const numeric = parseFloat(jackpot.replace(/[^0-9.]/g, ""));
+      if (!Number.isNaN(numeric)) {
+        jackpotAmount = formatRand(numeric / winner);
+      }
+    }
+
     return {
       gameId: config.slug,
       gameName: config.name,
@@ -171,7 +183,7 @@ const fetchGameResult = async (config: GameConfig, targetDateIso: string): Promi
       winningNumbers: nums.main,
       bonusNumber: nums.bonus,
       drawDate: targetDateIso,
-      jackpotAmount: jackpot || null,
+      jackpotAmount,
       nextJackpot: null,
       winner: typeof winner === "number" ? winner : null,
     };
