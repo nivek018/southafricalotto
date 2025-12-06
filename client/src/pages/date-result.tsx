@@ -22,47 +22,59 @@ interface DateResultsResponse {
 }
 
 const DRAW_COPY: Record<string, {
-  intro: (formattedDate: string) => string;
+  intro: (links: { powerball: string; lotto: string; daily: string; jackpot: string }) => string;
   reminders: string[];
   faqs: { question: string; answer: string }[];
 }> = {
   "daily-lotto": {
-    intro: (d) => `Daily Lotto results for ${d} are posted right after the official evening draw. Five numbers from 1–36 are pulled nightly—check below to see if your picks matched.`,
+    intro: (links) => `Daily Lotto results are posted right after the official evening draw. Five numbers from 1–36 are pulled nightly—see the winning numbers below, explore more draws on the Daily Lotto page (${links.daily}), check the Lotto page for other 6-ball draws (${links.lotto}), or view all jackpots here (${links.jackpot}).`,
     reminders: [
       "Draws happen every evening around 21:00 SAST; ticket cut-off is shortly before draw time.",
       "Jackpot is shared among all top-division winners; amounts shown here reflect the per-winner share.",
       "Prizes must be claimed within 365 days of the draw date with a valid ticket.",
+      "No bonus ball in Daily Lotto; five main numbers determine all prize divisions.",
+      "Results usually appear within minutes after the official draw verification.",
     ],
     faqs: [
       { question: "When are Daily Lotto draws?", answer: "Every evening around 21:00 SAST, seven days a week." },
       { question: "Do Daily Lotto jackpots roll over?", answer: "No. The top prize is shared among winners and does not roll over." },
       { question: "How many numbers are drawn?", answer: "Five numbers from 1 to 36. There is no bonus ball." },
+      { question: "How is the jackpot split?", answer: "The top prize is divided equally among all top-division winners for that draw." },
+      { question: "How long to claim?", answer: "You generally have 365 days from the draw date to claim prizes in South Africa." },
     ],
   },
   "powerball": {
-    intro: (d) => `Powerball results for ${d} are available moments after the Tuesday/Friday draw. You need 5 numbers from 1–50 plus the PowerBall (1–20) to take the jackpot.`,
+    intro: (links) => `Powerball results post moments after the Tuesday/Friday draw. Check the winning numbers below, visit the Powerball page for more draws (${links.powerball}), Lotto for the Wednesday/Saturday 6-ball game (${links.lotto}), Daily Lotto for nightly results (${links.daily}), or see all jackpots here (${links.jackpot}).`,
     reminders: [
       "Draws run on Tuesdays and Fridays at about 20:58 SAST.",
       "Jackpots roll over when not won and can grow quickly; amounts shown are per winner for this draw.",
       "Check tickets and claim prizes within 365 days of the draw date.",
+      "PowerBall is drawn from 1–20 and is required for the jackpot; it also boosts secondary prizes.",
+      "Results typically publish within minutes after the official confirmation.",
     ],
     faqs: [
       { question: "What is the PowerBall number?", answer: "It is a separate ball from 1–20. Matching it can boost secondary prizes and is required for the jackpot." },
       { question: "Do jackpots roll over?", answer: "Yes. If no one wins the top prize, the jackpot carries into the next draw." },
       { question: "How many numbers are drawn?", answer: "Five main numbers (1–50) plus one PowerBall (1–20)." },
+      { question: "Can I see previous draws?", answer: "Yes. Use the Powerball game page or draw history to browse prior results." },
+      { question: "How long to claim?", answer: "Prizes generally must be claimed within 365 days of the draw date in South Africa." },
     ],
   },
   "lotto": {
-    intro: (d) => `Lotto results for ${d} cover the Wednesday/Saturday main draw and any Plus variants. Six numbers from 1–58 are drawn, plus a bonus ball for secondary prizes.`,
+    intro: (links) => `Lotto results cover the Wednesday/Saturday main draw and Plus variants. Six numbers from 1–58 are drawn, plus a bonus ball for secondary prizes. See the numbers below, visit the Lotto page for more draws (${links.lotto}), Powerball for the 5+PB game (${links.powerball}), Daily Lotto for nightly results (${links.daily}), or check all jackpots here (${links.jackpot}).`,
     reminders: [
       "Draws occur every Wednesday and Saturday evening in South Africa.",
       "Jackpots roll over when not won; amounts shown are per winner for this draw.",
       "Claim prizes within 365 days; keep your ticket safe until verified.",
+      "Bonus ball applies to secondary divisions; the jackpot requires all six main numbers.",
+      "Results are usually posted within minutes after official confirmation.",
     ],
     faqs: [
       { question: "How many numbers are drawn?", answer: "Six main numbers from 1–58, plus one bonus ball used for secondary divisions." },
       { question: "When are Lotto draws?", answer: "Every Wednesday and Saturday evening (SAST)." },
       { question: "Do Lotto jackpots roll over?", answer: "Yes. If the top prize isn’t won, it rolls to the next draw." },
+      { question: "How do Plus draws work?", answer: "Lotto Plus 1 and Plus 2 use the same numbers you pick, with separate prize pools and draws." },
+      { question: "How long to claim?", answer: "Prizes generally must be claimed within 365 days of the draw date in South Africa." },
     ],
   },
 };
@@ -206,41 +218,16 @@ export default function DateResultPage() {
         </div>
 
         <Card className="mb-8">
-          <CardHeader className="pb-3">
-            <CardTitle>About these results</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 text-muted-foreground">
+          <CardContent className="space-y-3 text-muted-foreground">
             <p className="text-sm leading-relaxed">
-              {DRAW_COPY[normalizedSlug || ""]?.intro(formatDisplayDate(data.date)) ||
-                `Official ${groupName} winning numbers for ${formatDisplayDate(data.date)}. Review the draws below, including jackpots and winner counts where available.`}
+              {DRAW_COPY[normalizedSlug || ""]?.intro({
+                powerball: "/game/powerball",
+                lotto: "/game/lotto",
+                daily: "/game/daily-lotto",
+                jackpot: "/game/jackpot",
+              }) ||
+                `Official ${groupName} winning numbers. Explore more on the game pages: Powerball (/game/powerball), Lotto (/game/lotto), Daily Lotto (/game/daily-lotto), and see current jackpots (/game/jackpot).`}
             </p>
-            <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-foreground">Reminders</h3>
-              <ul className="list-disc pl-5 space-y-1 text-sm">
-                {(DRAW_COPY[normalizedSlug || ""]?.reminders || [
-                  "Check the published numbers against your ticket and keep it safe until prizes are claimed.",
-                  "Jackpot amounts reflect the per-winner share for the top division.",
-                  "Most South African lottery prizes must be claimed within 365 days of the draw date.",
-                ]).map((item, idx) => (
-                  <li key={idx}>{item}</li>
-                ))}
-              </ul>
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-foreground">FAQs</h3>
-              <div className="space-y-2">
-                {(DRAW_COPY[normalizedSlug || ""]?.faqs || [
-                  { question: "When are draws held?", answer: "Draw schedules depend on the game; check the game page for exact days and times." },
-                  { question: "How are jackpots shown?", answer: "Amounts shown here are per-winner shares when the top division is won; rollovers apply when not won for rollover games." },
-                  { question: "How long do I have to claim?", answer: "In South Africa, prizes generally must be claimed within 365 days of the draw date." },
-                ]).map((faq, idx) => (
-                  <div key={idx} className="rounded-md bg-muted/40 p-3">
-                    <p className="text-sm font-semibold text-foreground">{faq.question}</p>
-                    <p className="text-sm text-muted-foreground mt-1">{faq.answer}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
           </CardContent>
         </Card>
 
@@ -353,6 +340,43 @@ export default function DateResultPage() {
             </Button>
           </Link>
         </div>
+
+        <Card className="mt-10">
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold text-foreground">Reminders</h3>
+              <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
+                {(DRAW_COPY[normalizedSlug || ""]?.reminders || [
+                  "Check the published numbers against your ticket and keep it safe until prizes are claimed.",
+                  "Jackpot amounts reflect the per-winner share for the top division.",
+                  "Most South African lottery prizes must be claimed within 365 days of the draw date.",
+                  "Bonus balls apply only to specific games—verify the rules for your ticket.",
+                  "Results typically appear within minutes after official confirmation; verify against the official ticket if in doubt.",
+                ]).map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold text-foreground">FAQs</h3>
+              <div className="space-y-2">
+                {(DRAW_COPY[normalizedSlug || ""]?.faqs || [
+                  { question: "When are draws held?", answer: "Draw schedules depend on the game; check the game page for exact days and times." },
+                  { question: "How are jackpots shown?", answer: "Amounts shown here are per-winner shares when the top division is won; rollovers apply when not won for rollover games." },
+                  { question: "How long do I have to claim?", answer: "In South Africa, prizes generally must be claimed within 365 days of the draw date." },
+                  { question: "Where can I see more draws?", answer: "Visit the game pages or draw history to browse previous results and jackpots." },
+                  { question: "Do results include Plus variants?", answer: "Where applicable, Plus variants are shown alongside the main game on this page." },
+                ]).map((faq, idx) => (
+                  <div key={idx} className="rounded-md bg-muted/40 p-3">
+                    <p className="text-sm font-semibold text-foreground">{faq.question}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{faq.answer}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
