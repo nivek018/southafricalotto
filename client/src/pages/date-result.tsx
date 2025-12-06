@@ -22,12 +22,12 @@ interface DateResultsResponse {
 }
 
 const DRAW_COPY: Record<string, {
-  intro: (links: { powerball: string; lotto: string; daily: string; jackpot: string }) => string;
+  intro: ((links: { powerball: string; lotto: string; daily: string; jackpot: string }) => string) | null;
   reminders: string[];
   faqs: { question: string; answer: string }[];
 }> = {
   "daily-lotto": {
-    intro: (links) => `Daily Lotto results are posted right after the official evening draw. Five numbers from 1–36 are pulled nightly—see the winning numbers below, explore more draws on the Daily Lotto page (${links.daily}), check the Lotto page for other 6-ball draws (${links.lotto}), or view all jackpots here (${links.jackpot}).`,
+    intro: null,
     reminders: [
       "Draws happen every evening around 21:00 SAST; ticket cut-off is shortly before draw time.",
       "Jackpot is shared among all top-division winners; amounts shown here reflect the per-winner share.",
@@ -44,7 +44,7 @@ const DRAW_COPY: Record<string, {
     ],
   },
   "powerball": {
-    intro: (links) => `Powerball results post moments after the Tuesday/Friday draw. Check the winning numbers below, visit the Powerball page for more draws (${links.powerball}), Lotto for the Wednesday/Saturday 6-ball game (${links.lotto}), Daily Lotto for nightly results (${links.daily}), or see all jackpots here (${links.jackpot}).`,
+    intro: null,
     reminders: [
       "Draws run on Tuesdays and Fridays at about 20:58 SAST.",
       "Jackpots roll over when not won and can grow quickly; amounts shown are per winner for this draw.",
@@ -61,7 +61,7 @@ const DRAW_COPY: Record<string, {
     ],
   },
   "lotto": {
-    intro: (links) => `Lotto results cover the Wednesday/Saturday main draw and Plus variants. Six numbers from 1–58 are drawn, plus a bonus ball for secondary prizes. See the numbers below, visit the Lotto page for more draws (${links.lotto}), Powerball for the 5+PB game (${links.powerball}), Daily Lotto for nightly results (${links.daily}), or check all jackpots here (${links.jackpot}).`,
+    intro: null,
     reminders: [
       "Draws occur every Wednesday and Saturday evening in South Africa.",
       "Jackpots roll over when not won; amounts shown are per winner for this draw.",
@@ -219,14 +219,57 @@ export default function DateResultPage() {
 
         <Card className="mb-8 shadow-sm border">
           <CardContent className="space-y-3 text-muted-foreground">
-            <p className="text-base leading-relaxed text-foreground">
-              {DRAW_COPY[normalizedSlug || ""]?.intro({
-                powerball: "/game/powerball",
-                lotto: "/game/lotto",
-                daily: "/game/daily-lotto",
-                jackpot: "/game/jackpot",
-              }) ||
-                `Official ${groupName} winning numbers. Explore more on the game pages: Powerball (/game/powerball), Lotto (/game/lotto), Daily Lotto (/game/daily-lotto), and see current jackpots (/game/jackpot).`}
+            <p className="text-base leading-relaxed text-foreground flex flex-wrap gap-1">
+              {normalizedSlug === "daily-lotto" && (
+                <>
+                  <span>Daily Lotto results are posted right after the official evening draw. Five numbers from 1–36 are pulled nightly—see the winning numbers below, explore more draws on the</span>
+                  <Link href="/game/daily-lotto" className="text-primary underline underline-offset-4">Daily Lotto page</Link>
+                  <span>, check the</span>
+                  <Link href="/game/lotto" className="text-primary underline underline-offset-4">Lotto page</Link>
+                  <span>for other 6-ball draws, or view all jackpots on</span>
+                  <Link href="/game/jackpot" className="text-primary underline underline-offset-4">Jackpot Central</Link>
+                  <span>.</span>
+                </>
+              )}
+              {normalizedSlug === "powerball" && (
+                <>
+                  <span>Powerball results post moments after the Tuesday/Friday draw. Check the winning numbers below, visit the</span>
+                  <Link href="/game/powerball" className="text-primary underline underline-offset-4">Powerball page</Link>
+                  <span>for more draws, the</span>
+                  <Link href="/game/lotto" className="text-primary underline underline-offset-4">Lotto page</Link>
+                  <span>for 6-ball games, see nightly draws on</span>
+                  <Link href="/game/daily-lotto" className="text-primary underline underline-offset-4">Daily Lotto</Link>
+                  <span>, or view current jackpots on</span>
+                  <Link href="/game/jackpot" className="text-primary underline underline-offset-4">Jackpot Central</Link>
+                  <span>.</span>
+                </>
+              )}
+              {normalizedSlug === "lotto" && (
+                <>
+                  <span>Lotto results cover the Wednesday/Saturday main draw and Plus variants. Six numbers from 1–58 are drawn, plus a bonus ball for secondary prizes. See the numbers below, visit the</span>
+                  <Link href="/game/lotto" className="text-primary underline underline-offset-4">Lotto page</Link>
+                  <span>for more draws, check</span>
+                  <Link href="/game/powerball" className="text-primary underline underline-offset-4">Powerball</Link>
+                  <span>for the 5+PB game, view nightly draws on</span>
+                  <Link href="/game/daily-lotto" className="text-primary underline underline-offset-4">Daily Lotto</Link>
+                  <span>, or see all jackpots on</span>
+                  <Link href="/game/jackpot" className="text-primary underline underline-offset-4">Jackpot Central</Link>
+                  <span>.</span>
+                </>
+              )}
+              {!normalizedSlug && (
+                <>
+                  <span>Official {groupName} winning numbers. Explore more on</span>
+                  <Link href="/game/powerball" className="text-primary underline underline-offset-4">Powerball</Link>
+                  <span>,</span>
+                  <Link href="/game/lotto" className="text-primary underline underline-offset-4">Lotto</Link>
+                  <span>,</span>
+                  <Link href="/game/daily-lotto" className="text-primary underline underline-offset-4">Daily Lotto</Link>
+                  <span>, and</span>
+                  <Link href="/game/jackpot" className="text-primary underline underline-offset-4">Jackpot Central</Link>
+                  <span>.</span>
+                </>
+              )}
             </p>
           </CardContent>
         </Card>
@@ -341,11 +384,11 @@ export default function DateResultPage() {
           </Link>
         </div>
 
-        <Card className="mt-10">
+        <Card className="mt-10 shadow-sm border">
           <CardContent className="space-y-5">
             <div className="space-y-3">
-              <h3 className="flex items-center gap-2 text-base font-semibold text-foreground">
-                <History className="h-4 w-4 text-primary" />
+              <h3 className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                <History className="h-5 w-5 text-primary" />
                 Reminders
               </h3>
               <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
@@ -362,8 +405,8 @@ export default function DateResultPage() {
             </div>
 
             <div className="space-y-3">
-              <h3 className="flex items-center gap-2 text-base font-semibold text-foreground">
-                <Users className="h-4 w-4 text-primary" />
+              <h3 className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                <Users className="h-5 w-5 text-primary" />
                 FAQs
               </h3>
               <div className="space-y-2">
@@ -374,7 +417,7 @@ export default function DateResultPage() {
                   { question: "Where can I see more draws?", answer: "Visit the game pages or draw history to browse previous results and jackpots." },
                   { question: "Do results include Plus variants?", answer: "Where applicable, Plus variants are shown alongside the main game on this page." },
                 ]).map((faq, idx) => (
-                  <div key={idx} className="rounded-md bg-muted/40 p-3 border border-border/50">
+                  <div key={idx} className="rounded-md bg-muted/40 p-3 border border-border/60">
                     <p className="text-sm font-semibold text-foreground">{faq.question}</p>
                     <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{faq.answer}</p>
                   </div>
