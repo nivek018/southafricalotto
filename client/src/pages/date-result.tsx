@@ -217,62 +217,45 @@ export default function DateResultPage() {
           </p>
         </div>
 
-        <Card className="mb-8 shadow-sm border">
-          <CardContent className="space-y-3 text-muted-foreground">
-            <p className="text-base leading-relaxed text-foreground flex flex-wrap gap-1">
-              {normalizedSlug === "daily-lotto" && (
-                <>
-                  <span>Daily Lotto results are posted right after the official evening draw. Five numbers from 1–36 are pulled nightly—see the winning numbers below, explore more draws on the</span>
-                  <Link href="/game/daily-lotto" className="text-primary underline underline-offset-4">Daily Lotto page</Link>
-                  <span>, check the</span>
-                  <Link href="/game/lotto" className="text-primary underline underline-offset-4">Lotto page</Link>
-                  <span>for other 6-ball draws, or view all jackpots on</span>
-                  <Link href="/game/jackpot" className="text-primary underline underline-offset-4">Jackpot Central</Link>
-                  <span>.</span>
-                </>
-              )}
-              {normalizedSlug === "powerball" && (
-                <>
-                  <span>Powerball results post moments after the Tuesday/Friday draw. Check the winning numbers below, visit the</span>
-                  <Link href="/game/powerball" className="text-primary underline underline-offset-4">Powerball page</Link>
-                  <span>for more draws, the</span>
-                  <Link href="/game/lotto" className="text-primary underline underline-offset-4">Lotto page</Link>
-                  <span>for 6-ball games, see nightly draws on</span>
-                  <Link href="/game/daily-lotto" className="text-primary underline underline-offset-4">Daily Lotto</Link>
-                  <span>, or view current jackpots on</span>
-                  <Link href="/game/jackpot" className="text-primary underline underline-offset-4">Jackpot Central</Link>
-                  <span>.</span>
-                </>
-              )}
-              {normalizedSlug === "lotto" && (
-                <>
-                  <span>Lotto results cover the Wednesday/Saturday main draw and Plus variants. Six numbers from 1–58 are drawn, plus a bonus ball for secondary prizes. See the numbers below, visit the</span>
-                  <Link href="/game/lotto" className="text-primary underline underline-offset-4">Lotto page</Link>
-                  <span>for more draws, check</span>
-                  <Link href="/game/powerball" className="text-primary underline underline-offset-4">Powerball</Link>
-                  <span>for the 5+PB game, view nightly draws on</span>
-                  <Link href="/game/daily-lotto" className="text-primary underline underline-offset-4">Daily Lotto</Link>
-                  <span>, or see all jackpots on</span>
-                  <Link href="/game/jackpot" className="text-primary underline underline-offset-4">Jackpot Central</Link>
-                  <span>.</span>
-                </>
-              )}
-              {!normalizedSlug && (
-                <>
-                  <span>Official {groupName} winning numbers. Explore more on</span>
-                  <Link href="/game/powerball" className="text-primary underline underline-offset-4">Powerball</Link>
-                  <span>,</span>
-                  <Link href="/game/lotto" className="text-primary underline underline-offset-4">Lotto</Link>
-                  <span>,</span>
-                  <Link href="/game/daily-lotto" className="text-primary underline underline-offset-4">Daily Lotto</Link>
-                  <span>, and</span>
-                  <Link href="/game/jackpot" className="text-primary underline underline-offset-4">Jackpot Central</Link>
-                  <span>.</span>
-                </>
-              )}
-            </p>
-          </CardContent>
-        </Card>
+        <div className="mb-8 text-muted-foreground">
+          <p className="text-base leading-relaxed text-foreground">
+            {normalizedSlug === "daily-lotto" && (
+              <>
+                Daily Lotto results are posted right after the official evening draw. Five numbers from 1–36 are pulled nightly—see the winning numbers below, explore more draws on the{" "}
+                <Link href="/game/daily-lotto" className="text-primary underline underline-offset-4">Daily Lotto page</Link>, check the{" "}
+                <Link href="/game/lotto" className="text-primary underline underline-offset-4">Lotto page</Link> for other 6-ball draws, or view all jackpots on{" "}
+                <Link href="/game/jackpot" className="text-primary underline underline-offset-4">Jackpot Central</Link>.
+              </>
+            )}
+            {normalizedSlug === "powerball" && (
+              <>
+                Powerball results post moments after the Tuesday/Friday draw. Check the winning numbers below, visit the{" "}
+                <Link href="/game/powerball" className="text-primary underline underline-offset-4">Powerball page</Link> for more draws, the{" "}
+                <Link href="/game/lotto" className="text-primary underline underline-offset-4">Lotto page</Link> for 6-ball games, see nightly draws on{" "}
+                <Link href="/game/daily-lotto" className="text-primary underline underline-offset-4">Daily Lotto</Link>, or view current jackpots on{" "}
+                <Link href="/game/jackpot" className="text-primary underline underline-offset-4">Jackpot Central</Link>.
+              </>
+            )}
+            {normalizedSlug === "lotto" && (
+              <>
+                Lotto results cover the Wednesday/Saturday main draw and Plus variants. Six numbers from 1–58 are drawn, plus a bonus ball for secondary prizes. See the numbers below, visit the{" "}
+                <Link href="/game/lotto" className="text-primary underline underline-offset-4">Lotto page</Link> for more draws, check{" "}
+                <Link href="/game/powerball" className="text-primary underline underline-offset-4">Powerball</Link> for the 5+PB game, view nightly draws on{" "}
+                <Link href="/game/daily-lotto" className="text-primary underline underline-offset-4">Daily Lotto</Link>, or see all jackpots on{" "}
+                <Link href="/game/jackpot" className="text-primary underline underline-offset-4">Jackpot Central</Link>.
+              </>
+            )}
+            {!normalizedSlug && (
+              <>
+                Official {groupName} winning numbers. Explore more on{" "}
+                <Link href="/game/powerball" className="text-primary underline underline-offset-4">Powerball</Link>,{" "}
+                <Link href="/game/lotto" className="text-primary underline underline-offset-4">Lotto</Link>,{" "}
+                <Link href="/game/daily-lotto" className="text-primary underline underline-offset-4">Daily Lotto</Link>, and{" "}
+                <Link href="/game/jackpot" className="text-primary underline underline-offset-4">Jackpot Central</Link>.
+              </>
+            )}
+          </p>
+        </div>
 
         <div className="flex items-center justify-between mb-8 gap-4 flex-wrap">
           {data.previousDate ? (
