@@ -368,10 +368,10 @@ export default function DateResultPage() {
         </div>
 
         <Card className="mt-10 shadow-sm border">
-          <CardContent className="space-y-5">
+          <CardContent className="space-y-6 pt-4">
             <div className="space-y-3">
-              <h3 className="flex items-center gap-2 text-lg font-semibold text-foreground">
-                <History className="h-5 w-5 text-primary" />
+              <h3 className="flex items-center gap-3 text-xl font-semibold text-foreground leading-tight">
+                <History className="h-5 w-5 text-primary shrink-0" />
                 Reminders
               </h3>
               <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
@@ -388,8 +388,8 @@ export default function DateResultPage() {
             </div>
 
             <div className="space-y-3">
-              <h3 className="flex items-center gap-2 text-lg font-semibold text-foreground">
-                <Users className="h-5 w-5 text-primary" />
+              <h3 className="flex items-center gap-3 text-xl font-semibold text-foreground leading-tight">
+                <Users className="h-5 w-5 text-primary shrink-0" />
                 FAQs
               </h3>
               <div className="space-y-2">
