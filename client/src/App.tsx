@@ -98,9 +98,9 @@ function AppLayout() {
     const lowerPath = (location || "/").toLowerCase();
     let canonicalPath = location || "/";
 
-    const lottoDateMatch = lowerPath.match(/^\/lotto-result\/(\d{4}-\d{2}-\d{2})\/?$/);
-    if (lottoDateMatch) {
-      const dateStr = lottoDateMatch[1];
+    const dateMatch = lowerPath.match(/^\/(lotto|powerball|daily-lotto)-result\/(\d{4}-\d{2}-\d{2})\/?$/);
+    if (dateMatch) {
+      const dateStr = dateMatch[2];
       const today = formatSastDate(0);
       const yesterday = formatSastDate(-1);
       if (dateStr === today) {
