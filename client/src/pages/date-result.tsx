@@ -217,9 +217,9 @@ export default function DateResultPage() {
           </p>
         </div>
 
-        <Card className="mb-8">
+        <Card className="mb-8 shadow-sm border">
           <CardContent className="space-y-3 text-muted-foreground">
-            <p className="text-sm leading-relaxed">
+            <p className="text-base leading-relaxed text-foreground">
               {DRAW_COPY[normalizedSlug || ""]?.intro({
                 powerball: "/game/powerball",
                 lotto: "/game/lotto",
@@ -342,9 +342,12 @@ export default function DateResultPage() {
         </div>
 
         <Card className="mt-10">
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-foreground">Reminders</h3>
+          <CardContent className="space-y-5">
+            <div className="space-y-3">
+              <h3 className="flex items-center gap-2 text-base font-semibold text-foreground">
+                <History className="h-4 w-4 text-primary" />
+                Reminders
+              </h3>
               <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
                 {(DRAW_COPY[normalizedSlug || ""]?.reminders || [
                   "Check the published numbers against your ticket and keep it safe until prizes are claimed.",
@@ -358,8 +361,11 @@ export default function DateResultPage() {
               </ul>
             </div>
 
-            <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-foreground">FAQs</h3>
+            <div className="space-y-3">
+              <h3 className="flex items-center gap-2 text-base font-semibold text-foreground">
+                <Users className="h-4 w-4 text-primary" />
+                FAQs
+              </h3>
               <div className="space-y-2">
                 {(DRAW_COPY[normalizedSlug || ""]?.faqs || [
                   { question: "When are draws held?", answer: "Draw schedules depend on the game; check the game page for exact days and times." },
@@ -368,9 +374,9 @@ export default function DateResultPage() {
                   { question: "Where can I see more draws?", answer: "Visit the game pages or draw history to browse previous results and jackpots." },
                   { question: "Do results include Plus variants?", answer: "Where applicable, Plus variants are shown alongside the main game on this page." },
                 ]).map((faq, idx) => (
-                  <div key={idx} className="rounded-md bg-muted/40 p-3">
+                  <div key={idx} className="rounded-md bg-muted/40 p-3 border border-border/50">
                     <p className="text-sm font-semibold text-foreground">{faq.question}</p>
-                    <p className="text-sm text-muted-foreground mt-1">{faq.answer}</p>
+                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{faq.answer}</p>
                   </div>
                 ))}
               </div>

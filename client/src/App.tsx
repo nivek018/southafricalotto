@@ -71,6 +71,49 @@ function AppLayout() {
     }
   }, [location, isAdminRoute]);
 
+  useEffect(() => {
+    const setCanonical = (href: string) => {
+      let link = document.querySelector("link[rel='canonical']");
+      if (!link) {
+        link = document.createElement("link");
+        link.setAttribute("rel", "canonical");
+        document.head.appendChild(link);
+      }
+      link.setAttribute("href", href);
+    };
+
+    const formatSastDate = (offsetDays = 0) => {
+      const fmt = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Africa/Johannesburg",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
+      const base = new Date();
+      base.setUTCDate(base.getUTCDate() + offsetDays);
+      return fmt.format(base);
+    };
+
+    const origin = window.location.origin;
+    const lowerPath = (location || "/").toLowerCase();
+    let canonicalPath = location || "/";
+
+    const lottoDateMatch = lowerPath.match(/^\/lotto-result\/(\d{4}-\d{2}-\d{2})$/);
+    if (lottoDateMatch) {
+      const dateStr = lottoDateMatch[1];
+      const today = formatSastDate(0);
+      const yesterday = formatSastDate(-1);
+      if (dateStr === today) {
+        canonicalPath = "/lotto-result/today";
+      } else if (dateStr === yesterday) {
+        canonicalPath = "/lotto-result/yesterday";
+      }
+    }
+
+    const finalHref = `${origin}${canonicalPath}`;
+    setCanonical(finalHref);
+  }, [location, isAdminRoute]);
+
   if (isAdminRoute) {
     return router;
   }
